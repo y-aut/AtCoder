@@ -91,120 +91,94 @@ CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 
-CSI MAX_SIZE = 25;
+class SegmentAdd
+{
+    ll size;
+    vll data;
 
-inline int get_index(int r, int c, int W) {
-    return r * W + c;
-}
+    void add_impl(const ll l, const ll r, const ll val, ll k, ll data_l, ll data_r) { 
+        // k: 現在見ているノードの位置
+        // [data_l, data_r): data[k] が表している区間
+        if (data_r <= l || r <= data_l) { // 範囲外なら考えない
+            return;
+        } else if (l <= data_l && data_r <= r) { // 範囲内なので加算
+            data[k] += val;
+        } else { // 一部区間が被る時
+            add_impl(l, r, val, k * 2 + 1, data_l, (data_l + data_r) / 2);
+            add_impl(l, r, val, k * 2 + 2, (data_l + data_r) / 2, data_r);
+        }
+    }
 
-inline bool is_placable(int n, int board, int W) {
-    int c = n % W;
-    if (c == 0) {
-        return (board & 0b110) == 0;
+    // 最上位ビットのみを残した値を取得
+    ull bits_msb(ull v)
+    {
+        v = v | (v >>  1);
+        v = v | (v >>  2);
+        v = v | (v >>  4);
+        v = v | (v >>  8);
+        v = v | (v >> 16);
+        v = v | (v >> 32);
+        return v ^ (v >> 1);
     }
-    if (c == W-1) {
-        return (board & (1 << W | 0b11)) == 0;
+    
+public:
+    SegmentAdd(const ll _size) {
+        size = bits_msb(_size);
+        if (size < _size) size <<= 1;
+        data = vll(size * 2 - 1, 0);
     }
-    return (board & (1 << W | 0b111)) == 0;
-}
 
-int fib[MAX_SIZE] = {2,3};
-int trans[MAX_SIZE][250000][2] = {};
-modint1000000007 dp[MAX_SIZE*MAX_SIZE][250000] = {};
+    // [l, r) の地点を val だけ加算
+    void add(const ll l, const ll r, const ll val) {
+        add_impl(l, r, val, 0, 0, size);
+    }
 
-int array_to_fib(int n, int array) {
-    if (n <= 2) {
-        return array;
+    // i の地点の値を取得
+    ll get(const ll i) {
+        ll tmp = i + size - 1;
+        ll ans = data[tmp];
+        while (tmp > 0) {
+            tmp = (tmp - 1) / 2;
+            ans += data[tmp];
+        }
+        return ans;
     }
-    if ((array >> (n-1)) == 0) {
-        return array_to_fib(n-1, array);
-    }
-    else {
-        return array_to_fib(n-2, array & ((1 << (n-1)) - 1)) + fib[n-2];
-    }
-}
-
-int fib_to_array(int n, int num) {
-    if (n <= 2) {
-        return num;
-    }
-    if (num >= fib[n-2]) {
-        return 1 << (n-1) | fib_to_array(n-2, num-fib[n-2]);
-    }
-    else {
-        return fib_to_array(n-1, num);
-    }
-}
-
-int board_to_fib(int col, int board, int W) {
-    // col==0: (1,W)
-    // col==1: (W,1)
-    // col==n: (W+1-n,n)
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int lowerboard = board >> upper;
-    int upperboard = board & ((1 << upper) - 1);
-    return array_to_fib(upper, upperboard) * fib[lower-1] + array_to_fib(lower, lowerboard);
-}
-
-int fib_to_board(int col, int num, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int upperfib = num / fib[lower-1];
-    int lowerfib = num % fib[lower-1];
-    return fib_to_array(lower, lowerfib) << upper | fib_to_array(upper, upperfib);
-}
-
-inline int fib_max(int col, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    return fib[upper-1] * fib[lower-1];
-}
+};
 
 int main()
 {
-    // フィボナッチ数 fib[n]: 長さ n+1 の 01 文字列で，1 が連続しないもの
-    reps(i, 2, MAX_SIZE) fib[i] = fib[i-1] + fib[i-2];
+    auto N = in_ll();
+    auto pos = in_vvll(4, N);
 
-    auto H = in_int();
-    auto W = in_int();
-    
-    set<int> whites{};
-    rep(i, H) {
-        rep(j, W) {
-            if (in_char() == '.')
-                whites.insert(get_index(i, j, W));
+    int tiles[1002][1002] = {};
+    for (auto p : pos) {
+        tiles[p[0]][p[1]]++;
+        tiles[p[2]][p[3]]++;
+        tiles[p[0]][p[3]]--;
+        tiles[p[2]][p[1]]--;
+    }
+
+    rep(i, 1002) {
+        rep(j, 1001) {
+            tiles[j+1][i] += tiles[j][i];
+        }
+    }
+    rep(i, 1002) {
+        rep(j, 1001) {
+            tiles[i][j+1] += tiles[i][j];
         }
     }
 
-    // 遷移を計算
-    rep(c, W) {
-        rep(i, fib_max(c, W)) {
-            auto board = fib_to_board(c, i, W);
-            trans[c][i][0] = board_to_fib((c+1) % W, board >> 1, W);
-            trans[c][i][1] = board_to_fib((c+1) % W, board >> 1 | 1 << W, W);
-        }
-    }
-    
-    dp[*whites.begin()][board_to_fib(*whites.begin() % W, 0, W)] = 1;
-    reps(i, *whites.begin(), H*W) {
-        rep(j, fib_max(i % W, W)) {
-            dp[i+1][trans[i % W][j][0]] += dp[i][j];
-            if (whites.find(i) != whites.end() && is_placable(i, fib_to_board(i % W, j, W), W))
-                dp[i+1][trans[i % W][j][1]] += dp[i][j];
+    vi sum = vi(N, 0);
+    rep(i, 1001) {
+        rep(j, 1001) {
+            if (tiles[i][j] != 0) {
+                sum[tiles[i][j] - 1]++;
+            }
         }
     }
 
-    // rep(i, H*W) rep(j, fib_max(i % W, W)) {
-    //     cout << "dp[" << i << "][" << j << "]: " << dp[i][j].val() << endl;
-    //     cout << "col: " << i % W << ", board: " << bitset<25>(fib_to_board(i % W, j, W)) << endl;
-    // }
-    
-    modint1000000007 ans = 0;
-    rep(j, fib_max(0, W)) {
-        ans += dp[H*W][j];
-    }
-    print(ans.val());
+    for (auto s : sum) print(s);
 
     return 0;
 }

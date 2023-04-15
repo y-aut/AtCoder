@@ -1,13 +1,7 @@
-#include <bits/stdc++.h>
-using namespace std;
-
-// clang-format off
-using ll = long long;
-using vll = vector<ll>;
+#include "./template.cpp"
 
 // --------------------- ここからコピー --------------------
-class Binomial
-{
+class Binomial {
     ll mod = 0;
     vll fact, fact_inv, inv;
 
@@ -31,19 +25,22 @@ public:
 
     /// nCk % mod を求める
     ll nCk(const ll n, const ll k) {
-        if (k < 0 || n < k) return 0;
+        if (k < 0 || n < k)
+            return 0;
         return fact[n] * (fact_inv[k] * fact_inv[n - k] % mod) % mod;
     }
 
     /// nPk % mod を求める
     ll nPk(const ll n, const ll k) {
-        if (k < 0 || n < k) return 0;
+        if (k < 0 || n < k)
+            return 0;
         return fact[n] * (fact_inv[n - k] % mod) % mod;
     }
 
     /// nHk % mod を求める
     ll nHk(const ll n, const ll k) {
-        if (n == 0 && k == 0) return 1;
+        if (n == 0 && k == 0)
+            return 1;
         return nCk(n + k - 1, k);
     }
 };

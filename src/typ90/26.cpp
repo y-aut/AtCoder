@@ -91,120 +91,105 @@ CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 
-CSI MAX_SIZE = 25;
+#pragma region "ダイクストラ法"
 
-inline int get_index(int r, int c, int W) {
-    return r * W + c;
-}
+struct DEdge { ll to; ll cost; };
+using DGraph = vector<vector<DEdge>>;
 
-inline bool is_placable(int n, int board, int W) {
-    int c = n % W;
-    if (c == 0) {
-        return (board & 0b110) == 0;
-    }
-    if (c == W-1) {
-        return (board & (1 << W | 0b11)) == 0;
-    }
-    return (board & (1 << W | 0b111)) == 0;
-}
+class Dijkstra
+{
+    ll size;
+    vll distances;
+    // 直前の頂点を記録する配列
+    vll previous;
 
-int fib[MAX_SIZE] = {2,3};
-int trans[MAX_SIZE][250000][2] = {};
-modint1000000007 dp[MAX_SIZE*MAX_SIZE][250000] = {};
+public:
+    Dijkstra(const DGraph& graph, const ll startIndex) {
+        distances = vll(graph.size(), LINF);
+        previous = vll(graph.size(), -1);
 
-int array_to_fib(int n, int array) {
-    if (n <= 2) {
-        return array;
-    }
-    if ((array >> (n-1)) == 0) {
-        return array_to_fib(n-1, array);
-    }
-    else {
-        return array_to_fib(n-2, array & ((1 << (n-1)) - 1)) + fib[n-2];
-    }
-}
+        // 「現時点での最短距離, 頂点」の順に取り出す priority_queue
+        priority_queue<pll, vector<pll>, greater<pll>> q;
+        q.emplace((distances[startIndex] = 0), startIndex);
 
-int fib_to_array(int n, int num) {
-    if (n <= 2) {
-        return num;
-    }
-    if (num >= fib[n-2]) {
-        return 1 << (n-1) | fib_to_array(n-2, num-fib[n-2]);
-    }
-    else {
-        return fib_to_array(n-1, num);
-    }
-}
+        while (!q.empty()) {
+            const auto distance = q.top().first;
+            const auto from = q.top().second;
+            q.pop();
 
-int board_to_fib(int col, int board, int W) {
-    // col==0: (1,W)
-    // col==1: (W,1)
-    // col==n: (W+1-n,n)
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int lowerboard = board >> upper;
-    int upperboard = board & ((1 << upper) - 1);
-    return array_to_fib(upper, upperboard) * fib[lower-1] + array_to_fib(lower, lowerboard);
-}
+            // 最短距離でなければ処理しない
+            if (distances[from] < distance) { continue; }
 
-int fib_to_board(int col, int num, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int upperfib = num / fib[lower-1];
-    int lowerfib = num % fib[lower-1];
-    return fib_to_array(lower, lowerfib) << upper | fib_to_array(upper, upperfib);
-}
+            // 現在の頂点からの各辺について
+            for (const auto& edge : graph[from]) {
+                // to までの新しい距離
+                const ll d = (distances[from] + edge.cost);
 
-inline int fib_max(int col, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    return fib[upper-1] * fib[lower-1];
-}
+                // d が現在の記録より小さければ更新
+                if (d < distances[edge.to]) {
+                    previous[edge.to] = from;
+                    q.emplace((distances[edge.to] = d), edge.to);
+                }
+            }
+        }
+    }
+
+    // 最短距離を取得
+    ll get_distance(const ll v) {
+        return distances[v];
+    }
+
+    // 最短経路を取得
+    vll get_path(const ll v) {
+        auto path = vll();
+        for (int i = v; i >= 0; i = previous[i]) {
+			path.push_back(i);
+		}
+		reverse(path.begin(), path.end());
+        return path;
+    }
+};
+
+#pragma endregion
+
 
 int main()
 {
-    // フィボナッチ数 fib[n]: 長さ n+1 の 01 文字列で，1 が連続しないもの
-    reps(i, 2, MAX_SIZE) fib[i] = fib[i-1] + fib[i-2];
-
-    auto H = in_int();
-    auto W = in_int();
+    auto N = in_ll();
+    auto edge = in_vvll(2, N-1);
     
-    set<int> whites{};
-    rep(i, H) {
-        rep(j, W) {
-            if (in_char() == '.')
-                whites.insert(get_index(i, j, W));
+    auto graph = DGraph();
+    rep(i, N) graph.pb(vector<DEdge>());
+    for (auto e : edge) {
+        graph[e.at(0)-1].pb({ e.at(1)-1, 1 });
+        graph[e.at(1)-1].pb({ e.at(0)-1, 1 });
+    }
+
+    auto d = Dijkstra(graph, 0);
+    auto odd = vll();
+    auto even = vll();
+    rep(i, N) {
+        if (d.get_distance(i) % 2 == 0) {
+            even.pb(i+1);
+            if (even.size() >= N / 2) {
+                break;
+            }
+        }
+        else {
+            odd.pb(i+1);
+            if (odd.size() >= N / 2) {
+                break;
+            }
         }
     }
 
-    // 遷移を計算
-    rep(c, W) {
-        rep(i, fib_max(c, W)) {
-            auto board = fib_to_board(c, i, W);
-            trans[c][i][0] = board_to_fib((c+1) % W, board >> 1, W);
-            trans[c][i][1] = board_to_fib((c+1) % W, board >> 1 | 1 << W, W);
-        }
+    auto ans = vll();
+    if (even.size() == N / 2) {
+        print(even);
     }
-    
-    dp[*whites.begin()][board_to_fib(*whites.begin() % W, 0, W)] = 1;
-    reps(i, *whites.begin(), H*W) {
-        rep(j, fib_max(i % W, W)) {
-            dp[i+1][trans[i % W][j][0]] += dp[i][j];
-            if (whites.find(i) != whites.end() && is_placable(i, fib_to_board(i % W, j, W), W))
-                dp[i+1][trans[i % W][j][1]] += dp[i][j];
-        }
+    else {
+        print(odd);
     }
-
-    // rep(i, H*W) rep(j, fib_max(i % W, W)) {
-    //     cout << "dp[" << i << "][" << j << "]: " << dp[i][j].val() << endl;
-    //     cout << "col: " << i % W << ", board: " << bitset<25>(fib_to_board(i % W, j, W)) << endl;
-    // }
-    
-    modint1000000007 ans = 0;
-    rep(j, fib_max(0, W)) {
-        ans += dp[H*W][j];
-    }
-    print(ans.val());
 
     return 0;
 }

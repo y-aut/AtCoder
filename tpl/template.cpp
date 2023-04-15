@@ -24,10 +24,13 @@ using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
 using vll = vector<ll>;
+using vb = vector<bool>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
+using vvb = vector<vb>;
 using vs = vector<string>;
 using vpii = vector<pii>;
+using vpll = vector<pll>;
 // unordered set
 using usi = unordered_set<int>;
 using usll = unordered_set<ll>;
@@ -37,6 +40,7 @@ using uss = unordered_set<string>;
 #define pb push_back
 #define mp make_pair
 #define um unordered_map
+#define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
 #define YESNO(bool) if(bool){cout<<"YES"<<endl;}else{cout<<"NO"<<endl;}
 #define yesno(bool) if(bool){cout<<"yes"<<endl;}else{cout<<"no"<<endl;}
@@ -49,8 +53,9 @@ using uss = unordered_set<string>;
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
 #define rep(i, n) reps(i, 0, n)
 #define rrep(i, n) reps(i, 1, n + 1)
-#define repd(i,n) for (ll i = n - 1; i >= 0; i--)
-#define rrepd(i,n) for (ll i = n; i >= 1; i--)
+#define repd(i, n) for (ll i = n - 1; i >= 0; i--)
+#define rrepd(i, n) for (ll i = n; i >= 1; i--)
+#define repi(a, v) for (auto a : (v))
 
 /* debug */
 // 標準エラー出力を含む提出はrejectされる場合もあるので注意
@@ -60,6 +65,7 @@ using uss = unordered_set<string>;
 inline int in_int() {int x; cin >> x; return x;}
 inline ll in_ll() {ll x; cin >> x; return x;}
 inline double in_double() {double x; cin >> x; return x;}
+inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
 inline vi in_vi(int length) {vi res = vi(); rep(i, length) res.pb(in_int()); return res;}
 inline vll in_vll(int length) {vll res = vll(); rep(i, length) res.pb(in_ll()); return res;}
@@ -88,8 +94,9 @@ CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 
-int main()
-{
-    
+// clang-format on
+
+int main() {
+
     return 0;
 }

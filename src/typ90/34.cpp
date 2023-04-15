@@ -39,6 +39,7 @@ using uss = unordered_set<string>;
 #define pb push_back
 #define mp make_pair
 #define um unordered_map
+#define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
 #define YESNO(bool) if(bool){cout<<"YES"<<endl;}else{cout<<"NO"<<endl;}
 #define yesno(bool) if(bool){cout<<"yes"<<endl;}else{cout<<"no"<<endl;}
@@ -51,8 +52,9 @@ using uss = unordered_set<string>;
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
 #define rep(i, n) reps(i, 0, n)
 #define rrep(i, n) reps(i, 1, n + 1)
-#define repd(i,n) for (ll i = n - 1; i >= 0; i--)
-#define rrepd(i,n) for (ll i = n; i >= 1; i--)
+#define repd(i, n) for (ll i = n - 1; i >= 0; i--)
+#define rrepd(i, n) for (ll i = n; i >= 1; i--)
+#define repi(a, v) for (auto a : (v))
 
 /* debug */
 // 標準エラー出力を含む提出はrejectされる場合もあるので注意
@@ -81,8 +83,8 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
-template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if (compare = a > b) a = b; return compare;}
-template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if (compare = a < b) a = b; return compare;}
+template <typename T> inline bool chmin(T& a, const T& b) {bool compare = a > b; if (compare) a = b; return compare;}
+template <typename T> inline bool chmax(T& a, const T& b) {bool compare = a < b; if (compare) a = b; return compare;}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -91,120 +93,49 @@ CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 
-CSI MAX_SIZE = 25;
-
-inline int get_index(int r, int c, int W) {
-    return r * W + c;
-}
-
-inline bool is_placable(int n, int board, int W) {
-    int c = n % W;
-    if (c == 0) {
-        return (board & 0b110) == 0;
-    }
-    if (c == W-1) {
-        return (board & (1 << W | 0b11)) == 0;
-    }
-    return (board & (1 << W | 0b111)) == 0;
-}
-
-int fib[MAX_SIZE] = {2,3};
-int trans[MAX_SIZE][250000][2] = {};
-modint1000000007 dp[MAX_SIZE*MAX_SIZE][250000] = {};
-
-int array_to_fib(int n, int array) {
-    if (n <= 2) {
-        return array;
-    }
-    if ((array >> (n-1)) == 0) {
-        return array_to_fib(n-1, array);
-    }
-    else {
-        return array_to_fib(n-2, array & ((1 << (n-1)) - 1)) + fib[n-2];
-    }
-}
-
-int fib_to_array(int n, int num) {
-    if (n <= 2) {
-        return num;
-    }
-    if (num >= fib[n-2]) {
-        return 1 << (n-1) | fib_to_array(n-2, num-fib[n-2]);
-    }
-    else {
-        return fib_to_array(n-1, num);
-    }
-}
-
-int board_to_fib(int col, int board, int W) {
-    // col==0: (1,W)
-    // col==1: (W,1)
-    // col==n: (W+1-n,n)
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int lowerboard = board >> upper;
-    int upperboard = board & ((1 << upper) - 1);
-    return array_to_fib(upper, upperboard) * fib[lower-1] + array_to_fib(lower, lowerboard);
-}
-
-int fib_to_board(int col, int num, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int upperfib = num / fib[lower-1];
-    int lowerfib = num % fib[lower-1];
-    return fib_to_array(lower, lowerfib) << upper | fib_to_array(upper, upperfib);
-}
-
-inline int fib_max(int col, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    return fib[upper-1] * fib[lower-1];
-}
-
 int main()
 {
-    // フィボナッチ数 fib[n]: 長さ n+1 の 01 文字列で，1 が連続しないもの
-    reps(i, 2, MAX_SIZE) fib[i] = fib[i-1] + fib[i-2];
+    auto N = in_ll();
+    auto K = in_ll();
+    auto a = in_vll(N);
 
-    auto H = in_int();
-    auto W = in_int();
-    
-    set<int> whites{};
-    rep(i, H) {
-        rep(j, W) {
-            if (in_char() == '.')
-                whites.insert(get_index(i, j, W));
-        }
-    }
+    ll types = 0;
+    auto nums = us<int>();
+    // 数字が最後に現れたインデックス
+    auto last = um<int, int>();
+    // last の key と value を入れ替えたもの
+    auto last_inv = map<int, int>();
+    ll nowLen = 0;
+    ll nowFrom = 0;
+    ll ans = 0;
 
-    // 遷移を計算
-    rep(c, W) {
-        rep(i, fib_max(c, W)) {
-            auto board = fib_to_board(c, i, W);
-            trans[c][i][0] = board_to_fib((c+1) % W, board >> 1, W);
-            trans[c][i][1] = board_to_fib((c+1) % W, board >> 1 | 1 << W, W);
+    rep(i, N) {
+        if (nums.find(a[i]) != nums.end()) {
+            nowLen++;
+            last_inv.erase(last[a[i]]);
         }
-    }
-    
-    dp[*whites.begin()][board_to_fib(*whites.begin() % W, 0, W)] = 1;
-    reps(i, *whites.begin(), H*W) {
-        rep(j, fib_max(i % W, W)) {
-            dp[i+1][trans[i % W][j][0]] += dp[i][j];
-            if (whites.find(i) != whites.end() && is_placable(i, fib_to_board(i % W, j, W), W))
-                dp[i+1][trans[i % W][j][1]] += dp[i][j];
+        else {
+            if (types == K) {
+                chmax(ans, nowLen);
+                // 最後に現れたインデックスが最も小さい値を削除
+                auto p = *last_inv.begin();
+                last_inv.erase(p.first);
+                last.erase(p.second);
+                nowLen -= p.first - nowFrom;
+                nowFrom = p.first + 1;
+                nums.erase(p.second);
+            }
+            else {
+                nowLen++;
+                types++;
+            }
+            nums.insert(a[i]);
         }
+        last[a[i]] = i;
+        last_inv.insert({ i, a[i] });
     }
-
-    // rep(i, H*W) rep(j, fib_max(i % W, W)) {
-    //     cout << "dp[" << i << "][" << j << "]: " << dp[i][j].val() << endl;
-    //     cout << "col: " << i % W << ", board: " << bitset<25>(fib_to_board(i % W, j, W)) << endl;
-    // }
-    
-    modint1000000007 ans = 0;
-    rep(j, fib_max(0, W)) {
-        ans += dp[H*W][j];
-    }
-    print(ans.val());
+    chmax(ans, nowLen);
+    print(ans);
 
     return 0;
 }

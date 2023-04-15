@@ -30,6 +30,7 @@ using vvll = vector<vll>;
 using vvb = vector<vb>;
 using vs = vector<string>;
 using vpii = vector<pii>;
+using vpll = vector<pll>;
 // unordered set
 using usi = unordered_set<int>;
 using usll = unordered_set<ll>;
@@ -39,6 +40,7 @@ using uss = unordered_set<string>;
 #define pb push_back
 #define mp make_pair
 #define um unordered_map
+#define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
 #define YESNO(bool) if(bool){cout<<"YES"<<endl;}else{cout<<"NO"<<endl;}
 #define yesno(bool) if(bool){cout<<"yes"<<endl;}else{cout<<"no"<<endl;}
@@ -51,8 +53,9 @@ using uss = unordered_set<string>;
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
 #define rep(i, n) reps(i, 0, n)
 #define rrep(i, n) reps(i, 1, n + 1)
-#define repd(i,n) for (ll i = n - 1; i >= 0; i--)
-#define rrepd(i,n) for (ll i = n; i >= 1; i--)
+#define repd(i, n) for (ll i = n - 1; i >= 0; i--)
+#define rrepd(i, n) for (ll i = n; i >= 1; i--)
+#define repi(a, v) for (auto a : (v))
 
 /* debug */
 // 標準エラー出力を含む提出はrejectされる場合もあるので注意
@@ -91,120 +94,137 @@ CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 
-CSI MAX_SIZE = 25;
+class Tree
+{
+    ll size;
+    ll root;
+    vll depth;
+    vvll edges;
+    vll parents;
+    vvll children;
+    vpll tour;
+    vll tour_v; // tour 内で頂点 v が初めて現れるインデックス
 
-inline int get_index(int r, int c, int W) {
-    return r * W + c;
-}
+    static pll seg_op(pll l, pll r) {
+        if (l.first == -1 || r.first == -1)
+            return { l.first + r.first + 1, l.second + r.second + 1 };
+        return l.second < r.second ? l : r;
+    }
+    static pll seg_e() { return { -1, -1 }; }
 
-inline bool is_placable(int n, int board, int W) {
-    int c = n % W;
-    if (c == 0) {
-        return (board & 0b110) == 0;
-    }
-    if (c == W-1) {
-        return (board & (1 << W | 0b11)) == 0;
-    }
-    return (board & (1 << W | 0b111)) == 0;
-}
+    segtree<pll, seg_op, seg_e> tour_tree;
 
-int fib[MAX_SIZE] = {2,3};
-int trans[MAX_SIZE][250000][2] = {};
-modint1000000007 dp[MAX_SIZE*MAX_SIZE][250000] = {};
+    void set_depth() {
+        depth.resize(size, -1);
+        set_depth_impl(0, 0);
+    }
 
-int array_to_fib(int n, int array) {
-    if (n <= 2) {
-        return array;
+    void set_depth_impl(ll v, ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1) set_depth_impl(i, d + 1);
+        }
     }
-    if ((array >> (n-1)) == 0) {
-        return array_to_fib(n-1, array);
-    }
-    else {
-        return array_to_fib(n-2, array & ((1 << (n-1)) - 1)) + fib[n-2];
-    }
-}
 
-int fib_to_array(int n, int num) {
-    if (n <= 2) {
-        return num;
+    void set_parents_and_children() {
+        parents.resize(size);
+        parents[root] = -1;
+        rep(i, size) children.pb(vll());
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            }
+            else {
+                children[j].pb(i);
+            }
+        }
     }
-    if (num >= fib[n-2]) {
-        return 1 << (n-1) | fib_to_array(n-2, num-fib[n-2]);
+
+    void set_tour() {
+        set_tour_impl(root);
+        tour_tree = segtree<pll, seg_op, seg_e>(tour);
+        tour_v.resize(size, -1);
+        rep(i, tour.size()) {
+            if (tour_v[tour[i].first] == -1) {
+                tour_v[tour[i].first] = i;
+            }
+        }
     }
-    else {
-        return fib_to_array(n-1, num);
+
+    void set_tour_impl(ll v) {
+        tour.pb({ v, depth[v] });
+        repi(i, children[v]) {
+            set_tour_impl(i);
+            tour.pb({ v, depth[v] });
+        }
     }
-}
 
-int board_to_fib(int col, int board, int W) {
-    // col==0: (1,W)
-    // col==1: (W,1)
-    // col==n: (W+1-n,n)
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int lowerboard = board >> upper;
-    int upperboard = board & ((1 << upper) - 1);
-    return array_to_fib(upper, upperboard) * fib[lower-1] + array_to_fib(lower, lowerboard);
-}
+public:
+    Tree(ll _size, vvll &_edges, ll _root = 0) {
+        size = _size;
+        edges = _edges;
+        root = _root;
+        set_depth();
+        set_parents_and_children();
+        set_tour();
+    }
 
-int fib_to_board(int col, int num, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    int upperfib = num / fib[lower-1];
-    int lowerfib = num % fib[lower-1];
-    return fib_to_array(lower, lowerfib) << upper | fib_to_array(upper, upperfib);
-}
+    ll get_size() { return size; }
+    ll get_root() { return root; }
+    ll get_depth(ll v) { return depth[v]; }
+    ll get_parent(ll v) { return parents[v]; }
+    vll get_children(ll v) { return children[v]; }
 
-inline int fib_max(int col, int W) {
-    int lower = col == 0 ? W : col;
-    int upper = W + 1 - lower;
-    return fib[upper-1] * fib[lower-1];
+    ll get_lca(ll v1, ll v2) {
+        return tour_tree.prod(min(tour_v[v1], tour_v[v2]), max(tour_v[v1], tour_v[v2]) + 1).first;
+    }
+};
+
+ll get_edge_index(ll v1, ll v2, ll size) {
+    if (v1 < v2) return v1 * size + v2;
+    else return v2 * size + v1;
 }
 
 int main()
 {
-    // フィボナッチ数 fib[n]: 長さ n+1 の 01 文字列で，1 が連続しないもの
-    reps(i, 2, MAX_SIZE) fib[i] = fib[i-1] + fib[i-2];
-
-    auto H = in_int();
-    auto W = in_int();
-    
-    set<int> whites{};
-    rep(i, H) {
-        rep(j, W) {
-            if (in_char() == '.')
-                whites.insert(get_index(i, j, W));
-        }
+    auto N = in_ll();
+    auto AB = in_vvll(2, N-1);
+    auto Q = in_ll();
+    auto querys = vvll();
+    rep(i, Q) {
+        auto k = in_ll();
+        auto v = vll();
+        rep(j, k) v.pb(in_ll()-1);
+        querys.pb(v);
     }
 
-    // 遷移を計算
-    rep(c, W) {
-        rep(i, fib_max(c, W)) {
-            auto board = fib_to_board(c, i, W);
-            trans[c][i][0] = board_to_fib((c+1) % W, board >> 1, W);
-            trans[c][i][1] = board_to_fib((c+1) % W, board >> 1 | 1 << W, W);
-        }
+    auto edges = vvll();
+    rep(i, N) edges.pb(vll());
+    repi(ab, AB) {
+        edges[ab[0]-1].pb(ab[1]-1);
+        edges[ab[1]-1].pb(ab[0]-1);
     }
     
-    dp[*whites.begin()][board_to_fib(*whites.begin() % W, 0, W)] = 1;
-    reps(i, *whites.begin(), H*W) {
-        rep(j, fib_max(i % W, W)) {
-            dp[i+1][trans[i % W][j][0]] += dp[i][j];
-            if (whites.find(i) != whites.end() && is_placable(i, fib_to_board(i % W, j, W), W))
-                dp[i+1][trans[i % W][j][1]] += dp[i][j];
-        }
-    }
-
-    // rep(i, H*W) rep(j, fib_max(i % W, W)) {
-    //     cout << "dp[" << i << "][" << j << "]: " << dp[i][j].val() << endl;
-    //     cout << "col: " << i % W << ", board: " << bitset<25>(fib_to_board(i % W, j, W)) << endl;
-    // }
+    auto tree = Tree(N, edges);
     
-    modint1000000007 ans = 0;
-    rep(j, fib_max(0, W)) {
-        ans += dp[H*W][j];
+    auto edge_set = us<ll>();
+    repi(q, querys) {
+        rep(i, q.size() - 1) {
+            auto lca_d = tree.get_depth(tree.get_lca(q[i], q[i+1]));
+            auto v = q[i];
+            for (ll j = tree.get_depth(v); j > lca_d; j--) {
+                edge_set.insert(get_edge_index(v, tree.get_parent(v), N));
+                v = tree.get_parent(v);
+            }
+            v = q[i+1];
+            for (ll j = tree.get_depth(v); j > lca_d; j--) {
+                edge_set.insert(get_edge_index(v, tree.get_parent(v), N));
+                v = tree.get_parent(v);
+            }
+        }
+        print(edge_set.size());
+        edge_set.clear();
     }
-    print(ans.val());
 
     return 0;
 }
