@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -101,6 +97,53 @@ CSLD EPS = 1e-10;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto A = in_ll();
+    auto B = in_ll();
+    auto P = in_ll();
+    auto Q = in_ll();
+
+    // dp[k+1][i][j] = dp[k][i-P ~ i-1][j] if k % 2 == 0
+    // dp[k+1][i][j] = dp[k][i][j-Q ~ j-1] if k % 2 == 1
+    // dp[k][i][j]: k 手目に T が i にいて A が j にいる通り数
+    modint998244353 dp[2][120][120] = {};
+
+    modint998244353 t_win = 0;
+    modint998244353 a_win = 0;
+
+    dp[0][A][B] = 1;
+
+    rep(t, 102) {
+        reps(i, A, N + P) {
+            reps(j, B, N) {
+                dp[1][i][j] = 0;
+                reps(k, max(i - P, A), min(A + P * t + 1, min(i, N))) {
+                    dp[1][i][j] += dp[0][k][j] / P;
+                }
+            }
+        }
+        reps(i, N, N + P) {
+            reps(j, B, N) {
+                t_win += dp[1][i][j];
+            }
+        }
+        reps(i, A, N) {
+            reps(j, B, N + Q) {
+                dp[0][i][j] = 0;
+                reps(k, max(j - Q, B), min(B + Q * t + 1, min(j, N))) {
+                    dp[0][i][j] += dp[1][i][k] / Q;
+                }
+            }
+        }
+        reps(i, A, N) {
+            reps(j, N, N + Q) {
+                a_win += dp[0][i][j];
+            }
+        }
+    }
+
+    modint998244353 ans = t_win / (t_win + a_win);
+    print(ans.val());
 
     return 0;
 }

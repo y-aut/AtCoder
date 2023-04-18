@@ -108,6 +108,9 @@ protected:
     vll parents;
     vvll children;
 
+    vll partial_size;  // 部分木のノード数
+    vll children_dist; // 各子孫までの距離の合計
+
 private:
     void set_depth() {
         depth.resize(size, -1);
@@ -158,6 +161,34 @@ private:
         }
     }
 
+    void set_info() {
+        partial_size.resize(size, 0);
+        set_partial_size_impl(root);
+
+        children_dist.resize(size, -1);
+        set_children_dist_impl(root);
+    }
+
+    ll set_partial_size_impl(ll v) {
+        if (partial_size[v] != 0)
+            return partial_size[v];
+        ll ans = 1;
+        repi(c, children[v]) {
+            ans += set_partial_size_impl(c);
+        }
+        return partial_size[v] = ans;
+    }
+
+    ll set_children_dist_impl(ll v) {
+        if (children_dist[v] != -1)
+            return children_dist[v];
+        ll ans = 0;
+        repi(c, children[v]) {
+            ans += set_children_dist_impl(c) + partial_size[c];
+        }
+        return children_dist[v] = ans;
+    }
+
 public:
     Tree(ll _size, vvll &_edges, ll _root = 0) {
         if (_size == 0) {
@@ -168,6 +199,7 @@ public:
         root = _root;
         set_depth();
         set_parents_and_children();
+        set_info();
     }
 
     ll get_size() { return size; }
@@ -177,6 +209,8 @@ public:
     vll get_edges(ll v) { return edges[v]; }
     ll get_parent(ll v) { return parents[v]; }
     vll get_children(ll v) { return children[v]; }
+    ll get_partial_size(ll v) { return partial_size[v]; }
+    ll get_children_dist(ll v) { return children_dist[v]; }
 
     // 行きがけ順に頂点を取得する
     vll get_preorder() {
@@ -202,105 +236,26 @@ public:
 
 #pragma endregion
 
-#pragma region "LCADoubling"
-
-// 木の LCA をダブリングを用いて計算する
-class LCADoubling : public Tree {
-    // doubling[i][j]: j から 2^i 個頂点を遡った祖先
-    vvll doubling;
-
-    // 最上位ビットの下から数えた位置を取得
-    int msb_pos(ull x) {
-        return x == 0 ? -1 : (sizeof(ull)) * 8 - __builtin_clzll(x) - 1;
-    }
-
-    void set_doubling() {
-        int d_size = msb_pos(height) + 1;
-        rep(i, d_size) doubling.pb(vll(size));
-        rep(i, size) doubling[0][i] = parents[i];
-        rep(i, d_size - 1) {
-            rep(j, size) {
-                doubling[i + 1][j] = doubling[i][doubling[i][j]];
-            }
-        }
-    }
-
-public:
-    LCADoubling(ll _size, vvll &_edges, ll _root = 0) : Tree(_size, _edges, _root) {
-        set_doubling();
-    }
-
-    // v の d 個上の祖先を取得する
-    ll level_ancestor(ll v, ll d) {
-        repd(i, doubling.size()) {
-            if (1 << i <= d) {
-                d -= 1 << i;
-                v = doubling[i][v];
-            }
-        }
-        return v;
-    }
-
-    ll get_lca(ll v1, ll v2) {
-        // v1, v2 の深さを揃える
-        if (depth[v1] > depth[v2]) {
-            v1 = level_ancestor(v1, depth[v1] - depth[v2]);
-        } else if (depth[v1] < depth[v2]) {
-            v2 = level_ancestor(v2, depth[v2] - depth[v1]);
-        }
-
-        if (v1 == v2)
-            return v1;
-        repd(i, doubling.size()) {
-            if (doubling[i][v1] != doubling[i][v2]) {
-                v1 = doubling[i][v1];
-                v2 = doubling[i][v2];
-            }
-        }
-        return parents[v1];
-    }
-
-    ll get_dist(ll v1, ll v2) {
-        auto l = get_lca(v1, v2);
-        return depth[v1] + depth[v2] - 2 * depth[l];
-    }
-};
-
-#pragma endregion
-
 int main() {
     auto N = in_ll();
-    auto AB = in_vvll(2, N - 1);
-    auto Q = in_ll();
-    auto querys = vvll();
-    rep(i, Q) {
-        auto k = in_ll();
-        auto v = vll();
-        rep(j, k) v.pb(in_ll() - 1);
-        querys.pb(v);
-    }
-
     auto edges = vvll();
     rep(i, N) edges.pb(vll());
-    repi(ab, AB) {
-        edges[ab[0] - 1].pb(ab[1] - 1);
-        edges[ab[1] - 1].pb(ab[0] - 1);
+    rep(i, N - 1) {
+        auto x = in_int() - 1;
+        auto y = in_int() - 1;
+        edges[x].pb(y);
+        edges[y].pb(x);
     }
 
-    auto tree = LCADoubling(N, edges);
-    auto order = tree.get_preorder();
-    auto orderIndex = vll(N);
-    rep(i, N) orderIndex[order[i]] = i;
-
-    repi(q, querys) {
-        sort(all(q), [&orderIndex](ll x, ll y) { return orderIndex[x] < orderIndex[y]; });
-        ll ans = 0;
-        rep(i, q.size()) {
-            auto nxt = (i + 1) % q.size();
-            ans += tree.get_dist(q[i], q[nxt]);
+    auto tree = Tree(N, edges);
+    ll ans = tree.get_children_dist(0) * N;
+    rep(i, N) {
+        ans += tree.get_depth(i) * N;
+        for (auto j = i; j != 0; j = tree.get_parent(j)) {
+            ans -= tree.get_partial_size(j) * 2;
         }
-        print(ans / 2);
     }
+    print(ans / 2);
 
     return 0;
 }

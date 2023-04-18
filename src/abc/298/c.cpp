@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -101,6 +97,42 @@ CSLD EPS = 1e-10;
 // clang-format on
 
 int main() {
+    auto N = in_int();
+    auto Q = in_int();
+
+    auto box = vector<map<int, int>>();
+    auto numBox = vector<set<int>>();
+
+    rep(i, 200010) {
+        box.pb(map<int, int>());
+        numBox.pb(set<int>());
+    }
+
+    rep(i, Q) {
+        auto n = in_int();
+        if (n == 1) {
+            auto num = in_int();
+            auto boxInd = in_int();
+            box[boxInd][num]++;
+            numBox[num].insert(boxInd);
+        } else if (n == 2) {
+            auto boxInd = in_int();
+            auto ans = vi();
+            repi(p, box[boxInd]) {
+                rep(j, p.second) {
+                    ans.pb(p.first);
+                }
+            }
+            print(ans);
+        } else {
+            auto num = in_int();
+            auto ans = vi();
+            repi(j, numBox[num]) {
+                ans.pb(j);
+            }
+            print(ans);
+        }
+    }
 
     return 0;
 }

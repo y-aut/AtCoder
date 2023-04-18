@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -100,7 +96,50 @@ CSLD EPS = 1e-10;
 
 // clang-format on
 
+inline ll get_index(ll r, ll c) {
+    return r << 32 | c;
+}
+
 int main() {
+    auto N = in_ll();
+    auto rcx = in_vvll(3, N);
+
+    auto row = um<ll, ll>();
+    auto col = um<ll, ll>();
+    auto num = um<ll, ll>();
+
+    repi(p, rcx) {
+        row[p[0]] += p[2];
+        col[p[1]] += p[2];
+        num[get_index(p[0], p[1])] = p[2];
+    }
+
+    ll ans = 0;
+    repi(p, rcx) {
+        chmax(ans, row[p[0]] + col[p[1]] - p[2]);
+    }
+
+    vpll rowv, colv;
+    repi(r, row) rowv.emplace_back(r);
+    repi(c, col) colv.emplace_back(c);
+    sort(all(rowv), [](pll x, pll y) { return x.second > y.second; });
+    sort(all(colv), [](pll x, pll y) { return x.second > y.second; });
+
+    repi(r, rowv) {
+        if (r.second + colv[0].second < ans)
+            break;
+        repi(c, colv) {
+            if (r.second + c.second < ans)
+                break;
+            auto ptr = num.find(get_index(r.first, c.first));
+            if (ptr == num.end()) {
+                chmax(ans, r.second + c.second);
+                break;
+            }
+        }
+    }
+
+    print(ans);
 
     return 0;
 }

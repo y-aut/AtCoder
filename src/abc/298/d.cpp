@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -101,6 +97,30 @@ CSLD EPS = 1e-10;
 // clang-format on
 
 int main() {
+    string s = "1";
+    int s_begin = 0;
+
+    modint998244353 now = 1;
+    // 先頭の数字を 1 としたときの mod
+    modint998244353 head = 1;
+
+    auto Q = in_int();
+    rep(q, Q) {
+        auto n = in_int();
+        if (n == 1) {
+            auto x = in_int();
+            s += ('0' + x);
+            now = now * 10 + x;
+            head *= 10;
+        }
+        else if (n == 2) {
+            now -= head * (s[s_begin++] - '0');
+            head /= 10;
+        }
+        else {
+            print(now.val());
+        }
+    }
 
     return 0;
 }

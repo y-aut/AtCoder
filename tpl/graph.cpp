@@ -3,20 +3,19 @@
 // --------------------- ここからコピー --------------------
 #pragma region "ダイクストラ法"
 
-struct DEdge {
+struct WEdge {
     ll to;
     ll cost;
 };
-using DGraph = vector<vector<DEdge>>;
+using WGraph = vector<vector<WEdge>>;
 
 class Dijkstra {
-    ll size;
     vll distances;
     // 直前の頂点を記録する配列
     vll previous;
 
 public:
-    Dijkstra(const DGraph &graph, const ll startIndex) {
+    Dijkstra(const WGraph &graph, const ll startIndex) {
         distances.resize(graph.size(), LINF);
         previous.resize(graph.size(), -1);
 
@@ -183,6 +182,7 @@ protected:
     vvll edges;
     vll parents;
     vvll children;
+    vll partial_size; // 部分木のノード数
 
 private:
     void set_depth() {
@@ -234,13 +234,30 @@ private:
         }
     }
 
+    void set_partial_size() {
+        partial_size.resize(size, 0);
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
 public:
     Tree(ll _size, vvll &_edges, ll _root = 0) {
+        if (_size == 0) {
+            throw "The tree size is 0.";
+        }
         size = _size;
         edges = _edges;
         root = _root;
         set_depth();
         set_parents_and_children();
+        set_partial_size();
     }
 
     ll get_size() { return size; }
@@ -250,15 +267,16 @@ public:
     vll get_edges(ll v) { return edges[v]; }
     ll get_parent(ll v) { return parents[v]; }
     vll get_children(ll v) { return children[v]; }
+    ll get_partial_size(ll v) { return partial_size[v]; }
 
-    // 頂点の行きがけ順を取得する
+    // 行きがけ順に頂点を取得する
     vll get_preorder() {
         auto ans = vll();
         get_preorder_impl(ans, root);
         return ans;
     }
 
-    // 頂点の帰りがけ順を取得する
+    // 帰りがけ順に頂点を取得する
     vll get_postorder() {
         auto ans = vll();
         get_postorder_impl(ans, root);
@@ -278,7 +296,7 @@ public:
 #pragma region "LCADoubling"
 
 // 木の LCA をダブリングを用いて計算する
-class LCADoubling : Tree {
+class LCADoubling : public Tree {
     // doubling[i][j]: j から 2^i 個頂点を遡った祖先
     vvll doubling;
 
@@ -288,10 +306,10 @@ class LCADoubling : Tree {
     }
 
     void set_doubling() {
-        int max_i = msb_pos(height) + 1;
-        rep(i, max_i) doubling.pb(vll(size));
+        int d_size = msb_pos(height) + 1;
+        rep(i, d_size) doubling.pb(vll(size));
         rep(i, size) doubling[0][i] = parents[i];
-        rep(i, max_i - 1) {
+        rep(i, d_size - 1) {
             rep(j, size) {
                 doubling[i + 1][j] = doubling[i][doubling[i][j]];
             }
@@ -331,6 +349,11 @@ public:
             }
         }
         return parents[v1];
+    }
+
+    ll get_dist(ll v1, ll v2) {
+        auto l = get_lca(v1, v2);
+        return depth[v1] + depth[v2] - 2 * depth[l];
     }
 };
 

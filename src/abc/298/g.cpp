@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -100,7 +96,68 @@ CSLD EPS = 1e-10;
 
 // clang-format on
 
+// cnt[i][j]: [0,i+1], [0,j+1] にのっている苺の数
+ll cnt[6][6];
+
+// dp[i][j][k][l][t]: [i,j+1], [k,l+1] を t+1 個に切り分けるときの苺の最大値の最小値
+ll dp[6][6][6][6][36] = {};
+
+// [i,j+1], [k,l+1] にのっている苺の数
+inline ll get_count(int i, int j, int k, int l) {
+    if (i == 0 && k == 0)
+        return cnt[j][l];
+    if (i == 0)
+        return cnt[j][l] - cnt[j][k - 1];
+    if (k == 0)
+        return cnt[j][l] - cnt[i - 1][l];
+    return cnt[j][l] - (cnt[i - 1][l] + cnt[j][k - 1] - cnt[i - 1][k - 1]);
+}
+
+ll fun(ll n, int i, int j, int k, int l, int t, vvll &s) {
+    if (dp[i][j][k][l][t] != LINF) {
+        return dp[i][j][k][l][t];
+    }
+    if (t > (j - i + 1) * (l - k + 1) || get_count(i, j, k, l) < n * (t + 1)) {
+        return LINF + 1;
+    }
+    ll ans = LINF + 1;
+    rep(a, j - i) rep(c, t) {
+        chmin(ans, max(fun(n, i, i + a, k, l, c, s), fun(n, i + a + 1, j, k, l, t - 1 - c, s)));
+    }
+    rep(b, l - k) rep(c, t) {
+        chmin(ans, max(fun(n, i, j, k, k + b, c, s), fun(n, i, j, k + b + 1, l, t - 1 - c, s)));
+    }
+    return dp[i][j][k][l][t] = ans;
+}
+
 int main() {
+    auto H = in_ll();
+    auto W = in_ll();
+    auto T = in_ll();
+    auto s = in_vvll(W, H);
+
+    cnt[0][0] = s[0][0];
+    reps(i, 1, H) cnt[i][0] = cnt[i - 1][0] + s[i][0];
+    reps(i, 1, W) cnt[0][i] = cnt[0][i - 1] + s[0][i];
+    reps(i, 1, H) reps(j, 1, W) {
+        cnt[i][j] = cnt[i - 1][j] + cnt[i][j - 1] - cnt[i - 1][j - 1] + s[i][j];
+    }
+
+    auto nums = us<ll>();
+    rep(i, H) reps(j, i, H) rep(k, W) reps(l, k, W) nums.insert(get_count(i, j, k, l));
+
+    ll ans = LINF;
+    repi(n, nums) {
+        rep(i, H) rep(j, H) rep(k, W) rep(l, W) rep(t, T + 1) dp[i][j][k][l][t] = LINF;
+        rep(i, H) reps(j, i, H) rep(k, W) reps(l, k, W) {
+            auto c = get_count(i, j, k, l);
+            dp[i][j][k][l][0] = (c >= n ? c : LINF + 1);
+        }
+        auto res = fun(n, 0, H - 1, 0, W - 1, T, s);
+        chmin(ans, res - n);
+    }
+
+    print(ans);
 
     return 0;
 }

@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -100,7 +96,88 @@ CSLD EPS = 1e-10;
 
 // clang-format on
 
+inline bool is_anti_clockwise(vll &p1, vll &p2, vll &p3) {
+    return (p2[0] - p1[0]) * (p3[1] - p2[1]) > (p2[1] - p1[1]) * (p3[0] - p2[0]);
+}
+
+// 線分 a, b 上の格子点の数を求める
+inline ll get_count(vll &a, vll &b) {
+    auto cx = abs(a[0] - b[0]);
+    auto cy = abs(a[1] - b[1]);
+    if (cx == 0 || cy == 0)
+        return cx + cy + 1;
+    return gcd(cx, cy) + 1;
+}
+
+// 3 点 a, b, c の内部にある格子点の数を求める
+inline ll get_count(vll &a, vll &b, vll &c, ll ab, ll bc, ll ca) {
+    auto cx = b[0] - a[0];
+    auto cy = b[1] - a[1];
+    auto dx = c[0] - a[0];
+    auto dy = c[1] - a[1];
+    ll S_times_2 = abs(cx * dy - cy * dx);
+    return (S_times_2 + 2 - (ab + bc + ca - 3)) / 2;
+}
+
 int main() {
+    auto N = in_ll();
+    auto XY = in_vvll(2, N);
+
+    sort(all(XY), [](vll &a, vll &b) { return a[0] == b[0] ? a[1] < b[1] : a[0] < b[0]; });
+    auto s_upper = stack<vll>();
+    auto s_lower = stack<vll>();
+
+    repi(xy, XY) {
+        while (s_upper.size() >= 2) {
+            auto top = s_upper.top();
+            s_upper.pop();
+            auto second = s_upper.top();
+            if (!is_anti_clockwise(second, top, xy)) {
+                s_upper.push(top);
+                break;
+            }
+        }
+        s_upper.push(xy);
+    }
+    repi(xy, XY) {
+        while (s_lower.size() >= 2) {
+            auto top = s_lower.top();
+            s_lower.pop();
+            auto second = s_lower.top();
+            if (is_anti_clockwise(second, top, xy)) {
+                s_lower.push(top);
+                break;
+            }
+        }
+        s_lower.push(xy);
+    }
+
+    auto s_cir = deque<vll>();
+    while (!s_upper.empty()) {
+        s_cir.push_back(s_upper.top());
+        s_upper.pop();
+    }
+    s_lower.pop();
+    while (s_lower.size() > 1) {
+        s_cir.push_front(s_lower.top());
+        s_lower.pop();
+    }
+
+    ll ans = 0;
+    ll bc = 0;
+    while (s_cir.size() >= 3) {
+        auto a = s_cir.front();
+        s_cir.pop_front();
+        auto b = s_cir.front();
+        auto c = s_cir.back();
+        auto ab = get_count(a, b);
+        bc = get_count(b, c);
+        auto ca = get_count(c, a);
+        ans += get_count(a, b, c, ab, bc, ca) + ab + ca - 3;
+    }
+    ans += bc;
+
+    print(ans - N);
 
     return 0;
 }

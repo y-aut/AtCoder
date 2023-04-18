@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -101,6 +97,35 @@ CSLD EPS = 1e-10;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto A = in_ll();
+    auto B = in_ll();
+    auto P = in_ll();
+    auto Q = in_ll();
+
+    // dp[a: 0:T, 1:A][i][j]: a 番のときに T が i にいて A が j にいるときの T の勝率
+    modint998244353 dp[2][110][110] = {};
+    rep(i, N) dp[1][N][i] = 1;
+    // dp[0][i][j] = k=1~P( dp[1][min(i+k, N)][j] ) / P
+    // dp[1][i][j] = k=1~Q( dp[0][i][min(j+k, N)] ) / Q
+
+    modint998244353 inv_P = (modint998244353)1 / P;
+    modint998244353 inv_Q = (modint998244353)1 / Q;
+
+    for (ll i = N - 1; i >= A; i--) {
+        for (ll j = N - 1; j >= B; j--) {
+            rrep(k, P) {
+                dp[0][i][j] += dp[1][min(i + k, N)][j];
+            }
+            dp[0][i][j] *= inv_P;
+            rrep(k, Q) {
+                dp[1][i][j] += dp[0][i][min(j + k, N)];
+            }
+            dp[1][i][j] *= inv_Q;
+        }
+    }
+
+    print(dp[0][A][B].val());
 
     return 0;
 }

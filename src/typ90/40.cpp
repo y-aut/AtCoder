@@ -73,10 +73,6 @@ inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
     {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
-inline vpii in_vpii(int height)
-    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
-inline vpll in_vpll(int height)
-    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << endl;}
@@ -101,6 +97,58 @@ CSLD EPS = 1e-10;
 // clang-format on
 
 int main() {
+    ll N = in_ll();
+    ll W = in_ll();
+    vll A = in_vll(N);
+    rep(i, N) A[i] -= W;
+    vector<set<ll>> c;
+    rep(i, N) {
+        c.pb(set<ll>());
+        auto k = in_ll();
+        rep(j, k) c[i].insert(in_ll() - 1);
+    }
+    // 存在する家
+    set<ll> rest;
+    rep(i, N) rest.insert(i);
+
+    ll ans = 0;
+
+    while (!rest.empty()) {
+        // 最後からみていく
+        bool flg = false;
+        for (auto itr = rest.rbegin(); itr != rest.rend(); itr++) {
+            auto i = *itr;
+            if (A[i] < 0) {
+                flg = true;
+                if (c[i].empty()) {
+                    // この家を削除
+                    rest.erase(i);
+                    repi(j, rest) c[j].erase(i);
+                } else {
+                    // i にある最小の鍵の家と統合
+                    auto target = *c[i].begin();
+                    rest.erase(i);
+                    A[target] += A[i];
+                    c[i].erase(target);
+                    c[target].insert(all(c[i]));
+                    repi(j, rest) {
+                        if (c[j].find(i) != c[j].end()) {
+                            c[j].erase(i);
+                            c[j].insert(target);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        if (!flg) {
+            // 全て 0 以上なら全ての家に入って終了
+            repi(i, rest) ans += A[i];
+            break;
+        }
+    }
+
+    print(ans);
 
     return 0;
 }
