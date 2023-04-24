@@ -1,6 +1,6 @@
 #include "./template.cpp"
 
-// --------------------- ここからコピー --------------------
+// --------------------- ここからコピー ---------------------
 #pragma region "多角形"
 
 struct Polygon {
@@ -9,7 +9,7 @@ struct Polygon {
     vpll points;
 
     // p1 -> p2 -> p3 が右曲がりか
-    static bool is_ccw(pll &p1, pll &p2, pll &p3) {
+    static bool is_cw(pll &p1, pll &p2, pll &p3) {
         return (p2.first - p1.first) * (p3.second - p2.second) <=
                (p2.second - p1.second) * (p3.first - p2.first);
     }
@@ -45,7 +45,7 @@ public:
                 auto first = q.back();
                 q.pop_back();
                 auto second = q.back();
-                if (!is_ccw(second, first, p)) {
+                if (!is_cw(second, first, p)) {
                     q.push_back(first);
                     break;
                 }
@@ -58,7 +58,7 @@ public:
                 auto first = q.front();
                 q.pop_front();
                 auto second = q.front();
-                if (is_ccw(second, first, points[i])) {
+                if (is_cw(second, first, points[i])) {
                     q.push_front(first);
                     break;
                 }

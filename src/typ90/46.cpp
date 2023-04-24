@@ -100,11 +100,24 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto nums = in_vvll(N, 3);
+    auto cnt = vector<um<int, ll>>();
+    rep(i, 3) cnt.pb(um<int, ll>());
+
+    rep(i, 3) rep(j, N) {
+        cnt[i][nums[i][j] % 46]++;
+    }
+
+    ll ans = 0;
+    rep(i, 46) rep(j, 46) {
+        ans += cnt[0][i] * cnt[1][j] * cnt[2][(46 * 2 - i - j) % 46];
+    }
+    print(ans);
 
     return 0;
 }

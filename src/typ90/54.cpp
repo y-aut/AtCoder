@@ -104,7 +104,48 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+void bfs(vvll &graph, vll &dist) {
+    dist[0] = 0;
+    auto q = queue<ll>();
+    q.push(0);
+
+    while (!q.empty()) {
+        auto v = q.front();
+        q.pop();
+        repi(v1, graph[v]) {
+            if (dist[v1] == -1) {
+                dist[v1] = dist[v] + 1;
+                q.push(v1);
+            }
+        }
+    }
+}
+
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto graph = vvll();
+    rep(i, N + M) graph.pb(vll());
+
+    rep(i, M) {
+        auto K = in_ll();
+        rep(j, K) {
+            auto R = in_ll() - 1;
+            graph[R].pb(N + i);
+            graph[N + i].pb(R);
+        }
+    }
+
+    auto dist = vll(N + M, -1);
+    bfs(graph, dist);
+
+    rep(i, N) {
+        if (dist[i] == -1) {
+            print(-1);
+        } else {
+            print(dist[i] / 2);
+        }
+    }
 
     return 0;
 }

@@ -105,6 +105,34 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto S = in_ll();
+    auto AB = in_vpll(N);
+
+    auto dp = vs(S + 1, "");
+    dp[0] = "0";
+
+    repi(ab, AB) {
+        auto tmp = vs(S + 1, "");
+        rep(i, S) {
+            if (dp[i] == "")
+                continue;
+            if (i + ab.first <= S) {
+                tmp[i + ab.first] = dp[i] + "A";
+            }
+            if (i + ab.second <= S) {
+                tmp[i + ab.second] = dp[i] + "B";
+            }
+        }
+        dp.clear();
+        dp = tmp;
+    }
+
+    if (dp[S] == "") {
+        print("Impossible");
+    } else {
+        print(dp[S].substr(1));
+    }
 
     return 0;
 }

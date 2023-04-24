@@ -100,11 +100,102 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
+#pragma region "01-BFS"
+
+class BFS01 {
+    vll dist;
+
+public:
+    BFS01(vvll &zero_edges, vvll &one_edges, ll startIndex) {
+        dist.resize(zero_edges.size(), LINF);
+        dist[startIndex] = 0;
+
+        deque<ll> q;
+        q.emplace_back(startIndex);
+
+        while (!q.empty()) {
+            auto v = q.front();
+            q.pop_front();
+
+            repi(i, zero_edges[v]) {
+                if (dist[v] < dist[i]) {
+                    dist[i] = dist[v];
+                    q.push_front(i);
+                }
+            }
+            repi(i, one_edges[v]) {
+                if (dist[v] + 1 < dist[i]) {
+                    dist[i] = dist[v] + 1;
+                    q.push_back(i);
+                }
+            }
+        }
+    }
+
+    // 最短距離を取得
+    ll get_distance(const ll v) {
+        return dist[v];
+    }
+};
+
+#pragma endregion
 
 int main() {
+    auto H = in_ll();
+    auto W = in_ll();
+    auto start = in_pll();
+    auto goal = in_pll();
+    start.first--;
+    start.second--;
+    goal.first--;
+    goal.second--;
+    auto S = in_vs(H);
+
+    um<int, int> field;
+    auto zero_edges = vvll();
+    auto one_edges = vvll();
+
+    int field_size = 0;
+    rep(i, H) rep(j, W) {
+        if (S[i][j] == '.') {
+            field[i * W + j] = field_size;
+            field_size += 4;
+            rep(k, 4) {
+                zero_edges.pb(vll());
+                one_edges.pb(vll());
+            }
+        }
+    }
+    {
+        int ur[] = {0, 0, 1, -1};
+        int uc[] = {1, -1, 0, 0};
+
+        repi(p, field) {
+            auto r = p.first / W;
+            auto c = p.first % W;
+            auto rotate =
+                (r == start.first && c == start.second || r == goal.first && c == goal.second) ? &zero_edges : &one_edges;
+            rep(j, 4) rep(k, 4) { (*rotate)[p.second + j].pb(p.second + k); }
+            rep(j, 4) {
+                auto nr = r + ur[j];
+                auto nc = c + uc[j];
+                if (!(0 <= nr && nr < H && 0 <= nc && nc < W))
+                    continue;
+                auto nd = field.find(nr * W + nc);
+                if (nd != field.end()) {
+                    zero_edges[p.second + j].pb(nd->second + j);
+                }
+            }
+        }
+    }
+
+    auto sd = field[start.first * W + start.second];
+    auto graph = BFS01(zero_edges, one_edges, sd);
+
+    auto gd = field[goal.first * W + goal.second];
+    print(graph.get_distance(gd));
 
     return 0;
 }

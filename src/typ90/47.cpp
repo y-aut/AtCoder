@@ -100,11 +100,59 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto S = in_str();
+    auto T = in_str();
+
+    rep(i, N) {
+        if (S[i] == 'R')
+            S[i] = 0;
+        else if (S[i] == 'G')
+            S[i] = 1;
+        else
+            S[i] = 2;
+        if (T[i] == 'R')
+            T[i] = 0;
+        else if (T[i] == 'G')
+            T[i] = 1;
+        else
+            T[i] = 2;
+    }
+
+    string S2[] = {string(S), string(S), string(S)};
+    rep(i, N) {
+        rep(j, 3) {
+            if (j == S[i])
+                continue;
+            S2[j][i] = 3 - S[i] - j;
+        }
+    }
+
+    ll ans = 0;
+    rep(i, 3) {
+        auto tmp = T + S2[i];
+        auto z = z_algorithm(tmp);
+        rep(j, N) {
+            if (z[N + j] == N - j)
+                ans++;
+        }
+    }
+    reverse(all(T));
+    rep(i, 3) reverse(all(S2[i]));
+    rep(i, 3) {
+        auto tmp = T + S2[i];
+        auto z = z_algorithm(tmp);
+        reps(j, 1, N) {
+            if (z[N + j] == N - j)
+                ans++;
+        }
+    }
+
+    print(ans);
 
     return 0;
 }

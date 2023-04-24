@@ -104,7 +104,75 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+vll A;
+
+inline ll get(ll i) {
+    if (A[i] != -1)
+        return A[i];
+    cout << "? " << (i + 1) << endl
+         << flush;
+    auto num = in_ll();
+    if (num == -1)
+        exit(0);
+    return A[i] = num;
+}
+
+inline void decide(ll i) {
+    cout << "! " << i << endl
+         << flush;
+}
+
 int main() {
+    vll fib;
+    fib.emplace_back(2);
+    fib.emplace_back(3);
+    while (fib[fib.size() - 1] < 1500) {
+        fib.pb(fib[fib.size() - 2] + fib[fib.size() - 1]);
+    }
+
+    auto T = in_ll();
+    rep(i, T) {
+        auto N = in_ll();
+
+        ll N_fib = 0;
+        ll fib_i = 0;
+        rep(i, fib.size()) {
+            if (fib[i] - 1 >= N) {
+                N_fib = fib[i] - 1;
+                fib_i = i;
+                break;
+            }
+        }
+
+        A.clear();
+        A.resize(N_fib, -1);
+        reps(i, N, N_fib) {
+            A[i] = -i - 10;
+        }
+
+        auto nbegin = 0;
+        // 区間は [nbegin, nbegin + fib[fib_i] - 1)
+
+        while (true) {
+            if (fib_i == 0) {
+                decide(get(nbegin));
+                break;
+            }
+            if (fib_i == 1) {
+                decide(max(get(nbegin), get(nbegin + 1)));
+                break;
+            }
+
+            // fib[fib_i - 2] - 1 : fib[fib_i - 1] - 1 に分ける
+            auto mid1 = nbegin + fib[fib_i - 2] - 1;
+            auto mid2 = nbegin + fib[fib_i - 1] - 1;
+
+            if (get(mid1) < get(mid2)) {
+                nbegin = mid1 + 1;
+            }
+            fib_i--;
+        }
+    }
 
     return 0;
 }

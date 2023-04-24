@@ -104,7 +104,43 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+vll S;
+
+inline ll get(ll i) {
+    if (S[i] != -1)
+        return S[i];
+    cout << "? " << (i + 1) << endl
+         << flush;
+    auto num = in_ll();
+    return S[i] = num;
+}
+
+inline void decide(ll i) {
+    cout << "! " << i << endl
+         << flush;
+}
+
 int main() {
+    auto N = in_ll();
+    S.resize(N, -1);
+    S[0] = 0;
+    S[N - 1] = 1;
+
+    ll nb = 0;
+    ll ne = N - 1;
+
+    while (true) {
+        if (nb + 1 == ne) {
+            decide(nb + 1);
+            break;
+        }
+        ll mid = (nb + ne) / 2;
+        if (S[nb] != get(mid)) {
+            ne = mid;
+        } else {
+            nb = mid;
+        }
+    }
 
     return 0;
 }

@@ -100,11 +100,33 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto Q = in_ll();
+    auto A = in_vll(N);
+
+    ll head = 0;
+
+    rep(i, Q) {
+        auto T = in_ll();
+        auto x = in_ll();
+        auto y = in_ll();
+        if (T == 1) {
+            x = (x - 1 + head) % N;
+            y = (y - 1 + head) % N;
+            auto tmp = A[x];
+            A[x] = A[y];
+            A[y] = tmp;
+        } else if (T == 2) {
+            head += N - 1;
+        } else {
+            x = (x - 1 + head) % N;
+            print(A[x]);
+        }
+    }
 
     return 0;
 }

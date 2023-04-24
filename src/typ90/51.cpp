@@ -100,11 +100,46 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto K = in_ll();
+    auto P = in_ll();
+    auto A = in_vll(N);
+
+    vll cnt[2][41];
+    rep(i, 2) rep(j, 41) cnt[i][j] = vll();
+
+    rep(i, 2) {
+        auto n_start = N / 2 * i;
+        auto n_end = N / 2 * (1 - i) + N * i;
+        rep(bit, 1 << (n_end - n_start)) {
+            ll res = 0;
+            auto _bit = bit;
+            ll pcnt = 0;
+            for (ll mask = 1, ind = 0; _bit != 0; mask <<= 1, ind++) {
+                if ((_bit & mask) != 0) {
+                    _bit ^= mask;
+                    res += A[n_start + ind];
+                    pcnt++;
+                }
+            }
+            cnt[i][pcnt].pb(res);
+        }
+    }
+    rep(j, 41) sort(all(cnt[1][j]));
+
+    ll ans = 0;
+    rep(i, K + 1) {
+        repi(c, cnt[0][i]) {
+            auto itr = upper_bound(all(cnt[1][K - i]), P - c);
+            ans += distance(cnt[1][K - i].begin(), itr);
+        }
+    }
+
+    print(ans);
 
     return 0;
 }

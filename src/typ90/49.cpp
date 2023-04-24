@@ -100,11 +100,66 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto CLR = in_vvll(3, M);
+
+    sort(all(CLR), [](vll &a, vll &b) { return a[0] < b[0]; });
+
+    // [a, b): b in hd[a], a in tl[b]
+    auto hd = vector<us<ll>>();
+    rep(i, N + 1) hd.pb(us<ll>());
+    auto tl = vector<us<ll>>();
+    rep(i, N + 2) tl.pb(us<ll>());
+
+    ll ans = 0;
+    ll cnt = 0;
+    repi(clr, CLR) {
+        auto l = clr[1];
+        auto r = clr[2] + 1;
+        // 被らないかチェック
+        if (hd[l].find(r) != hd[l].end())
+            continue;
+        ans += clr[0];
+
+        // l で始まるもの，r で終わるもの
+        repi(i, hd[l]) {
+            auto nl = min(i, r);
+            auto nr = max(i, r);
+            hd[nl].insert(nr);
+            tl[nr].insert(nl);
+        }
+        repi(i, tl[r]) {
+            auto nl = min(i, l);
+            auto nr = max(i, l);
+            hd[nl].insert(nr);
+            tl[nr].insert(nl);
+        }
+        // l で終わるもの，r で始まるもの
+        repi(i, tl[l]) {
+            hd[i].insert(r);
+            tl[r].insert(i);
+        }
+        repi(i, hd[r]) {
+            hd[l].insert(i);
+            tl[i].insert(l);
+        }
+        hd[l].insert(r);
+        tl[r].insert(l);
+
+        if (++cnt == N)
+            break;
+    }
+
+    if (cnt == N) {
+        print(ans);
+    } else {
+        print(-1);
+    }
 
     return 0;
 }

@@ -100,11 +100,19 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+
+    modint1000000007 ans = 1;
+    rep(i, N) {
+        auto v = in_vll(6);
+        ans *= accumulate(all(v), 0);
+    }
+
+    print(ans.val());
 
     return 0;
 }

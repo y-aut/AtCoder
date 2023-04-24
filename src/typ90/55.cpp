@@ -105,6 +105,27 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto P = in_ll();
+    auto Q = in_ll();
+    auto A = in_vll(N);
+
+    ll ans = 0;
+    rep(i, N) reps(j, i+1, N) reps(k, j+1, N) reps(l, k+1, N) reps(m, l+1, N) {
+        ll res = A[i] * A[j];
+        res %= P;
+        res *= A[k];
+        res %= P;
+        res *= A[l];
+        res %= P;
+        res *= A[m];
+        res %= P;
+        if (res == Q) {
+            ans++;
+        }
+    }
+
+    print(ans);
 
     return 0;
 }

@@ -105,6 +105,27 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto S = in_str();
+
+    bool existbar = false;
+    ll cnt = 0;
+    ll ans = 0;
+    repi(c, S) {
+        if (c == 'o') {
+            cnt++;
+            if (existbar) {
+                chmax(ans, cnt);
+            }
+        }
+        else {
+            chmax(ans, cnt);
+            cnt = 0;
+            existbar = true;
+        }
+    }
+
+    print(ans == 0 ? -1 : ans);
 
     return 0;
 }

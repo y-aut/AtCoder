@@ -1,6 +1,6 @@
 #include "./template.cpp"
 
-// --------------------- ここからコピー --------------------
+// --------------------- ここからコピー ---------------------
 #pragma region "ダイクストラ法"
 
 struct WEdge {
@@ -10,18 +10,18 @@ struct WEdge {
 using WGraph = vector<vector<WEdge>>;
 
 class Dijkstra {
-    vll distances;
+    vll dist;
     // 直前の頂点を記録する配列
-    vll previous;
+    vll prev;
 
 public:
     Dijkstra(const WGraph &graph, const ll startIndex) {
-        distances.resize(graph.size(), LINF);
-        previous.resize(graph.size(), -1);
+        dist.resize(graph.size(), LINF);
+        prev.resize(graph.size(), -1);
 
         // 「現時点での最短距離, 頂点」の順に取り出す priority_queue
         priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace((distances[startIndex] = 0), startIndex);
+        q.emplace((dist[startIndex] = 0), startIndex);
 
         while (!q.empty()) {
             const auto distance = q.top().first;
@@ -29,19 +29,19 @@ public:
             q.pop();
 
             // 最短距離でなければ処理しない
-            if (distances[from] < distance) {
+            if (dist[from] < distance) {
                 continue;
             }
 
             // 現在の頂点からの各辺について
             for (const auto &edge : graph[from]) {
                 // to までの新しい距離
-                const ll d = (distances[from] + edge.cost);
+                const ll d = (dist[from] + edge.cost);
 
                 // d が現在の記録より小さければ更新
-                if (d < distances[edge.to]) {
-                    previous[edge.to] = from;
-                    q.emplace((distances[edge.to] = d), edge.to);
+                if (d < dist[edge.to]) {
+                    prev[edge.to] = from;
+                    q.emplace((dist[edge.to] = d), edge.to);
                 }
             }
         }
@@ -49,17 +49,57 @@ public:
 
     // 最短距離を取得
     ll get_distance(const ll v) {
-        return distances[v];
+        return dist[v];
     }
 
     // 最短経路を取得
     vll get_path(const ll v) {
         auto path = vll();
-        for (int i = v; i >= 0; i = previous[i]) {
+        for (int i = v; i >= 0; i = prev[i]) {
             path.push_back(i);
         }
         reverse(path.begin(), path.end());
         return path;
+    }
+};
+
+#pragma endregion
+
+#pragma region "01-BFS"
+
+class BFS01 {
+    vll dist;
+
+public:
+    BFS01(vvll &zero_edges, vvll &one_edges, ll startIndex) {
+        dist.resize(zero_edges.size(), LINF);
+        dist[startIndex] = 0;
+
+        deque<ll> q;
+        q.emplace_back(startIndex);
+
+        while (!q.empty()) {
+            auto v = q.front();
+            q.pop_front();
+
+            repi(i, zero_edges[v]) {
+                if (dist[v] < dist[i]) {
+                    dist[i] = dist[v];
+                    q.push_front(i);
+                }
+            }
+            repi(i, one_edges[v]) {
+                if (dist[v] + 1 < dist[i]) {
+                    dist[i] = dist[v] + 1;
+                    q.push_back(i);
+                }
+            }
+        }
+    }
+
+    // 最短距離を取得
+    ll get_distance(const ll v) {
+        return dist[v];
     }
 };
 

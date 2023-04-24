@@ -100,11 +100,24 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto L = in_ll();
+
+    modint1000000007 dp[100010];
+    dp[0] = 1;
+
+    rrep(i, N) {
+        if (i < L)
+            dp[i] = dp[i - 1];
+        else
+            dp[i] = dp[i - 1] + dp[i - L];
+    }
+
+    print(dp[N].val());
 
     return 0;
 }

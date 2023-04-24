@@ -100,11 +100,61 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+#pragma region "Union-Find"
+
+class UnionFind {
+    ll size;
+    vll parents;
+
+    ll root(const ll v) {
+        if (parents[v] == -1) {
+            return v;
+        } else {
+            return parents[v] = root(parents[v]);
+        }
+    }
+
+public:
+    UnionFind(const ll _size) {
+        size = _size;
+        parents.resize(size, -1);
+    }
+
+    bool is_connected(const ll v1, const ll v2) {
+        return root(v1) == root(v2);
+    }
+
+    void merge(const ll v1, const ll v2) {
+        parents[root(v1)] = v2;
+    }
+};
+
+#pragma endregion
+
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto CLR = in_vvll(3, M);
+
+    sort(all(CLR), [](vll &a, vll &b) { return a[0] < b[0]; });
+
+    auto tree = UnionFind(N + 1);
+
+    ll ans = 0;
+    ll cnt = 0;
+    repi(clr, CLR) {
+        if (tree.is_connected(clr[1] - 1, clr[2]))
+            continue;
+        tree.merge(clr[1] - 1, clr[2]);
+        ans += clr[0];
+        if (++cnt == N)
+            break;
+    }
+
+    print(cnt == N ? ans : -1);
 
     return 0;
 }

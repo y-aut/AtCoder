@@ -103,8 +103,47 @@ CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
 // clang-format on
+modint998244353 dp[102][102] = {};
 
 int main() {
+    auto S = in_str();
+
+    // sigma[i][j]: Si...S[N-1] で j が現れる最も左のインデックス
+    int sigma[102][26];
+    rep(i, 102) rep(j, 26) sigma[i][j] = -1;
+    repd(i, S.size()) {
+        rep(j, 26) sigma[i][j] = sigma[i + 1][j];
+        sigma[i][S[i] - 'a'] = i;
+    }
+
+    modint998244353 ans = 0;
+    reps(b, 1, S.size()) {
+        auto a = sigma[0][S[b] - 'a'];
+        if (a >= b)
+            continue;
+        // dp[i][j]: S[a..i] == S[b..j] となる部分文字列の個数
+        rep(i, 102) rep(j, 102) dp[i][j] = 0;
+        dp[a][b] = 1;
+        reps(i, a, b) reps(j, b, S.size()) {
+            rep(c, 26) {
+                auto si = sigma[i + 1][c];
+                auto sj = sigma[j + 1][c];
+                if (si != -1 && sj != -1 && si < b) {
+                    dp[si][sj] += dp[i][j];
+                }
+            }
+        }
+        // sigma[i+1][S[b]] == b でなければならない
+        reps(i, a, b) {
+            if (sigma[i + 1][S[b] - 'a'] != b)
+                continue;
+            reps(j, b, S.size()) {
+                ans += dp[i][j];
+            }
+        }
+    }
+
+    print(ans.val());
 
     return 0;
 }

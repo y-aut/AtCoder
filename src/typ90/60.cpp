@@ -104,7 +104,52 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+#pragma region 最長増加部分列
+
+class LIS {
+    vll v;
+    // lis[i]: v[0] ~ v[i] の LIS の長さ
+    vll len;
+
+    void set_len() {
+        vll tmp;
+        repi(a, v) {
+            auto itr = lower_bound(all(tmp), a);
+            auto cnt = distance(tmp.begin(), itr);
+            if (cnt == tmp.size()) {
+                tmp.pb(a);
+            } else {
+                tmp[cnt] = a;
+            }
+            len.pb(tmp.size());
+        }
+    }
+
+public:
+    LIS(vll &_v) {
+        v = _v;
+        set_len();
+    }
+
+    ll get_length(ll i) { return len[i]; }
+};
+
+#pragma endregion
+
 int main() {
+    auto N = in_ll();
+    auto A = in_vll(N);
+
+    auto v1 = LIS(A);
+    reverse(all(A));
+    auto v2 = LIS(A);
+
+    ll ans = 0;
+    rep(i, N) {
+        chmax(ans, v1.get_length(i) + v2.get_length(N - 1 - i) - 1);
+    }
+
+    print(ans);
 
     return 0;
 }

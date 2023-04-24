@@ -104,7 +104,40 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+inline ll next(ll n) {
+    ll ans = n;
+    while (n != 0) {
+        ans += n % 10;
+        n /= 10;
+    }
+    return ans % 100000;
+}
+
 int main() {
+    auto N = in_ll();
+    auto K = in_ll();
+
+    vll nums = vll(100010, -1);
+    vll nums2;
+
+    ll now = N;
+    ll rbegin = 0;
+    ll rdur = 0;
+    rep(i, K) {
+        if (nums[now] != -1) {
+            rbegin = nums[now];
+            rdur = i - rbegin;
+            break;
+        }
+        nums[now] = i;
+        nums2.pb(now);
+        now = next(now);
+    }
+
+    if (rdur != 0) {
+        now = nums2[(K - rbegin) % rdur + rbegin];
+    }
+    print(now);
 
     return 0;
 }

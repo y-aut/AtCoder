@@ -104,7 +104,80 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+void bfs(vvll &graph, vll &dist, ll start) {
+    dist[start] = 0;
+    auto q = queue<ll>();
+    q.push(start);
+
+    while (!q.empty()) {
+        auto v = q.front();
+        q.pop();
+        repi(v1, graph[v]) {
+            if (dist[v1] == -1) {
+                dist[v1] = dist[v] + 1;
+                q.push(v1);
+            }
+        }
+    }
+}
+
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto edges = vvll();
+    rep(i, N) edges.pb(vll());
+    rep(i, M) {
+        auto u = in_ll() - 1;
+        auto v = in_ll() - 1;
+        edges[u].pb(v);
+        edges[v].pb(u);
+    }
+    auto K = in_ll();
+    auto pds = in_vpll(K);
+
+    // 最短距離を計算
+    auto dist = vvll();
+    rep(i, N) {
+        auto d = vll(N, -1);
+        bfs(edges, d, i);
+        dist.pb(d);
+    }
+
+    auto white = us<ll>();
+    repi(pd, pds) {
+        rep(i, N) {
+            if (dist[pd.first - 1][i] < pd.second) {
+                white.insert(i);
+            }
+        }
+    }
+
+    repi(pd, pds) {
+        bool flg = false;
+        rep(i, N) {
+            if (dist[pd.first - 1][i] == pd.second &&
+                white.find(i) == white.end()) {
+                flg = true;
+                break;
+            }
+        }
+        if (!flg) {
+            print("No");
+            return 0;
+        }
+    }
+
+    print("Yes");
+    string ans = "";
+    rep(i, N) {
+        if (white.find(i) == white.end()) {
+            ans += "1";
+        }
+        else {
+            ans += "0";
+        }
+    }
+    print(ans);
 
     return 0;
 }

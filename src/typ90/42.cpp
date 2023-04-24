@@ -65,13 +65,10 @@ using uss = unordered_set<string>;
 inline int in_int() {int x; cin >> x; return x;}
 inline ll in_ll() {ll x; cin >> x; return x;}
 inline double in_double() {double x; cin >> x; return x;}
-inline pii in_pii() {pii x; cin >> x.first >> x.second; return x;}
-inline pll in_pll() {pll x; cin >> x.first >> x.second; return x;}
 inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
 inline vi in_vi(int length) {vi res = vi(); rep(i, length) res.pb(in_int()); return res;}
 inline vll in_vll(int length) {vll res = vll(); rep(i, length) res.pb(in_ll()); return res;}
-inline vs in_vs(int height) {vs res = vs(); rep(i, height) res.pb(in_str()); return res;}
 inline vvi in_vvi(int width, int height)
     {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
@@ -100,11 +97,28 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto K = in_ll();
+
+    if (K % 9 != 0) {
+        print(0);
+        return 0;
+    }
+
+    modint1000000007 dp[100010] = {};
+    dp[1] = 1;
+    reps(i, 2, 10) dp[i] = dp[i - 1] * 2;
+
+    modint1000000007 tmp = dp[9] * 2 - 1;
+    reps(i, 10, K + 1) {
+        dp[i] = tmp;
+        tmp += tmp - dp[i - 9];
+    }
+
+    print(dp[K].val());
 
     return 0;
 }

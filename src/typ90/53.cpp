@@ -100,11 +100,82 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+inline ll get(ll i, vll &A) {
+    if (A[i] != -1)
+        return A[i];
+    cout << "? " << (i + 1) << endl
+         << flush;
+    auto num = in_ll();
+    if (num == -1)
+        exit(0);
+    return A[i] = num;
+}
+
+inline void decide(ll i) {
+    cout << "! " << i << endl
+         << flush;
+}
+
 int main() {
+    auto T = in_ll();
+    rep(i, T) {
+        auto N = in_ll();
+        auto A = vll(N, -1);
+        ll nbegin = 0;
+        ll nend = N - 1;
+
+        while (true) {
+            if (nbegin == nend) {
+                decide(get(nbegin, A));
+                break;
+            }
+            if (nbegin + 1 == nend) {
+                decide(max(get(nbegin, A), get(nend, A)));
+                break;
+            }
+
+            auto mid = (nbegin + nend) / 2;
+
+            if (A[nbegin] == -1 && A[nend] == -1) {
+                if (get(mid, A) < get(mid + 1, A)) {
+                    nbegin = mid + 1;
+                } else {
+                    nend = mid;
+                }
+                continue;
+            }
+
+            if (A[nbegin] != -1) {
+                if (get(nbegin, A) + (mid - nbegin) > get(mid, A)) {
+                    nend = mid;
+                    continue;
+                }
+                if (get(nend, A) > get(mid, A) - (nend - mid)) {
+                    nbegin = mid;
+                    continue;
+                }
+            } else if (A[nend] != -1) {
+                if (get(nend, A) > get(mid, A) - (nend - mid)) {
+                    nbegin = mid;
+                    continue;
+                }
+                if (get(nbegin, A) + (mid - nbegin) > get(mid, A)) {
+                    nend = mid;
+                    continue;
+                }
+            }
+
+            // A[nbegin], A[nend], A[mid] がわかっている
+            if (A[mid] < get(mid + 1, A)) {
+                nbegin = mid + 1;
+            } else {
+                nend = mid;
+            }
+        }
+    }
 
     return 0;
 }

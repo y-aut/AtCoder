@@ -104,7 +104,53 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+ll op(ll a, ll b) { return min(a, b); }
+ll e() { return INF; }
+pll op2(pll a, pll b) {
+    if (a.second == b.second) {
+        return a.first < b.first ? a : b;
+    }
+    return a.second < b.second ? a : b;
+}
+pll e2() { return {INF, INF}; }
+
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto A = in_vll(N);
+    rep(i, N) A[i]--;
+
+    auto A_ = vpll();
+    rep(i, N) A_.pb({i, A[i]});
+    auto A_tree = segtree<pll, op2, e2>(A_);
+
+    // 最後に i が出てくる位置
+    auto last = vll(M);
+    rep(i, N) last[A[i]] = i;
+    auto last_tree = segtree<ll, op, e>(last);
+
+    // i が出てくる位置全て
+    auto numpos = vvll();
+    rep(i, M) numpos.pb(vll());
+    rep(i, N) numpos[A[i]].pb(i);
+
+    vll ans;
+    ll hd = 0;
+    ll lastpos = 0;
+
+    rep(i, M) {
+        auto ind = last_tree.all_prod();
+        // [hd, ind] 間で最小のものを採用
+        auto m = A_tree.prod(hd, ind + 1);
+        ans.pb(m.second + 1);
+        hd = m.first + 1;
+        repi(p, numpos[m.second]) {
+            A_tree.set(p, e2());
+        }
+        last_tree.set(m.second, e());
+    }
+
+    print(ans);
 
     return 0;
 }

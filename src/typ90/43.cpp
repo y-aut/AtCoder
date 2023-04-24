@@ -100,11 +100,55 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
 int main() {
+    auto H = in_ll();
+    auto W = in_ll();
+    auto start = in_pll();
+    auto goal = in_pll();
+    start.first--;
+    start.second--;
+    goal.first--;
+    goal.second--;
+    auto S = in_vs(H);
+
+    // cnt[i][j]: (i,j) への方向転換回数
+    int cnt[1000][1000] = {};
+    rep(i, 1000) rep(j, 1000) cnt[i][j] = -1;
+    cnt[start.first][start.second] = 0;
+
+    // 直前に更新したマス
+    auto prev = us<int>();
+    prev.insert(start.first * 1000 + start.second);
+
+    int ur[] = {0, 0, 1, -1};
+    int uc[] = {1, -1, 0, 0};
+
+    for (ll turn = 0; cnt[goal.first][goal.second] == -1; turn++) {
+        auto cur = us<int>();
+        repi(i, prev) {
+            auto r = i / 1000;
+            auto c = i % 1000;
+            rep(j, 4) {
+                for (ll nr = r + ur[j], nc = c + uc[j];
+                     0 <= nr && nr < H && 0 <= nc && nc < W && S[nr][nc] != '#';
+                     nr += ur[j], nc += uc[j]) {
+                    if (cnt[nr][nc] == -1) {
+                        cnt[nr][nc] = turn;
+                        cur.insert(nr * 1000 + nc);
+                    } else if (cnt[nr][nc] < turn) {
+                        break;
+                    }
+                }
+            }
+        }
+        prev.clear();
+        prev = cur;
+    }
+
+    print(cnt[goal.first][goal.second]);
 
     return 0;
 }

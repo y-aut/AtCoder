@@ -105,6 +105,84 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto mat = vvb();
+    rep(i, N) {
+        auto A = in_vll(in_ll());
+        auto v = vb(M, false);
+        repi(a, A) v[a - 1] = true;
+        mat.pb(v);
+    }
+    auto S = in_vll(M);
+
+    auto swlist = vector<ll>();
+    rep(i, M) {
+        // i-1 までは false で i が true のスイッチ
+        auto s = vector<ll>();
+        rep(j, N) {
+            if (!mat[j][i])
+                continue;
+            bool flg = true;
+            rep(k, i) {
+                if (mat[j][k]) {
+                    flg = false;
+                    break;
+                }
+            }
+            if (flg) {
+                s.pb(j);
+            }
+        }
+        reps(j, 1, s.size()) {
+            rep(k, M) {
+                if (mat[s[0]][k])
+                    mat[s[j]][k] = !mat[s[j]][k];
+            }
+        }
+        if (s.empty()) {
+            swlist.pb(-1);
+        } else {
+            swlist.pb(s[0]);
+        }
+    }
+
+    rep(i, M) {
+        if (S[i] == 1) {
+            if (swlist[i] == -1) {
+                print(0);
+                return 0;
+            }
+            rep(j, M) {
+                if (mat[swlist[i]][j]) {
+                    S[j] = 1 - S[j];
+                }
+            }
+        }
+    }
+
+    rep(i, M) {
+        if (S[i] == 1) {
+            print(0);
+            return 0;
+        }
+    }
+
+    // 2 ^ (全て 0 の列の個数)
+    modint998244353 ans = 1;
+    rep(i, N) {
+        bool flg = true;
+        rep(j, M) {
+            if (mat[i][j] != 0) {
+                flg = false;
+                break;
+            }
+        }
+        if (flg) {
+            ans *= 2;
+        }
+    }
+    print(ans.val());
 
     return 0;
 }

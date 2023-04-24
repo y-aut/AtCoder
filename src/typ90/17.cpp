@@ -105,6 +105,26 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto LR = in_vpll(M);
+    rep(i, M) {
+        LR[i].first--;
+        LR[i].second--;
+    }
+
+    sort(all(LR), [](pll &a, pll &b) { return a.second == b.second ? a.first > b.first : a.second < b.second; });
+
+    fenwick_tree<ll> ltree(N), rtree(N);
+
+    ll ans = 0;
+    repi(lr, LR) {
+        ans += ltree.sum(0, lr.first) - rtree.sum(0, lr.first + 1);
+        ltree.add(lr.first, 1);
+        rtree.add(lr.second, 1);
+    }
+
+    print(ans);
 
     return 0;
 }

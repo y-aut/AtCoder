@@ -105,6 +105,48 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto Q = in_ll();
+
+    auto edges = vvll();
+    rep(i, N) edges.pb(vll());
+    rep(i, M) {
+        auto X = in_ll() - 1;
+        auto Y = in_ll() - 1;
+        edges[X].pb(Y);
+    }
+
+    auto queries = in_vpll(Q);
+    rep(i, Q) {
+        queries[i].first--;
+        queries[i].second--;
+    }
+
+    for (ll i = 0; i < Q; i += 64) {
+        // 頂点 0 から到達可能か
+        auto dp = vll(N, 0);
+
+        ll min_s = LINF;
+        for (ll j = i; j < i + 64 && j < Q; j++) {
+            dp[queries[j].first] |= 1ll << (j - i);
+            chmin(min_s, queries[j].first);
+        }
+
+        reps(j, min_s, N) {
+            repi(k, edges[j]) {
+                dp[k] |= dp[j];
+            }
+        }
+
+        for (ll j = i; j < i + 64 && j < Q; j++) {
+            if ((dp[queries[j].second] & (1ll << (j - i))) != 0) {
+                print("Yes");
+            } else {
+                print("No");
+            }
+        }
+    }
 
     return 0;
 }

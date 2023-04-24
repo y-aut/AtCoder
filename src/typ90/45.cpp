@@ -100,11 +100,71 @@ CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+inline ll dist2(pll x, pll y) {
+    return (x.first - y.first) * (x.first - y.first) + (x.second - y.second) * (x.second - y.second);
+}
+
+int perm_at(int bits, int index) {
+    int ans = 0;
+    int ind_mask = 1;
+    for (int mask = 1; mask != 0; mask <<= 1) {
+        if (bits & mask) {
+            ans |= (index & ind_mask) ? mask : 0;
+            ind_mask <<= 1;
+        }
+    }
+    return ans;
+}
+
 int main() {
+    auto N = in_ll();
+    auto K = in_ll();
+    auto points = in_vpll(N);
+
+    // dp[i][j]: 追加済みの点: i, グループ数 j
+    ll dp[1 << 15][16] = {};
+
+    // d[i]: i の点の2点間距離の2乗の最大値
+    ll d[1 << 15];
+    d[0] = d[1] = 0;
+
+    int now_left = 0;
+    reps(i, 1, 1 << N) {
+        if (((1 << now_left) & i) == 0)
+            now_left++;
+        d[i] = d[i ^ (1 << now_left)];
+        rep(j, now_left) {
+            if (((1 << j) & i) != 0) {
+                chmax(d[i], dist2(points[now_left], points[j]));
+            }
+        }
+    }
+
+    reps(i, 1, 1 << N) dp[i][0] = LINF;
+    dp[0][0] = 0;
+
+    auto bs = vi();
+    rep(i, 1 << N) {
+        bs.clear();
+        for (int ind = 0;; ind++) {
+            auto b = perm_at(i, ind);
+            bs.pb(b);
+            if (b == i)
+                break;
+        }
+        rrep(j, K) {
+            ll ans = LINF;
+            for (auto b : bs) {
+                chmin(ans, max(dp[b][j - 1], d[i ^ b]));
+            }
+            dp[i][j] = ans;
+        }
+    }
+
+    print(dp[(1 << N) - 1][K]);
 
     return 0;
 }
