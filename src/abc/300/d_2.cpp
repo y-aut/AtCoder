@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -121,6 +122,42 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+
+    auto nmax = (ll)sqrt(N / 12) + 10;
+
+    set<ll> primes;
+    reps(i, 2, nmax) primes.insert(i);
+
+    for (ll i = 2; i < nmax; i++) {
+        if (contains(primes, i)) {
+            for (ll j = i + i; j < nmax; j += i)
+                primes.erase(j);
+        }
+    }
+
+    vll primes_v;
+    repi(i, primes) primes_v.pb(i);
+
+    ll ans = 0;
+    rep(a, primes_v.size() - 2) {
+        if (primes_v[a] * primes_v[a] * primes_v[a + 1] * primes_v[a + 2] * primes_v[a + 2] > N) {
+            break;
+        }
+        reps(b, a + 1, primes_v.size() - 1) {
+            if (primes_v[a] * primes_v[a] * primes_v[b] * primes_v[b + 1] * primes_v[b + 1] > N) {
+                break;
+            }
+            reps(c, b + 1, primes_v.size()) {
+                if (primes_v[a] * primes_v[a] * primes_v[b] * primes_v[c] * primes_v[c] <= N) {
+                    ans++;
+                } else
+                    break;
+            }
+        }
+    }
+
+    print(ans);
 
     return 0;
 }

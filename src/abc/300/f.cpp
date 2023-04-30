@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -120,7 +121,65 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+ll solve(const string &S, ll K, ll xcnt, vll &xpos) {
+    xpos.pb(S.size());
+    // [i, i+K) を変更
+    ll ans = xpos[K];
+    reps(i, 1, xcnt - K + 1) {
+        chmax(ans, xpos[i + K] - xpos[i - 1] - 1);
+    }
+    return ans;
+}
+
+ll solve(ll M, const string &S, ll K, ll xcnt, vll &xpos) {
+    string T = S;
+    reps(i, 1, M) {
+        T += S;
+        rep(j, xcnt) xpos.pb(xpos[j] + S.size() * i);
+    }
+    ll ans = solve(T, K, xcnt * M, xpos);
+    return ans;
+}
+
 int main() {
+    auto N = in_ll();
+    auto M = in_ll();
+    auto K = in_ll();
+    auto S = in_str();
+
+    ll xcnt = 0;
+    vll xpos;
+    rep(i, N) {
+        if (S[i] == 'x') {
+            xpos.pb(i);
+            xcnt++;
+        }
+    }
+
+    if (K == xcnt * M) {
+        print(N * M);
+        return 0;
+    }
+
+    if (M <= 5) {
+        ll ans = solve(M, S, K, xcnt, xpos);
+        print(ans);
+        return 0;
+    }
+
+    if (K < xcnt * 2) {
+        ll ans = solve(5, S, K, xcnt, xpos);
+        print(ans);
+        return 0;
+    }
+
+    ll drop = (K - xcnt) / xcnt;
+    K -= xcnt * drop;
+    M -= drop;
+
+    ll ans = solve(min(M, 5ll), S, K, xcnt, xpos);
+    ans += drop * N;
+    print(ans);
 
     return 0;
 }

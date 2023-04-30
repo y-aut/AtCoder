@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -121,6 +122,38 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    auto N = in_ll();
+
+    ll c2, c3, c5;
+
+    while (N != 1) {
+        if (N % 2 == 0) {
+            N /= 2;
+            c2++;
+        } else if (N % 3 == 0) {
+            N /= 3;
+            c3++;
+        } else if (N % 5 == 0) {
+            N /= 5;
+            c5++;
+        } else {
+            print(0);
+            return 0;
+        }
+    }
+
+    modint998244353 dp[70][40][30] = {};
+    dp[0][0][0] = 1;
+
+    rep(i, c2 + 1) rep(j, c3 + 1) rep(k, c5 + 1) {
+        dp[i + 1][j][k] += dp[i][j][k] / 5;
+        dp[i][j + 1][k] += dp[i][j][k] / 5;
+        dp[i + 2][j][k] += dp[i][j][k] / 5;
+        dp[i][j][k + 1] += dp[i][j][k] / 5;
+        dp[i + 1][j + 1][k] += dp[i][j][k] / 5;
+    }
+
+    print(dp[c2][c3][c5]);
 
     return 0;
 }

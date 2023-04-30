@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -120,7 +121,38 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+char get(vs &C, ll y, ll x) {
+    if (0 <= y && y < C.size() && 0 <= x && x < C[0].size())
+        return C[y][x];
+    else
+        return '.';
+}
+
 int main() {
+    auto H = in_ll();
+    auto W = in_ll();
+    auto C = in_vs(H);
+
+    vll ans(min(H, W), 0);
+    rep(i, H) rep(j, W) {
+        if (C[i][j] == '#') {
+            ll n = 1;
+            for (;; n++) {
+                if (get(C, i + n, j + n) == '#') {
+                    C[i + n][j + n] = '.';
+                } else {
+                    break;
+                }
+            }
+            rep(k, n) {
+                C[i + n - 1 - k][j + k] = '.';
+            }
+            n /= 2;
+            ans[n - 1]++;
+        }
+    }
+
+    print(ans);
 
     return 0;
 }

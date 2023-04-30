@@ -1,17 +1,14 @@
 #include "./template.cpp"
 
 // --------------------- ここからコピー ---------------------
+#pragma region 二項係数
+
 class Binomial {
-    ll mod = 0;
+    const ll mod = 0;
     vll fact, fact_inv, inv;
 
 public:
-    Binomial(const ll size, const ll _mod) {
-        mod = _mod;
-        fact = vll(size + 5);
-        fact_inv = vll(size + 5);
-        inv = vll(size + 5);
-
+    Binomial(const ll size, const ll _mod) : mod(_mod), fact(size + 5), fact_inv(size + 5), inv(size + 5) {
         fact[0] = fact[1] = 1;
         fact_inv[0] = fact_inv[1] = 1;
         inv[1] = 1;
@@ -24,23 +21,25 @@ public:
     }
 
     /// nCk % mod を求める
-    ll nCk(const ll n, const ll k) {
+    ll nCk(const ll n, const ll k) const {
         if (k < 0 || n < k)
             return 0;
         return fact[n] * (fact_inv[k] * fact_inv[n - k] % mod) % mod;
     }
 
     /// nPk % mod を求める
-    ll nPk(const ll n, const ll k) {
+    ll nPk(const ll n, const ll k) const {
         if (k < 0 || n < k)
             return 0;
         return fact[n] * (fact_inv[n - k] % mod) % mod;
     }
 
     /// nHk % mod を求める
-    ll nHk(const ll n, const ll k) {
+    ll nHk(const ll n, const ll k) const {
         if (n == 0 && k == 0)
             return 1;
         return nCk(n + k - 1, k);
     }
 };
+
+#pragma endregion

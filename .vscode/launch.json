@@ -24,7 +24,7 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "build",
+            "preLaunchTask": "debug build",
             "setupCommands": [
                 {
                     "description": "gdb の再フォーマットを有効にする",

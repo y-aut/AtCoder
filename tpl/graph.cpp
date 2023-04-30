@@ -15,10 +15,7 @@ class Dijkstra {
     vll prev;
 
 public:
-    Dijkstra(const WGraph &graph, const ll startIndex) {
-        dist.resize(graph.size(), LINF);
-        prev.resize(graph.size(), -1);
-
+    Dijkstra(const WGraph &graph, const ll startIndex) : dist(graph.size(), LINF), prev(graph.size(), -1) {
         // 「現時点での最短距離, 頂点」の順に取り出す priority_queue
         priority_queue<pll, vector<pll>, greater<pll>> q;
         q.emplace((dist[startIndex] = 0), startIndex);
@@ -36,7 +33,7 @@ public:
             // 現在の頂点からの各辺について
             for (const auto &edge : graph[from]) {
                 // to までの新しい距離
-                const ll d = (dist[from] + edge.cost);
+                ll d = dist[from] + edge.cost;
 
                 // d が現在の記録より小さければ更新
                 if (d < dist[edge.to]) {
@@ -48,12 +45,12 @@ public:
     }
 
     // 最短距離を取得
-    ll get_distance(const ll v) {
+    ll get_distance(const ll v) const {
         return dist[v];
     }
 
     // 最短経路を取得
-    vll get_path(const ll v) {
+    vll get_path(const ll v) const {
         auto path = vll();
         for (int i = v; i >= 0; i = prev[i]) {
             path.push_back(i);
@@ -71,8 +68,7 @@ class BFS01 {
     vll dist;
 
 public:
-    BFS01(vvll &zero_edges, vvll &one_edges, ll startIndex) {
-        dist.resize(zero_edges.size(), LINF);
+    BFS01(vvll &zero_edges, vvll &one_edges, ll startIndex) : dist(zero_edges.size(), LINF) {
         dist[startIndex] = 0;
 
         deque<ll> q;
@@ -98,7 +94,7 @@ public:
     }
 
     // 最短距離を取得
-    ll get_distance(const ll v) {
+    ll get_distance(const ll v) const {
         return dist[v];
     }
 };
@@ -108,8 +104,10 @@ public:
 #pragma region "強連結成分分解"
 
 class SCC {
-    ll size, component_size;
-    vvll graph, r_graph;
+    const ll size;
+    const vvll &graph;
+    vvll r_graph;
+    ll component_size;
     vll order, component;
     vector<bool> used;
 
@@ -131,12 +129,8 @@ class SCC {
     }
 
 public:
-    SCC(const vvll &_graph) {
-        size = _graph.size();
-        graph = _graph;
-        r_graph.resize(size);
-        component.assign(size, -1);
-        used.resize(size);
+    SCC(const vvll &_graph) : size(_graph.size()), graph(_graph), r_graph(size, vll()),
+                              component(size, -1), used(size, false) {
         rep(v, size) {
             for (auto nv : graph[v])
                 r_graph[nv].pb(v);
@@ -151,10 +145,10 @@ public:
     }
 
     // 頂点(u, v)が同じ強連結成分に含まれるか
-    bool is_same(const ll u, const ll v) { return component[u] == component[v]; }
+    bool is_same(const ll u, const ll v) const { return component[u] == component[v]; }
 
     // 各強連結成分を取得する
-    vvll get_components() {
+    vvll get_components() const {
         auto ans = vvll();
         rep(i, component_size) ans.pb(vll());
         rep(v, size) ans[component[v]].pb(v);
@@ -162,7 +156,7 @@ public:
     }
 
     // 強連結成分を1つのノードに潰したグラフを再構築する
-    vvll rebuild() {
+    vvll rebuild() const {
         ll N = *max_element(component.begin(), component.end()) + 1;
         vvll ans(N);
         set<pll> connected;
@@ -183,8 +177,11 @@ public:
 #pragma region "Union-Find"
 
 class UnionFind {
-    ll size;
+    const ll size;
     vll parents;
+
+public:
+    UnionFind(const ll _size) : size(_size), parents(size, -1) {}
 
     ll root(const ll v) {
         if (parents[v] == -1) {
@@ -194,20 +191,72 @@ class UnionFind {
         }
     }
 
-public:
-    UnionFind(const ll _size) {
-        size = _size;
-        parents.resize(size, -1);
-    }
-
     bool is_connected(const ll v1, const ll v2) {
         return root(v1) == root(v2);
     }
 
     void merge(const ll v1, const ll v2) {
-        parents[root(v1)] = v2;
+        if (is_connected(v1, v2))
+            return;
+        parents[root(v2)] = v1;
     }
 };
+
+#pragma endregion
+
+#pragma region "閉路検出"
+
+bool is_dag_impl(const vvll &edges, const ll v, vc &status) {
+    status[v] = 1;
+    repi(i, edges[v]) {
+        if (status[i] == 1)
+            return false;
+        else if (status[i] == 0 && !is_dag_impl(edges, i, status))
+            return false;
+    }
+    status[v] = 2;
+    return true;
+}
+
+bool is_dag(const vvll &edges) {
+    auto status = vc(edges.size(), (char)0);
+    rep(i, edges.size()) {
+        if (status[i] == 0 && !is_dag_impl(edges, i, status))
+            return false;
+    }
+    return true;
+}
+
+#pragma endregion
+
+#pragma region "トポロジカルソート"
+
+vll topological_sort(const vvll &edges) {
+    vll ans;
+    vll in_deg(edges.size(), 0);
+
+    // 入次数をカウント
+    repi(i, edges) repi(j, i) in_deg[j]++;
+
+    queue<ll> q;
+    rep(i, in_deg.size()) {
+        if (in_deg[i] == 0)
+            q.push(i);
+    }
+
+    while (!q.empty()) {
+        auto v = q.front();
+        q.pop();
+
+        repi(i, edges[v]) {
+            if (--in_deg[i] == 0)
+                q.push(i);
+        }
+        ans.pb(v);
+    }
+
+    return ans;
+}
 
 #pragma endregion
 
@@ -215,23 +264,22 @@ public:
 
 class Tree {
 protected:
-    ll size;
-    ll root;
+    const ll size;
+    const ll root;
     vll depth;
     ll height; // max(depth) + 1
-    vvll edges;
+    const vvll &edges;
     vll parents;
     vvll children;
     vll partial_size; // 部分木のノード数
 
 private:
     void set_depth() {
-        depth.resize(size, -1);
         set_depth_impl(0, 0);
         height = *max_element(all(depth)) + 1;
     }
 
-    void set_depth_impl(ll v, ll d) {
+    void set_depth_impl(const ll v, const ll d) {
         depth[v] = d;
         repi(i, edges[v]) {
             if (depth[i] == -1)
@@ -240,7 +288,6 @@ private:
     }
 
     void set_parents_and_children() {
-        parents.resize(size);
         parents[root] = root;
         rep(i, size) children.pb(vll());
         rep(i, size) repi(j, edges[i]) {
@@ -252,21 +299,21 @@ private:
         }
     }
 
-    void get_preorder_impl(vll &order, ll v) {
+    void get_preorder_impl(vll &order, const ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_preorder_impl(order, i);
         }
     }
 
-    void get_postorder_impl(vll &order, ll v) {
+    void get_postorder_impl(vll &order, const ll v) const {
         repi(i, children[v]) {
             get_postorder_impl(order, i);
         }
         order.pb(v);
     }
 
-    void get_euler_tour_impl(vll &order, ll v) {
+    void get_euler_tour_impl(vll &order, const ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_euler_tour_impl(order, i);
@@ -275,11 +322,10 @@ private:
     }
 
     void set_partial_size() {
-        partial_size.resize(size, 0);
         set_partial_size_impl(root);
     }
 
-    void set_partial_size_impl(ll v) {
+    void set_partial_size_impl(const ll v) {
         partial_size[v] = 1;
         repi(c, children[v]) {
             set_partial_size_impl(c);
@@ -288,43 +334,41 @@ private:
     }
 
 public:
-    Tree(ll _size, vvll &_edges, ll _root = 0) {
-        if (_size == 0) {
+    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
             throw "The tree size is 0.";
         }
-        size = _size;
-        edges = _edges;
-        root = _root;
         set_depth();
         set_parents_and_children();
         set_partial_size();
     }
 
-    ll get_size() { return size; }
-    ll get_root() { return root; }
-    ll get_depth(ll v) { return depth[v]; }
-    ll get_height() { return height; }
-    vll get_edges(ll v) { return edges[v]; }
-    ll get_parent(ll v) { return parents[v]; }
-    vll get_children(ll v) { return children[v]; }
-    ll get_partial_size(ll v) { return partial_size[v]; }
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    vll get_edges(const ll v) const { return edges[v]; }
+    ll get_parent(const ll v) const { return parents[v]; }
+    vll get_children(const ll v) const { return children[v]; }
+    ll get_partial_size(const ll v) const { return partial_size[v]; }
 
     // 行きがけ順に頂点を取得する
-    vll get_preorder() {
+    vll get_preorder() const {
         auto ans = vll();
         get_preorder_impl(ans, root);
         return ans;
     }
 
     // 帰りがけ順に頂点を取得する
-    vll get_postorder() {
+    vll get_postorder() const {
         auto ans = vll();
         get_postorder_impl(ans, root);
         return ans;
     }
 
     // オイラーツアーを取得する
-    vll get_euler_tour() {
+    vll get_euler_tour() const {
         auto ans = vll();
         get_euler_tour_impl(ans, root);
         return ans;
@@ -341,7 +385,7 @@ class LCADoubling : public Tree {
     vvll doubling;
 
     // 最上位ビットの下から数えた位置を取得
-    int msb_pos(ull x) {
+    static int msb_pos(const ull x) {
         return x == 0 ? -1 : (sizeof(ull)) * 8 - __builtin_clzll(x) - 1;
     }
 
@@ -357,12 +401,12 @@ class LCADoubling : public Tree {
     }
 
 public:
-    LCADoubling(ll _size, vvll &_edges, ll _root = 0) : Tree(_size, _edges, _root) {
+    LCADoubling(const vvll &_edges, const ll _root = 0) : Tree(_edges, _root) {
         set_doubling();
     }
 
     // v の d 個上の祖先を取得する
-    ll level_ancestor(ll v, ll d) {
+    ll level_ancestor(ll v, ll d) const {
         repd(i, doubling.size()) {
             if (1 << i <= d) {
                 d -= 1 << i;
@@ -372,7 +416,7 @@ public:
         return v;
     }
 
-    ll get_lca(ll v1, ll v2) {
+    ll get_lca(ll v1, ll v2) const {
         // v1, v2 の深さを揃える
         if (depth[v1] > depth[v2]) {
             v1 = level_ancestor(v1, depth[v1] - depth[v2]);
@@ -391,7 +435,7 @@ public:
         return parents[v1];
     }
 
-    ll get_dist(ll v1, ll v2) {
+    ll get_dist(const ll v1, const ll v2) const {
         auto l = get_lca(v1, v2);
         return depth[v1] + depth[v2] - 2 * depth[l];
     }

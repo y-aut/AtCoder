@@ -39,7 +39,6 @@ using uss = unordered_set<string>;
 
 /* define short */
 #define pb push_back
-#define eb emplace_back
 #define mp make_pair
 #define um unordered_map
 #define us unordered_set
@@ -50,9 +49,6 @@ using uss = unordered_set<string>;
 #define CSI constexpr static int
 #define CSLL constexpr static ll
 #define CSLD constexpr static ld
-#define INVAR(type, ...) type __VA_ARGS__; set_vars(__VA_ARGS__)
-#define ININT(...) INVAR(int, __VA_ARGS__)
-#define INLL(...) INVAR(ll, __VA_ARGS__)
 
 /* REP macro */
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
@@ -74,27 +70,18 @@ inline pii in_pii() {pii x; cin >> x.first >> x.second; return x;}
 inline pll in_pll() {pll x; cin >> x.first >> x.second; return x;}
 inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
-inline vi in_vi(int length) {vi res; rep(i, length) res.pb(in_int()); return res;}
-inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return res;}
-inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
-inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
+inline vi in_vi(int length) {vi res = vi(); rep(i, length) res.pb(in_int()); return res;}
+inline vll in_vll(int length) {vll res = vll(); rep(i, length) res.pb(in_ll()); return res;}
+inline vc in_vc(int length) {vc res = vc(); rep(i, length) res.pb(in_char()); return res;}
+inline vs in_vs(int height) {vs res = vs(); rep(i, height) res.pb(in_str()); return res;}
 inline vvi in_vvi(int width, int height)
-    {vvi res; rep(i, height) {vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
+    {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
-    {vvll res; rep(i, height) {vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
+    {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
 inline vpii in_vpii(int height)
-    {vpii res; rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
+    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
 inline vpll in_vpll(int height)
-    {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
-template <bool bidir> inline vvll in_edges(int N, int height)
-    {vvll res(N, vll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].pb(b); if (bidir) res[b].pb(a);} return res;}
-template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
-    {vector<usll> res(N, usll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-inline void set_vars() {}
-template <typename First, typename... Rest> inline void set_vars(First& first, Rest&... rest)
-    {cin >> first; set_vars(rest...);}
+    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
@@ -105,10 +92,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
     {for (auto&& p : v) print(p);}
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
-template <int V> inline void print(const static_modint<V> v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
-template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
-template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
+template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if (compare = a > b) a = b; return compare;}
+template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if (compare = a < b) a = b; return compare;}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -120,7 +106,65 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+ll get_t(pll &a, pll &b) {
+    auto abs_x = abs(a.first - b.first);
+    auto abs_y = abs(a.second - b.second);
+    if (abs_x == 0)
+        return abs_y;
+    if (abs_y == 0)
+        return abs_x;
+    if (abs_x == abs_y)
+        return abs_x;
+    return -1;
+}
+
+int get_d(pll &a, pll &b) {
+    if (a.first == b.first)
+        return a.second < b.second ? 3 : 7;
+    if (a.second == b.second)
+        return a.first < b.first ? 1 : 5;
+    if (a.first < b.first)
+        return a.second < b.second ? 2 : 8;
+    return a.second < b.second ? 4 : 6;
+}
+
 int main() {
+    auto N = in_ll();
+    auto T = in_ll();
+    auto A = in_vpll(N);
+    auto B = in_vpll(N);
+
+    mf_graph<int> mf(N * 2 + 2);
+
+    rep(i, N) rep(j, N) {
+        if (get_t(A[i], B[j]) == T)
+            mf.add_edge(i, N + j, 1);
+    }
+
+    rep(i, N) {
+        mf.add_edge(N * 2, i, 1);
+        mf.add_edge(N + i, N * 2 + 1, 1);
+    }
+
+    if (mf.flow(N * 2, N * 2 + 1) != N) {
+        print("No");
+        return 0;
+    }
+
+    vll match(N);
+    auto edges = mf.edges();
+    repi(e, edges) {
+        if (e.flow && e.from < N) {
+            match[e.from] = e.to - N;
+        }
+    }
+
+    vi d;
+    rep(i, N) {
+        d.pb(get_d(A[i], B[match[i]]));
+    }
+    print("Yes");
+    print(d);
 
     return 0;
 }

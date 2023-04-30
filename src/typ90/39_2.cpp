@@ -100,25 +100,22 @@ CSLD EPS = 1e-10;
 
 class Tree {
 protected:
-    ll size;
-    ll root;
+    const ll size;
+    const ll root;
     vll depth;
     ll height; // max(depth) + 1
-    vvll edges;
+    const vvll &edges;
     vll parents;
     vvll children;
-
-    vll partial_size;  // 部分木のノード数
-    vll children_dist; // 各子孫までの距離の合計
+    vll partial_size; // 部分木のノード数
 
 private:
     void set_depth() {
-        depth.resize(size, -1);
         set_depth_impl(0, 0);
         height = *max_element(all(depth)) + 1;
     }
 
-    void set_depth_impl(ll v, ll d) {
+    void set_depth_impl(const ll v, const ll d) {
         depth[v] = d;
         repi(i, edges[v]) {
             if (depth[i] == -1)
@@ -127,7 +124,6 @@ private:
     }
 
     void set_parents_and_children() {
-        parents.resize(size);
         parents[root] = root;
         rep(i, size) children.pb(vll());
         rep(i, size) repi(j, edges[i]) {
@@ -139,21 +135,21 @@ private:
         }
     }
 
-    void get_preorder_impl(vll &order, ll v) {
+    void get_preorder_impl(vll &order, const ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_preorder_impl(order, i);
         }
     }
 
-    void get_postorder_impl(vll &order, ll v) {
+    void get_postorder_impl(vll &order, const ll v) const {
         repi(i, children[v]) {
             get_postorder_impl(order, i);
         }
         order.pb(v);
     }
 
-    void get_euler_tour_impl(vll &order, ll v) {
+    void get_euler_tour_impl(vll &order, const ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_euler_tour_impl(order, i);
@@ -161,15 +157,11 @@ private:
         }
     }
 
-    void set_info() {
-        partial_size.resize(size, 0);
+    void set_partial_size() {
         set_partial_size_impl(root);
-
-        children_dist.resize(size, -1);
-        set_children_dist_impl(root);
     }
 
-    void set_partial_size_impl(ll v) {
+    void set_partial_size_impl(const ll v) {
         partial_size[v] = 1;
         repi(c, children[v]) {
             set_partial_size_impl(c);
@@ -177,55 +169,42 @@ private:
         }
     }
 
-    ll set_children_dist_impl(ll v) {
-        if (children_dist[v] != -1)
-            return children_dist[v];
-        ll ans = 0;
-        repi(c, children[v]) {
-            ans += set_children_dist_impl(c) + partial_size[c];
-        }
-        return children_dist[v] = ans;
-    }
-
 public:
-    Tree(ll _size, vvll &_edges, ll _root = 0) {
-        if (_size == 0) {
+    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
             throw "The tree size is 0.";
         }
-        size = _size;
-        edges = _edges;
-        root = _root;
         set_depth();
         set_parents_and_children();
-        set_info();
+        set_partial_size();
     }
 
-    ll get_size() { return size; }
-    ll get_root() { return root; }
-    ll get_depth(ll v) { return depth[v]; }
-    ll get_height() { return height; }
-    vll get_edges(ll v) { return edges[v]; }
-    ll get_parent(ll v) { return parents[v]; }
-    vll get_children(ll v) { return children[v]; }
-    ll get_partial_size(ll v) { return partial_size[v]; }
-    ll get_children_dist(ll v) { return children_dist[v]; }
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    vll get_edges(const ll v) const { return edges[v]; }
+    ll get_parent(const ll v) const { return parents[v]; }
+    vll get_children(const ll v) const { return children[v]; }
+    ll get_partial_size(const ll v) const { return partial_size[v]; }
 
     // 行きがけ順に頂点を取得する
-    vll get_preorder() {
+    vll get_preorder() const {
         auto ans = vll();
         get_preorder_impl(ans, root);
         return ans;
     }
 
     // 帰りがけ順に頂点を取得する
-    vll get_postorder() {
+    vll get_postorder() const {
         auto ans = vll();
         get_postorder_impl(ans, root);
         return ans;
     }
 
     // オイラーツアーを取得する
-    vll get_euler_tour() {
+    vll get_euler_tour() const {
         auto ans = vll();
         get_euler_tour_impl(ans, root);
         return ans;
@@ -245,7 +224,7 @@ int main() {
         edges[y].pb(x);
     }
 
-    auto tree = Tree(N, edges);
+    auto tree = Tree(edges);
     ll ans = 0;
     reps(i, 1, N) {
         ans += tree.get_partial_size(i) * (N - tree.get_partial_size(i));

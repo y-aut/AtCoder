@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -87,11 +88,8 @@ inline vpii in_vpii(int height)
 inline vpll in_vpll(int height)
     {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 template <bool bidir> inline vvll in_edges(int N, int height)
-    {vvll res(N, vll());
+    {vvll res = vvll(N, vll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].pb(b); if (bidir) res[b].pb(a);} return res;}
-template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
-    {vector<usll> res(N, usll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
 inline void set_vars() {}
 template <typename First, typename... Rest> inline void set_vars(First& first, Rest&... rest)
     {cin >> first; set_vars(rest...);}
@@ -121,6 +119,38 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    INLL(N, Q);
+    auto cons = in_vvll(4, Q);
+    repi(i, cons) rep(j, 3) i[j]--;
+
+    modint1000000007 ans = 1;
+    for (ll i = 0, mask = 1; i < 60; i++, mask <<= 1) {
+        ll must_0 = 0;
+        repi(c, cons) {
+            if ((c[3] & mask) == 0) {
+                rep(i, 3) must_0 |= 1 << c[i];
+            }
+        }
+        ll d_ans = 0;
+        ll ilist = ((1ll << N) - 1) ^ must_0;
+        for (ll j = ilist; j >= 0; j = (j - 1) & ilist) {
+            bool flg = true;
+            repi(c, cons) {
+                if (c[3] & mask) {
+                    if (((1 << c[0] | 1 << c[1] | 1 << c[2]) & j) == 0) {
+                        flg = false;
+                        break;
+                    }
+                }
+            }
+            if (flg)
+                d_ans++;
+            if (j == 0) break;
+        }
+        ans *= d_ans;
+    }
+
+    print(ans);
 
     return 0;
 }

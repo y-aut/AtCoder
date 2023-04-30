@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -121,6 +122,15 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    INLL(N, A, B);
+    auto C = in_vll(N);
+
+    rep(i, N) {
+        if (C[i] == A + B) {
+            print(i + 1);
+            return 0;
+        }
+    }
 
     return 0;
 }

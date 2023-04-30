@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -120,7 +121,52 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+bool same(vs &a, vs &b) {
+    rep(i, a.size()) {
+        if (a[i] != b[i])
+            return false;
+    }
+    return true;
+}
+
+void hshift(vs &a) {
+    rep(i, a.size()) {
+        auto tmp = a[i][0];
+        reps(j, 1, a[0].size()) {
+            a[i][j - 1] = a[i][j];
+        }
+        a[i][a[0].size() - 1] = tmp;
+    }
+}
+
+void vshift(vs &a) {
+    rep(j, a[0].size()) {
+        auto tmp = a[0][j];
+        reps(i, 1, a.size()) {
+            a[i - 1][j] = a[i][j];
+        }
+        a[a.size() - 1][j] = tmp;
+    }
+}
+
 int main() {
+    auto H = in_ll();
+    auto W = in_ll();
+    auto A = in_vs(H);
+    auto B = in_vs(H);
+
+    rep(i, H) {
+        rep(j, W) {
+            if (same(A, B)) {
+                print("Yes");
+                return 0;
+            }
+            hshift(A);
+        }
+        vshift(A);
+    }
+
+    print("No");
 
     return 0;
 }

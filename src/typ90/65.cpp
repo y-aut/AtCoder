@@ -28,7 +28,6 @@ using vb = vector<bool>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
 using vvb = vector<vb>;
-using vc = vector<char>;
 using vs = vector<string>;
 using vpii = vector<pii>;
 using vpll = vector<pll>;
@@ -39,7 +38,6 @@ using uss = unordered_set<string>;
 
 /* define short */
 #define pb push_back
-#define eb emplace_back
 #define mp make_pair
 #define um unordered_map
 #define us unordered_set
@@ -50,9 +48,6 @@ using uss = unordered_set<string>;
 #define CSI constexpr static int
 #define CSLL constexpr static ll
 #define CSLD constexpr static ld
-#define INVAR(type, ...) type __VA_ARGS__; set_vars(__VA_ARGS__)
-#define ININT(...) INVAR(int, __VA_ARGS__)
-#define INLL(...) INVAR(ll, __VA_ARGS__)
 
 /* REP macro */
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
@@ -74,27 +69,17 @@ inline pii in_pii() {pii x; cin >> x.first >> x.second; return x;}
 inline pll in_pll() {pll x; cin >> x.first >> x.second; return x;}
 inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
-inline vi in_vi(int length) {vi res; rep(i, length) res.pb(in_int()); return res;}
-inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return res;}
-inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
-inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
+inline vi in_vi(int length) {vi res = vi(); rep(i, length) res.pb(in_int()); return res;}
+inline vll in_vll(int length) {vll res = vll(); rep(i, length) res.pb(in_ll()); return res;}
+inline vs in_vs(int height) {vs res = vs(); rep(i, height) res.pb(in_str()); return res;}
 inline vvi in_vvi(int width, int height)
-    {vvi res; rep(i, height) {vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
+    {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
-    {vvll res; rep(i, height) {vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
+    {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
 inline vpii in_vpii(int height)
-    {vpii res; rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
+    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
 inline vpll in_vpll(int height)
-    {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
-template <bool bidir> inline vvll in_edges(int N, int height)
-    {vvll res(N, vll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].pb(b); if (bidir) res[b].pb(a);} return res;}
-template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
-    {vector<usll> res(N, usll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-inline void set_vars() {}
-template <typename First, typename... Rest> inline void set_vars(First& first, Rest&... rest)
-    {cin >> first; set_vars(rest...);}
+    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
@@ -105,10 +90,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
     {for (auto&& p : v) print(p);}
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
-template <int V> inline void print(const static_modint<V> v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
-template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
-template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
+template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if (compare = a > b) a = b; return compare;}
+template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if (compare = a < b) a = b; return compare;}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -120,7 +104,90 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+#pragma region 二項係数
+
+class Binomial {
+    const ll mod = 0;
+    vll fact, fact_inv, inv;
+
+public:
+    Binomial(const ll size, const ll _mod) : mod(_mod), fact(size + 5), fact_inv(size + 5), inv(size + 5) {
+        fact[0] = fact[1] = 1;
+        fact_inv[0] = fact_inv[1] = 1;
+        inv[1] = 1;
+
+        for (ll i = 2; i < size + 5; i++) {
+            fact[i] = fact[i - 1] * i % mod;
+            inv[i] = mod - inv[mod % i] * (mod / i) % mod;
+            fact_inv[i] = fact_inv[i - 1] * inv[i] % mod;
+        }
+    }
+
+    /// nCk % mod を求める
+    ll nCk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[k] * fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nPk % mod を求める
+    ll nPk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nHk % mod を求める
+    ll nHk(const ll n, const ll k) const {
+        if (n == 0 && k == 0)
+            return 1;
+        return nCk(n + k - 1, k);
+    }
+};
+
+#pragma endregion
+
 int main() {
+    auto RGB = in_vll(3);
+    auto K = in_ll();
+    auto XYZ = in_vll(3);
+
+    vll mcnt;
+    mcnt.emplace_back(K - XYZ[1]);
+    mcnt.emplace_back(K - XYZ[2]);
+    mcnt.emplace_back(K - XYZ[0]);
+
+    rep(i, 3) {
+        if (mcnt[i] > RGB[i]) {
+            print(0);
+            return 0;
+        }
+    }
+
+    Binomial binom(200010, MOD2);
+    auto g = vll();
+    rep(i, K + 1) {
+        if (i < mcnt[1])
+            g.pb(0);
+        else
+            g.pb(binom.nCk(RGB[1], i));
+    }
+    auto b = vll();
+    rep(i, K + 1) {
+        if (i < mcnt[2])
+            b.pb(0);
+        else
+            b.pb(binom.nCk(RGB[2], i));
+    }
+
+    auto conv = convolution(g, b);
+
+    modint998244353 ans = 0;
+    reps(i, mcnt[0], min(RGB[0], K) + 1) {
+        ans += binom.nCk(RGB[0], i) * conv[K - i];
+    }
+
+    print(ans.val());
 
     return 0;
 }

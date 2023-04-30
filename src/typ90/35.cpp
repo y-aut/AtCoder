@@ -100,22 +100,22 @@ CSLD EPS = 1e-10;
 
 class Tree {
 protected:
-    ll size;
-    ll root;
+    const ll size;
+    const ll root;
     vll depth;
     ll height; // max(depth) + 1
-    vvll edges;
+    const vvll &edges;
     vll parents;
     vvll children;
+    vll partial_size; // 部分木のノード数
 
 private:
     void set_depth() {
-        depth.resize(size, -1);
         set_depth_impl(0, 0);
         height = *max_element(all(depth)) + 1;
     }
 
-    void set_depth_impl(ll v, ll d) {
+    void set_depth_impl(const ll v, const ll d) {
         depth[v] = d;
         repi(i, edges[v]) {
             if (depth[i] == -1)
@@ -124,7 +124,6 @@ private:
     }
 
     void set_parents_and_children() {
-        parents.resize(size);
         parents[root] = root;
         rep(i, size) children.pb(vll());
         rep(i, size) repi(j, edges[i]) {
@@ -136,21 +135,21 @@ private:
         }
     }
 
-    void get_preorder_impl(vll &order, ll v) {
+    void get_preorder_impl(vll &order, const ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_preorder_impl(order, i);
         }
     }
 
-    void get_postorder_impl(vll &order, ll v) {
+    void get_postorder_impl(vll &order, const ll v) const {
         repi(i, children[v]) {
             get_postorder_impl(order, i);
         }
         order.pb(v);
     }
 
-    void get_euler_tour_impl(vll &order, ll v) {
+    void get_euler_tour_impl(vll &order, const ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_euler_tour_impl(order, i);
@@ -158,42 +157,54 @@ private:
         }
     }
 
-public:
-    Tree(ll _size, vvll &_edges, ll _root = 0) {
-        if (_size == 0) {
-            throw "The tree size is 0.";
-        }
-        size = _size;
-        edges = _edges;
-        root = _root;
-        set_depth();
-        set_parents_and_children();
+    void set_partial_size() {
+        set_partial_size_impl(root);
     }
 
-    ll get_size() { return size; }
-    ll get_root() { return root; }
-    ll get_depth(ll v) { return depth[v]; }
-    ll get_height() { return height; }
-    vll get_edges(ll v) { return edges[v]; }
-    ll get_parent(ll v) { return parents[v]; }
-    vll get_children(ll v) { return children[v]; }
+    void set_partial_size_impl(const ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    vll get_edges(const ll v) const { return edges[v]; }
+    ll get_parent(const ll v) const { return parents[v]; }
+    vll get_children(const ll v) const { return children[v]; }
+    ll get_partial_size(const ll v) const { return partial_size[v]; }
 
     // 行きがけ順に頂点を取得する
-    vll get_preorder() {
+    vll get_preorder() const {
         auto ans = vll();
         get_preorder_impl(ans, root);
         return ans;
     }
 
     // 帰りがけ順に頂点を取得する
-    vll get_postorder() {
+    vll get_postorder() const {
         auto ans = vll();
         get_postorder_impl(ans, root);
         return ans;
     }
 
     // オイラーツアーを取得する
-    vll get_euler_tour() {
+    vll get_euler_tour() const {
         auto ans = vll();
         get_euler_tour_impl(ans, root);
         return ans;
@@ -210,7 +221,7 @@ class LCADoubling : public Tree {
     vvll doubling;
 
     // 最上位ビットの下から数えた位置を取得
-    int msb_pos(ull x) {
+    static int msb_pos(const ull x) {
         return x == 0 ? -1 : (sizeof(ull)) * 8 - __builtin_clzll(x) - 1;
     }
 
@@ -226,12 +237,12 @@ class LCADoubling : public Tree {
     }
 
 public:
-    LCADoubling(ll _size, vvll &_edges, ll _root = 0) : Tree(_size, _edges, _root) {
+    LCADoubling(const vvll &_edges, const ll _root = 0) : Tree(_edges, _root) {
         set_doubling();
     }
 
     // v の d 個上の祖先を取得する
-    ll level_ancestor(ll v, ll d) {
+    ll level_ancestor(ll v, ll d) const {
         repd(i, doubling.size()) {
             if (1 << i <= d) {
                 d -= 1 << i;
@@ -241,7 +252,7 @@ public:
         return v;
     }
 
-    ll get_lca(ll v1, ll v2) {
+    ll get_lca(ll v1, ll v2) const {
         // v1, v2 の深さを揃える
         if (depth[v1] > depth[v2]) {
             v1 = level_ancestor(v1, depth[v1] - depth[v2]);
@@ -260,7 +271,7 @@ public:
         return parents[v1];
     }
 
-    ll get_dist(ll v1, ll v2) {
+    ll get_dist(const ll v1, const ll v2) const {
         auto l = get_lca(v1, v2);
         return depth[v1] + depth[v2] - 2 * depth[l];
     }
@@ -287,7 +298,7 @@ int main() {
         edges[ab[1] - 1].pb(ab[0] - 1);
     }
 
-    auto tree = LCADoubling(N, edges);
+    auto tree = LCADoubling(edges);
     auto order = tree.get_preorder();
     auto orderIndex = vll(N);
     rep(i, N) orderIndex[order[i]] = i;

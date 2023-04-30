@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -120,7 +121,68 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+inline bool empty(const pll &p) { return p.first == 0 && p.second == 0; }
+inline pll and_pll(const pll &a, const pll &b) { return {a.first & b.first, a.second & b.second}; }
+inline pll or_pll(const pll &a, const pll &b) { return {a.first | b.first, a.second | b.second}; }
+inline pll xor_pll(const pll &a, const pll &b) { return {a.first ^ b.first, a.second ^ b.second}; }
+inline pll mask(const ll i) {
+    if (i < 64)
+        return {0, 1ll << i};
+    else
+        return {1ll << (i - 64), 0};
+}
+inline bool in(const pll &p, const ll i) { return !empty(and_pll(p, mask(i))); }
+vll get_pll(const pll &p) {
+    vll ans;
+    rep(i, 90) {
+        if (in(p, i))
+            ans.pb(i + 1);
+    }
+    return ans;
+}
+
 int main() {
+    INLL(N, Q);
+    auto A = in_vll(N);
+    auto ng = in_edges_us<true>(N, Q);
+
+    // dp[i]: 合計が i になる選び方
+    pll dp[9000] = {};
+
+    rep(i, N) {
+        if (!empty(dp[A[i]])) {
+            auto v1 = get_pll(dp[A[i]]);
+            print(v1.size());
+            print(v1);
+            print(1);
+            print(i + 1);
+            return 0;
+        }
+        dp[A[i]] = mask(i);
+        reps(j, 1, 9000 - A[i]) {
+            if (!empty(dp[j]) && !in(dp[j], i)) {
+                bool flg = false;
+                repi(k, ng[i]) {
+                    if (in(dp[j], k)) {
+                        flg = true;
+                        break;
+                    }
+                }
+                if (flg)
+                    continue;
+                if (!empty(dp[j + A[i]])) {
+                    auto v1 = get_pll(dp[j + A[i]]);
+                    auto v2 = get_pll(or_pll(dp[j], mask(i)));
+                    print(v1.size());
+                    print(v1);
+                    print(v2.size());
+                    print(v2);
+                    return 0;
+                }
+                dp[j + A[i]] = or_pll(dp[j], mask(i));
+            }
+        }
+    }
 
     return 0;
 }

@@ -28,7 +28,6 @@ using vb = vector<bool>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
 using vvb = vector<vb>;
-using vc = vector<char>;
 using vs = vector<string>;
 using vpii = vector<pii>;
 using vpll = vector<pll>;
@@ -39,7 +38,6 @@ using uss = unordered_set<string>;
 
 /* define short */
 #define pb push_back
-#define eb emplace_back
 #define mp make_pair
 #define um unordered_map
 #define us unordered_set
@@ -50,9 +48,6 @@ using uss = unordered_set<string>;
 #define CSI constexpr static int
 #define CSLL constexpr static ll
 #define CSLD constexpr static ld
-#define INVAR(type, ...) type __VA_ARGS__; set_vars(__VA_ARGS__)
-#define ININT(...) INVAR(int, __VA_ARGS__)
-#define INLL(...) INVAR(ll, __VA_ARGS__)
 
 /* REP macro */
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
@@ -74,27 +69,17 @@ inline pii in_pii() {pii x; cin >> x.first >> x.second; return x;}
 inline pll in_pll() {pll x; cin >> x.first >> x.second; return x;}
 inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
-inline vi in_vi(int length) {vi res; rep(i, length) res.pb(in_int()); return res;}
-inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return res;}
-inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
-inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
+inline vi in_vi(int length) {vi res = vi(); rep(i, length) res.pb(in_int()); return res;}
+inline vll in_vll(int length) {vll res = vll(); rep(i, length) res.pb(in_ll()); return res;}
+inline vs in_vs(int height) {vs res = vs(); rep(i, height) res.pb(in_str()); return res;}
 inline vvi in_vvi(int width, int height)
-    {vvi res; rep(i, height) {vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
+    {vvi res = vvi(); rep(i, height) {vi tmp = vi(); rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
 inline vvll in_vvll(int width, int height)
-    {vvll res; rep(i, height) {vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
+    {vvll res = vvll(); rep(i, height) {vll tmp = vll(); rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
 inline vpii in_vpii(int height)
-    {vpii res; rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
+    {vpii res = vpii(); rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
 inline vpll in_vpll(int height)
-    {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
-template <bool bidir> inline vvll in_edges(int N, int height)
-    {vvll res(N, vll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].pb(b); if (bidir) res[b].pb(a);} return res;}
-template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
-    {vector<usll> res(N, usll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-inline void set_vars() {}
-template <typename First, typename... Rest> inline void set_vars(First& first, Rest&... rest)
-    {cin >> first; set_vars(rest...);}
+    {vpll res = vpll(); rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
@@ -105,10 +90,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
     {for (auto&& p : v) print(p);}
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
-template <int V> inline void print(const static_modint<V> v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
-template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
-template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
+template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if (compare = a > b) a = b; return compare;}
+template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if (compare = a < b) a = b; return compare;}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -120,7 +104,97 @@ CSLD PHI = 1.6180339887498948;
 
 // clang-format on
 
+#pragma region "Union-Find"
+
+class UnionFind {
+    ll size;
+    vll parents;
+
+public:
+    UnionFind(const ll _size) {
+        size = _size;
+        parents.resize(size, -1);
+    }
+
+    ll root(const ll v) {
+        if (parents[v] == -1) {
+            return v;
+        } else {
+            return parents[v] = root(parents[v]);
+        }
+    }
+
+    bool is_connected(const ll v1, const ll v2) {
+        return root(v1) == root(v2);
+    }
+
+    void merge(const ll v1, const ll v2) {
+        parents[root(v2)] = v1;
+    }
+};
+
+#pragma endregion
+
+ll op(ll a, ll b) { return 0; }
+ll e() { return 0; }
+ll add(ll a, ll b) { return a + b; }
+
+lazy_segtree<ll, op, e, ll, add, add, e> etree;
+lazy_segtree<ll, op, e, ll, add, add, e> otree;
+
+inline ll get(ll i) {
+    if (i % 2 == 0)
+        return etree.get(i / 2);
+    else
+        return otree.get(i / 2);
+}
+
 int main() {
+    auto N = in_ll();
+    auto Q = in_ll();
+    auto TXYV = in_vvll(4, Q);
+
+    etree = lazy_segtree<ll, op, e, ll, add, add, e>((N + 1) / 2);
+    otree = lazy_segtree<ll, op, e, ll, add, add, e>(N / 2);
+
+    auto tree = UnionFind(N);
+
+    vll group_b;
+    rep(i, N) {
+        group_b.pb(i + 1);
+    }
+
+    repi(q, TXYV) {
+        q[1]--;
+        q[2]--;
+        if (q[0] == 0) {
+            if (group_b[q[2]] == -1)
+                continue;
+            auto add = q[3] - get(q[1]) - get(q[2]);
+            if (add != 0) {
+                // [q[2], group_b[q[2]]) を +/- add する
+                if (q[2] % 2 == 0) {
+                    etree.apply(q[2] / 2, (group_b[q[2]] + 1) / 2, add);
+                    otree.apply(q[2] / 2, group_b[q[2]] / 2, -add);
+                } else {
+                    etree.apply((q[2] + 1) / 2, (group_b[q[2]] + 1) / 2, -add);
+                    otree.apply(q[2] / 2, group_b[q[2]] / 2, add);
+                }
+            }
+            group_b[tree.root(q[1])] = group_b[q[2]];
+            group_b[q[2]] = -1;
+            tree.merge(q[1], q[2]);
+        } else {
+            if (!tree.is_connected(q[1], q[2])) {
+                print("Ambiguous");
+            } else {
+                ll add = q[3] - get(q[1]);
+                if ((q[1] - q[2]) % 2 != 0)
+                    add *= -1;
+                print(get(q[2]) + add);
+            }
+        }
+    }
 
     return 0;
 }

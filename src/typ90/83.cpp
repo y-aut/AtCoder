@@ -44,6 +44,7 @@ using uss = unordered_set<string>;
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
+#define contains(a, v) (a.find(v) != a.end())
 #define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
 #define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
 #define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
@@ -87,11 +88,8 @@ inline vpii in_vpii(int height)
 inline vpll in_vpll(int height)
     {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 template <bool bidir> inline vvll in_edges(int N, int height)
-    {vvll res(N, vll());
+    {vvll res = vvll(N, vll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].pb(b); if (bidir) res[b].pb(a);} return res;}
-template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
-    {vector<usll> res(N, usll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
 inline void set_vars() {}
 template <typename First, typename... Rest> inline void set_vars(First& first, Rest&... rest)
     {cin >> first; set_vars(rest...);}
@@ -105,7 +103,6 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
     {for (auto&& p : v) print(p);}
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
-template <int V> inline void print(const static_modint<V> v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
@@ -121,6 +118,48 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    INLL(N, M);
+    auto edges = in_edges<true>(N, M);
+    INLL(Q);
+    auto queries = in_vpll(Q);
+
+    auto thres = (ll)sqrt(M * 2);
+
+    // 辺の数が thres 以上の頂点
+    usll bigs;
+    rep(i, N) if (edges[i].size() >= thres) bigs.insert(i);
+
+    // bigs につながる辺
+    auto big_edges = vvll(N, vll());
+    rep(i, N) repi(j, edges[i]) if (contains(bigs, j)) big_edges[i].pb(j);
+
+    // 最後に各頂点が更新されたクエリのインデックス
+    auto index = vll(N, -1);
+
+    auto colors = vll(N, 1);
+
+    rep(q, Q) {
+        auto v = queries[q].first - 1;
+        auto c = queries[q].second;
+        if (contains(bigs, v)) {
+            print(colors[v]);
+            colors[v] = c;
+        } else {
+            ll last = index[v];
+            repi(i, edges[v]) {
+                chmax(last, index[i]);
+            }
+            if (last == -1) {
+                print(1);
+            } else {
+                print(queries[last].second);
+            }
+        }
+        repi(i, big_edges[v]) {
+            colors[i] = c;
+        }
+        index[v] = q;
+    }
 
     return 0;
 }

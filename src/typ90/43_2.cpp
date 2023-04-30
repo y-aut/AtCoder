@@ -102,14 +102,14 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 
 // clang-format on
+
 #pragma region "01-BFS"
 
 class BFS01 {
     vll dist;
 
 public:
-    BFS01(vvll &zero_edges, vvll &one_edges, ll startIndex) {
-        dist.resize(zero_edges.size(), LINF);
+    BFS01(vvll &zero_edges, vvll &one_edges, ll startIndex) : dist(zero_edges.size(), LINF) {
         dist[startIndex] = 0;
 
         deque<ll> q;
@@ -135,7 +135,7 @@ public:
     }
 
     // 最短距離を取得
-    ll get_distance(const ll v) {
+    ll get_distance(const ll v) const {
         return dist[v];
     }
 };

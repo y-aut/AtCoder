@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "debug build",
             "type": "shell",
             "command": "/usr/bin/g++",
             "args": [
@@ -13,6 +13,7 @@
                 "-O1",
                 "-DONLINE_JUDGE",
                 "-fno-inline",
+                "-ftrapv",
                 "-I/opt/boost/gcc/include",
                 "-L/opt/boost/gcc/lib",
                 "-I${workspaceFolder}/ac-library",
@@ -23,6 +24,26 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "release build",
+            "type": "shell",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-std=gnu++17",
+                "-g",
+                "-O3",
+                "-DONLINE_JUDGE",
+                "-I/opt/boost/gcc/include",
+                "-L/opt/boost/gcc/lib",
+                "-I${workspaceFolder}/ac-library",
+                "-o",
+                "'${workspaceFolder}/problem.exe'",
+                "'${file}'"
+            ],
+            "group": {
+                "kind": "build",
             }
         },
         {

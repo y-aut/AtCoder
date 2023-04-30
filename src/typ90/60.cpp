@@ -107,7 +107,7 @@ CSLD PHI = 1.6180339887498948;
 #pragma region 最長増加部分列
 
 class LIS {
-    vll v;
+    const vll &v;
     // lis[i]: v[0] ~ v[i] の LIS の長さ
     vll len;
 
@@ -126,12 +126,11 @@ class LIS {
     }
 
 public:
-    LIS(vll &_v) {
-        v = _v;
+    LIS(vll &_v) : v(_v) {
         set_len();
     }
 
-    ll get_length(ll i) { return len[i]; }
+    ll get_length(const ll i) const { return len[i]; }
 };
 
 #pragma endregion
