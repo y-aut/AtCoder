@@ -108,23 +108,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +120,36 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-
 // clang-format on
 
+ll memo[410][410] = {};
+vll a;
+vll a_acc;
+
+inline ll mass(int l, int r) {
+    if (l == 0) return a_acc[r - 1];
+    return a_acc[r - 1] - a_acc[l - 1];
+}
+
+// [l, r)
+ll f(int l, int r) {
+    if (memo[l][r]) return memo[l][r];
+    if (l + 1 == r) return memo[l][r] = 0;
+    if (l + 2 == r) return memo[l][r] = a[l] + a[l + 1];
+    ll ans = LINF;
+    reps(i, l + 1, r) {
+        chmin(ans, f(l, i) + f(i, r) + mass(l, i) + mass(i, r));
+    }
+    return memo[l][r] = ans;
+}
+
 int main() {
+    INLL(N);
+    a = in_vll(N);
+    a_acc.pb(a[0]);
+    reps(i, 1, N) a_acc.pb(a_acc[i - 1] + a[i]);
+
+    print(f(0, N));
 
     return 0;
 }

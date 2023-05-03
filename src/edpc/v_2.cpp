@@ -134,13 +134,221 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
+using mint = modint;
 using vm = vector<mint>;
 using vvm = vector<vm>;
 
 // clang-format on
 
+#pragma region "Tree"
+
+class Tree {
+protected:
+    const ll size;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    const vvll &edges;
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(0, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(const ll v, const ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) children.pb(vll());
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, const ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(const ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    vll get_edges(const ll v) const { return edges[v]; }
+    ll get_parent(const ll v) const { return parents[v]; }
+    vll get_children(const ll v) const { return children[v]; }
+    ll get_partial_size(const ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+};
+
+#pragma endregion
+
+#pragma region "全方位木DP"
+
+template <class T>
+class ReRooting : Tree {
+    // index[i][j]: edges[i][j] からみて，i が何番目の頂点か
+    vvll index;
+
+    vector<vector<T>> dp;
+    vector<T> res;
+
+    const function<T()> e;
+    const function<T(T, T)> op;
+    const function<T(T, ll)> mapping;
+
+public:
+    // 単方向の辺を受け取る
+    ReRooting(const vvll &_edges, function<T()> _e, function<T(T, T)> _op, function<T(T, ll)> _mapping)
+        : Tree(_edges, 0), index(size, vll()), res(size), e(_e), op(_op), mapping(_mapping) {
+
+        // dict[i][j]: i からみて，j が何番目の頂点か
+        vector<um<ll, ll>> dict(size, um<ll, ll>());
+        rep(i, size) rep(j, edges[i].size()) dict[i][edges[i][j]] = j;
+        rep(i, size) repi(j, edges[i]) index[i].pb(dict[j][i]);
+        rep(i, size) dp.pb(vector<T>(edges[i].size(), e()));
+
+        if (size == 1) {
+            res[0] = mapping(e(), 0);
+        } else {
+            init();
+        }
+    }
+
+    T get(const ll node) { return res[node]; }
+
+private:
+    void init() {
+        auto order = get_preorder();
+
+        // from leaf
+        for (ll i = order.size() - 1; i >= 1; i--) {
+            auto node = order[i];
+            auto parent = parents[node];
+
+            T accum = e();
+            ll parent_i = -1;
+            rep(j, edges[node].size()) {
+                if (edges[node][j] == parent) {
+                    parent_i = j;
+                    continue;
+                }
+                accum = op(accum, dp[node][j]);
+            }
+            dp[parent][index[node][parent_i]] = mapping(accum, node);
+        }
+
+        // to leaf
+        rep(i, order.size()) {
+            auto node = order[i];
+
+            T accum = e();
+            vector<T> accums_rev(edges[node].size());
+            accums_rev[accums_rev.size() - 1] = e();
+
+            for (ll j = accums_rev.size() - 1; j >= 1; j--)
+                accums_rev[j - 1] = op(dp[node][j], accums_rev[j]);
+
+            rep(j, accums_rev.size()) {
+                dp[edges[node][j]][index[node][j]] =
+                    mapping(op(accum, accums_rev[j]), node);
+                accum = op(accum, dp[node][j]);
+            }
+            res[node] = mapping(accum, node);
+        }
+    }
+};
+
+#pragma endregion
+
+mint e() { return 1; }
+mint op(mint a, mint b) { return a * b; }
+mint mapping(mint a, ll b) { return a + 1; }
+
 int main() {
+    ININT(N, M);
+    auto edges = in_edges<true>(N, N - 1);
+
+    mint::set_mod(M);
+    ReRooting<mint> tree(edges, e, op, mapping);
+
+    rep(i, N) {
+        print(tree.get(i) - 1);
+    }
 
     return 0;
 }

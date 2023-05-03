@@ -86,9 +86,12 @@ inline vpii in_vpii(int height)
     {vpii res; rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
 inline vpll in_vpll(int height)
     {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
-template <bool bidir> inline vvll in_edges(int height)
-    {vvll res; rep(i, height) res.eb(height);
+template <bool bidir> inline vvll in_edges(int N, int height)
+    {vvll res(N, vll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].pb(b); if (bidir) res[b].pb(a);} return res;}
+template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
+    {vector<usll> res(N, usll());
+    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
 inline void set_vars() {}
 template <typename First, typename... Rest> inline void set_vars(First& first, Rest&... rest)
     {cin >> first; set_vars(rest...);}
@@ -102,6 +105,7 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
     {for (auto&& p : v) print(p);}
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
+template <int V> inline void print(const static_modint<V> v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
@@ -117,6 +121,27 @@ CSLD PHI = 1.6180339887498948;
 // clang-format on
 
 int main() {
+    INLL(N, W);
+    auto wv = in_vpll(N);
+
+    vll dp(W + 1, 0);
+
+    rrep(i, N) {
+        auto weight = wv[i - 1].first;
+        auto value = wv[i - 1].second;
+        auto tmp = dp;
+        chmax(tmp[weight], value);
+        rrep(j, W - weight) {
+            if (dp[j])
+                chmax(tmp[j + weight], dp[j] + value);
+        }
+        dp = tmp;
+    }
+
+    ll ans = 0;
+    rrep(j, W) chmax(ans, dp[j]);
+
+    print(ans);
 
     return 0;
 }

@@ -1,4 +1,6 @@
-ac-library
+ac-library/
 in.txt
 out.txt
-problem.exe
+src/test.*
+/*.exe
+src/work/

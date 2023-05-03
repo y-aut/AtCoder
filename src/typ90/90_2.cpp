@@ -24,13 +24,12 @@ using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
 using vll = vector<ll>;
-using vd = vector<double>;
 using vb = vector<bool>;
-using vc = vector<char>;
-using vs = vector<string>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
 using vvb = vector<vb>;
+using vc = vector<char>;
+using vs = vector<string>;
 using vpii = vector<pii>;
 using vpll = vector<pll>;
 // unordered set
@@ -77,7 +76,6 @@ inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
 inline vi in_vi(int length) {vi res; rep(i, length) res.pb(in_int()); return res;}
 inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return res;}
-inline vd in_vd(int length) {vd res; rep(i, length) res.pb(in_double()); return res;}
 inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
 inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
 inline vvi in_vvi(int width, int height)
@@ -108,23 +106,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +118,40 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-
 // clang-format on
 
+using mint = modint998244353;
+using vm = vector<mint>;
+
 int main() {
+    INLL(N, K);
+
+    if (N > 100000) {
+        print(0);
+        return 0;
+    }
+
+    // 小課題 3~5
+
+    // dp[n][m]: N = n, min >= m なる数列の個数
+    vector<vm> dp;
+    dp.pb(vm(K + 2, 1));
+    reps(i, 1, N + 1) dp.pb(vm(K / i + 2, 0));
+
+    reps(n, 1, N + 1) {
+        vm tmp(K / n + 1, 0);
+        rep(m, K / n + 1) {
+            rep(k, n) {
+                tmp[m] += dp[k][m + 1] * dp[n - 1 - k][m];
+            }
+        }
+        dp[n][K / n] = tmp[K / n];
+        repd(m, K / n) {
+            dp[n][m] += dp[n][m + 1] + tmp[m];
+        }
+    }
+
+    print(dp[N][0]);
 
     return 0;
 }

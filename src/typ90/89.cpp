@@ -24,13 +24,12 @@ using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
 using vll = vector<ll>;
-using vd = vector<double>;
 using vb = vector<bool>;
-using vc = vector<char>;
-using vs = vector<string>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
 using vvb = vector<vb>;
+using vc = vector<char>;
+using vs = vector<string>;
 using vpii = vector<pii>;
 using vpll = vector<pll>;
 // unordered set
@@ -77,7 +76,6 @@ inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
 inline vi in_vi(int length) {vi res; rep(i, length) res.pb(in_int()); return res;}
 inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return res;}
-inline vd in_vd(int length) {vd res; rep(i, length) res.pb(in_double()); return res;}
 inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
 inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
 inline vvi in_vvi(int width, int height)
@@ -108,23 +106,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +118,73 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-
 // clang-format on
 
 int main() {
+    INLL(N, K);
+    auto A = in_vll(N);
+
+    // 区間ごとにソートされたもの
+    auto sorted = A;
+
+    auto b = max(1ll, (ll)sqrt(N));
+
+    // b 個ずつに区切ってソート
+    for (ll i = 0; i < N; i += b) {
+        sort(sorted.begin() + i, sorted.begin() + min(i + b, N));
+    }
+
+    /**
+     * scnt[i][j]: last = i / b,
+     *  j <= last のとき [b * j, i]
+     *  j >= last のとき [(b - 1) * last + j, i]
+     * でのスワップ回数
+     */
+    vvll scnt(N, vll());
+    rep(i, N) {
+        auto last = i / b;
+        scnt[i].resize(i - (b - 1) * last + 1);
+
+        ll cnt = 0;
+        if (last * b == i) {
+            scnt[i][last] = 0;
+        } else {
+            scnt[i][scnt[i].size() - 1] = 0;
+            for (ll j = scnt[i].size() - 2; j >= last; j--) {
+                // [(b - 1) * last + j, i] のスワップ回数を求める
+                // [(b - 1) * last + j, i) にある A[i] より大きい要素の個数
+                if (A[(b - 1) * last + j] > A[i])
+                    cnt++;
+                // [(b - 1) * last + j, i - 1] のスワップ回数 + cnt
+                scnt[i][j] = scnt[i - 1][j] + cnt;
+            }
+        }
+
+        for (ll j = last - 1; j >= 0; j--) {
+            auto itr = upper_bound(sorted.begin() + b * j, sorted.begin() + b * (j + 1), A[i]);
+            // [b * j, i) にある A[i] より大きい要素の個数
+            cnt += distance(itr, sorted.end());
+            scnt[i][j] = scnt[i - 1][j] + cnt;
+        }
+    }
+
+    // dp[i]: A[i] までの分割の通り数
+    vector<modint1000000007> dp(N);
+    dp[0] = 1;
+
+    reps(i, 1, N) {
+        // scnt[i][j - 1] > K, scnt[i][j] <= K となる j を二分探索
+        auto itr = lower_bound(all(scnt[i]), K, [](const ll &a, const ll &b) { return a > b; });
+        if (itr == scnt[i].begin()) {
+            dp[i] = dp[i - 1] * 2;
+        } else {
+            ll j = distance(scnt[i].begin(), itr);
+            if (j >= i / b) {
+                j += (b - 1) * (i / b);
+            } else {
+                        }
+        }
+    }
 
     return 0;
 }

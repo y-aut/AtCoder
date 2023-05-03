@@ -140,7 +140,161 @@ using vvm = vector<vm>;
 
 // clang-format on
 
+#pragma region "Tree"
+
+class Tree {
+protected:
+    const ll size;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    const vvll &edges;
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(0, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(const ll v, const ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) children.pb(vll());
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, const ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(const ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    vll get_edges(const ll v) const { return edges[v]; }
+    ll get_parent(const ll v) const { return parents[v]; }
+    vll get_children(const ll v) const { return children[v]; }
+    ll get_partial_size(const ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+};
+
+#pragma endregion
+
+// 頂点 i 以下の木のうち，i を黒で塗る塗り方
+vector<modint> dp;
+
+modint f(const int M, const Tree &tree, const int v) {
+    modint ans(1);
+    repi(i, tree.get_children(v)) {
+        ans *= f(M, tree, i) + 1;
+    }
+    return dp[v] = ans;
+}
+
 int main() {
+    ININT(N, M);
+    auto edges = in_edges<true>(N, N - 1);
+    Tree tree(edges);
+
+    modint::set_mod(M);
+    dp.assign(N, modint(0));
+
+    f(M, tree, 0);
+
+    rep(i, N) {
+        auto ans = dp[i];
+        auto v = i;
+        vector<modint> tmps{1};
+        while (v != tree.get_root()) {
+            auto p = tree.get_parent(v);
+            modint tmp = 1;
+            repi(j, tree.get_children(p)) {
+                if (j == v) continue;
+                tmp *= dp[j] + 1;
+            }
+            tmps.pb(tmp * tmps[tmps.size() - 1]);
+            v = p;
+        }
+        ans *= accumulate(all(tmps), (modint)0);
+        print(ans);
+    }
 
     return 0;
 }

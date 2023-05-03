@@ -108,7 +108,6 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
@@ -140,7 +139,39 @@ using vvm = vector<vm>;
 
 // clang-format on
 
+ll sum[1 << 16];
+ll memo[1 << 16];
+
+ll f(const int mask) {
+    if (memo[mask] != LINF) return memo[mask];
+    if (mask == 0) return memo[mask] = 0;
+    ll ans = -LINF;
+    for (int m = mask; m > 0; m = (m - 1) & mask) {
+        chmax(ans, sum[m] + f(mask ^ m));
+    }
+    return memo[mask] = ans;
+}
+
 int main() {
+    INLL(N);
+    auto a = in_vvll(N, N);
+
+    rep(i, 1 << 16) memo[i] = LINF;
+
+    rep(i, 1 << N) {
+        sum[i] = 0;
+        vi m;
+        auto tmp = i;
+        for (ll j = 0, mask = 1; tmp; j++, mask <<= 1) {
+            if (tmp & mask) {
+                tmp ^= mask;
+                m.pb(j);
+            }
+        }
+        rep(j, m.size()) reps(k, j + 1, m.size()) sum[i] += a[m[j]][m[k]];
+    }
+
+    print(f((1 << N) - 1));
 
     return 0;
 }

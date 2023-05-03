@@ -108,23 +108,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +120,48 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
+// clang-format on
+
+using mint = modint1000000007;
 using vm = vector<mint>;
 using vvm = vector<vm>;
 
-// clang-format on
+vvm prod(const vvm &A, const vvm &B) {
+    vvm ans(A.size(), vm(A.size(), 0));
+    rep(i, A.size()) rep(j, A.size()) rep(k, A.size()) {
+        ans[i][j] += A[i][k] * B[k][j];
+    }
+    return ans;
+}
 
 int main() {
+    INLL(N, K);
+    auto a = in_vvll(N, N);
+
+    vector<vvm> mat;
+    mat.pb(vvm(N, vm(N, 0)));
+    rep(i, N) rep(j, N) mat[0][i][j] = a[i][j];
+
+    for (ll mask = 2; mask <= K; mask <<= 1) {
+        mat.pb(prod(mat[mat.size() - 1], mat[mat.size() - 1]));
+    }
+
+    vvm ans;
+    for (ll i = 0, mask = 1; K; i++, mask <<= 1) {
+        if (K & mask) {
+            K ^= mask;
+            if (ans.empty()) {
+                ans = mat[i];
+            } else {
+                ans = prod(ans, mat[i]);
+            }
+        }
+    }
+
+    mint ans_val = 0;
+    rep(i, N) rep(j, N) ans_val += ans[i][j];
+
+    print(ans_val);
 
     return 0;
 }

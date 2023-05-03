@@ -108,23 +108,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +120,29 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-
 // clang-format on
 
+double memo[310][310][310] = {};
+
+double f(int n1, int n2, int n3, int N) {
+    if (n1 == 0 && n2 == 0 && n3 == 0) return 0;
+    if (n1 < 0 || n2 < 0 || n3 < 0) return 0;
+    if (memo[n1][n2][n3]) return memo[n1][n2][n3];
+    return memo[n1][n2][n3] =
+               (f(n1 - 1, n2, n3, N) * n1 / N +
+                f(n1 + 1, n2 - 1, n3, N) * n2 / N +
+                f(n1, n2 + 1, n3 - 1, N) * n3 / N + 1) *
+               N / (n1 + n2 + n3);
+}
+
 int main() {
+    INLL(N);
+    auto a = in_vi(N);
+    ll num[3] = {};
+    repi(i, a) num[i - 1]++;
+
+    cout << setprecision(15);
+    print(f(num[0], num[1], num[2], N));
 
     return 0;
 }

@@ -108,23 +108,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +120,155 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-
 // clang-format on
 
+#pragma region "Tree"
+
+class Tree {
+protected:
+    const ll size;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    const vvll &edges;
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(0, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(const ll v, const ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) children.pb(vll());
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, const ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(const ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    vll get_edges(const ll v) const { return edges[v]; }
+    ll get_parent(const ll v) const { return parents[v]; }
+    vll get_children(const ll v) const { return children[v]; }
+    ll get_partial_size(const ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+};
+
+#pragma endregion
+
+using mint = modint1000000007;
+
+vll memo;
+
+mint f(const Tree &tree, int n) {
+    if (memo[n]) return memo[n];
+    mint ans = 1;
+    // 黒
+    repi(i, tree.get_children(n)) {
+        repi(j, tree.get_children(i)) {
+            ans *= f(tree, j);
+        }
+    }
+    // 白
+    mint ans2 = 1;
+    repi(i, tree.get_children(n)) {
+        ans2 *= f(tree, i);
+    }
+    ans += ans2;
+    return memo[n] = ans.val();
+}
+
 int main() {
+    INLL(N);
+    auto edges = in_edges<true>(N, N - 1);
+
+    memo.assign(N, 0);
+    Tree tree(edges);
+
+    print(f(tree, 0));
 
     return 0;
 }

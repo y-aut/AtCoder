@@ -108,7 +108,6 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
@@ -134,13 +133,36 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
+using mint = modint1000000007;
 using vm = vector<mint>;
 using vvm = vector<vm>;
 
 // clang-format on
 
+// dp[i][j]: i 文字目，(i-1) 文字目よりも小さい数が j 個
+mint dp[3010][3010] = {};
+
 int main() {
+    INLL(N);
+    auto s = in_str();
+
+    rep(i, N) dp[0][i] = 1;
+
+    rep(i, N - 1) {
+        rep(j, N - i) {
+            if (s[i] == '<') {
+                rep(k, N - i - j - 1) {
+                    dp[i + 1][j + k] += dp[i][j];
+                }
+            } else {
+                rep(k, j) {
+                    dp[i + 1][k] += dp[i][j];
+                }
+            }
+        }
+    }
+
+    print(dp[N - 1][0]);
 
     return 0;
 }

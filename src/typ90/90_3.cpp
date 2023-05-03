@@ -24,13 +24,12 @@ using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
 using vll = vector<ll>;
-using vd = vector<double>;
 using vb = vector<bool>;
-using vc = vector<char>;
-using vs = vector<string>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
 using vvb = vector<vb>;
+using vc = vector<char>;
+using vs = vector<string>;
 using vpii = vector<pii>;
 using vpll = vector<pll>;
 // unordered set
@@ -77,7 +76,6 @@ inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
 inline vi in_vi(int length) {vi res; rep(i, length) res.pb(in_int()); return res;}
 inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return res;}
-inline vd in_vd(int length) {vd res; rep(i, length) res.pb(in_double()); return res;}
 inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
 inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
 inline vvi in_vvi(int width, int height)
@@ -108,23 +106,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +118,99 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-
 // clang-format on
 
+using mint = modint998244353;
+using Poly = vector<mint>;
+
+Poly operator*(const Poly &a, const Poly &b) {
+    return convolution(a, b);
+}
+
+Poly operator*(const mint &k, Poly a) {
+    for (auto &i : a) i *= k;
+    return a;
+}
+
+Poly operator-(Poly a, const Poly &b) {
+    if (b.size() > a.size())
+        a.resize(b.size(), 0);
+    rep(i, b.size()) a[i] -= b[i];
+    return a;
+}
+
+Poly inv(const Poly &a) {
+    ll d = a.size();
+    Poly f = {1};
+    ll accuracy = 1;
+    while (accuracy < d) {
+        accuracy <<= 1;
+        f = 2 * f - a * f * f;
+        f.resize(accuracy);
+    }
+    f.resize(d);
+    return f;
+}
+
+Poly even(const Poly &a) {
+    Poly ans;
+    for (ll i = 0; i < a.size(); i += 2) {
+        ans.pb(a[i]);
+    }
+    return ans;
+}
+
+Poly odd(const Poly &a) {
+    Poly ans;
+    for (ll i = 1; i < a.size(); i += 2) {
+        ans.pb(a[i]);
+    }
+    return ans;
+}
+
+// 奇数項目の係数を -1 倍したもの
+Poly bar(const Poly &a) {
+    Poly ans;
+    rep(i, a.size()) {
+        if (i % 2 == 0) ans.pb(a[i]);
+        else ans.pb(-a[i]);
+    }
+    return ans;
+}
+
+mint bostan_mori(Poly a, Poly b, ll n) {
+    // a / b の x^n の係数
+    while (n > 0) {
+        auto bar_b = bar(b);
+        auto f = a * bar_b;
+        if (n % 2 == 0) a = even(f);
+        else a = odd(f);
+        b = even(b * bar_b);
+        n >>= 1;
+    }
+    return a[0] / b[0];
+}
+
 int main() {
+    INLL(N, K);
+
+    // f_K
+    Poly f{1, 1};
+    for (ll m = K - 1; m >= 1; m--) {
+        f.resize(K / m + 1);
+        f = inv(f);
+        f[1]--;
+        f = inv(f);
+    }
+
+    // g = 1 - xf
+    auto g = -1 * f;
+    g.insert(g.begin(), (mint)1);
+
+    // f_0 = f / g の x^N の係数を計算
+    auto ans = bostan_mori(f, g, N);
+
+    print(ans);
 
     return 0;
 }

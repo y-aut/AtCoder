@@ -108,23 +108,9 @@ template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
 template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
 // 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
 
 /* constants */
 CSLL MOD = 1000000007;
@@ -134,13 +120,45 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-
 // clang-format on
 
+using mint = modint1000000007;
+
+ll N;
+vvll a;
+int memo[21][1 << 21];
+
+// 男性 [m, N) と女性 n
+mint f(const int m, const int n) {
+    if (memo[m][n] != -1) return memo[m][n];
+    int cnt = N - m;
+    vi women;
+    int n_cpy = n;
+    for (int i = 0, mask = 1; n_cpy; i++, mask <<= 1) {
+        if (n_cpy & mask) {
+            n_cpy ^= mask;
+            women.pb(i);
+        }
+    }
+    if (cnt == 1) {
+        return memo[m][n] = a[m][women[0]];
+    }
+    mint ans = 0;
+    repi(i, women) {
+        if (a[m][i]) {
+            ans += f(m + 1, n ^ (1 << i));
+        }
+    }
+    return memo[m][n] = ans.val();
+}
+
 int main() {
+    N = in_ll();
+    a = in_vvll(N, N);
+
+    rep(i, 21) rep(j, 1 << 21) memo[i][j] = -1;
+
+    print(f(0, (1 << N) - 1));
 
     return 0;
 }
