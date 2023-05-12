@@ -11,7 +11,7 @@ using namespace atcoder;
 #pragma GCC optimize("unroll-loops")
 // cin cout の結びつけ解除, stdioと同期しない(入出力非同期化)
 // cとstdの入出力を混在させるとバグるので注意
-struct Fast {Fast() {std::cin.tie(0); ios::sync_with_stdio(false);}} fast;
+struct Fast {Fast() {cin.tie(0); ios::sync_with_stdio(false);}} fast;
 
 /* alias */
 // type
@@ -140,131 +140,76 @@ using vvm = vector<vm>;
 
 // clang-format on
 
-pll operator-(const pll &a, const pll &b) {
-    return {a.first - b.first, a.second - b.second};
-}
+// 追加する直線の傾きが単調である場合の ConvexHullTrick
+template <typename T>
+class ConvexHullTrick {
+    // 直線群
+    vector<pair<T, T>> lines;
+    // 最小値(最大値)を求める x が単調であるか
+    bool is_monotonic_x;
+    // 最小/最大を判断する関数
+    function<bool(T l, T r)> comp;
+    // 単調クエリにおける探索位置
+    int head = 0;
 
-struct Edge {
-    const pll &from;
-    const pll &to;
+    // 直線 l1, l2, l3 のうち l2 が不必要であるかどうか
+    bool check(pair<T, T> l1, const pair<T, T> &l2, pair<T, T> l3) const {
+        if (l1 < l3) swap(l1, l3);
+        return (l3.second - l2.second) * (l2.first - l1.first) >= (l2.second - l1.second) * (l3.first - l2.first);
+    }
 
-    Edge(const pll &_from, const pll &_to) : from(_from), to(_to) {}
+    // i番目の直線f_i(x)に対するxの時の値を返す
+    T f(const int i, const T x) const {
+        return lines[i].first * x + lines[i].second;
+    }
+
+public:
+    ConvexHullTrick(
+        const bool _is_monotonic_x = false,
+        const function<bool(T l, T r)> _comp = [](T l, T r) { return l >= r; })
+        : is_monotonic_x(_is_monotonic_x), comp(_comp) {
+        lines.emplace_back(0, 0);
+    };
+
+    // 直線 y = ax + b を追加する
+    void add(const T &a, const T &b) {
+        pair<T, T> line(a, b);
+        while (lines.size() >= 2 && check(*(lines.end() - 2), lines.back(), line))
+            lines.pop_back();
+        lines.emplace_back(line);
+    }
+
+    // 直線群の中で x の時に最小(最大)となる値を返す
+    T get(const T &x) {
+        // 最小値(最大値)クエリにおける x が単調
+        if (is_monotonic_x) {
+            while (lines.size() - head >= 2 && comp(f(head, x), f(head + 1, x)))
+                ++head;
+            return f(head, x);
+        } else {
+            int low = -1, high = lines.size() - 1;
+            while (high - low > 1) {
+                int mid = (high + low) / 2;
+                (comp(f(mid, x), f(mid + 1, x)) ? low : high) = mid;
+            }
+            return f(high, x);
+        }
+    }
 };
 
-// > 0: b は a の左側
-inline ll cross(const pll &a, const pll &b) {
-    return a.first * b.second - a.second * b.first;
-}
-
 int main() {
-    INLL(N);
-    auto A = in_vpll(N);
-    INLL(Q);
-    auto queries = in_vpll(Q);
+    INLL(N, C);
+    auto h = in_vll(N);
 
-    ll min_x = LINF;
-    ll max_x = -LINF;
-    ll min_x_top = 0, min_x_bottom = 0;
-    ll max_x_top = 0, max_x_bottom = 0;
-    rep(i, N) {
-        if (A[i].first < min_x) {
-            min_x = A[i].first;
-            min_x_top = min_x_bottom = i;
-        } else if (A[i].first == min_x) {
-            if (A[min_x_top].second < A[i].second) {
-                min_x_top = i;
-            }
-            if (A[min_x_bottom].second > A[i].second) {
-                min_x_bottom = i;
-            }
-        }
-        if (A[i].first > max_x) {
-            max_x = A[i].first;
-            max_x_top = max_x_bottom = i;
-        } else if (A[i].first == max_x) {
-            if (A[max_x_top].second < A[i].second) {
-                max_x_top = i;
-            }
-            if (A[max_x_bottom].second > A[i].second) {
-                max_x_bottom = i;
-            }
-        }
+    vll dp(N, 0);
+    ConvexHullTrick<ll> cv(true);
+
+    reps(i, 1, N) {
+        cv.add(-2 * h[i - 1], dp[i - 1] + h[i - 1] * h[i - 1]);
+        dp[i] = cv.get(h[i]) + h[i] * h[i] + C;
     }
 
-    vector<Edge> uedges, ledges;
-    for (ll i = min_x_top; i != max_x_top; i = (i + N - 1) % N) {
-        uedges.emplace_back(A[i], A[(i + N - 1) % N]);
-    }
-    for (ll i = min_x_bottom; i != max_x_bottom; i = (i + 1) % N) {
-        ledges.emplace_back(A[i], A[(i + 1) % N]);
-    }
-
-    auto q2 = queries;
-    sort(all(q2), [](pll &a, pll &b) { return a.first == b.first ? a.second < b.second : a.first < b.first; });
-    q2.erase(unique(all(q2)), q2.end());
-
-    // result[x][y]: (x, y) の結果 (0: IN, 1: OUT, 2: ON)
-    um<ll, um<ll, int>> result;
-
-    int q_start = 0, q_end = 0;
-    rep(i, q2.size()) {
-        if (q2[i].first < min_x) {
-            result[q2[i].first][q2[i].second] = 1;
-            q_start = i + 1;
-        } else if (q2[i].first == min_x) {
-            if (A[min_x_bottom].second <= q2[i].second && q2[i].second <= A[min_x_top].second) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-            q_start = i + 1;
-        }
-        if (q2[i].first > max_x) {
-            result[q2[i].first][q2[i].second] = 1;
-        } else if (q2[i].first == max_x) {
-            if (A[max_x_bottom].second <= q2[i].second && q2[i].second <= A[max_x_top].second) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-        } else {
-            q_end = i + 1;
-        }
-    }
-
-    int lower = 0, upper = 0;
-    reps(i, q_start, q_end) {
-        // from <= q2[i] < to
-        while (q2[i].first >= ledges[lower].to.first) lower++;
-        while (q2[i].first >= uedges[upper].to.first) upper++;
-
-        auto l_cross = cross(ledges[lower].to - ledges[lower].from, q2[i] - ledges[lower].from);
-        auto u_cross = cross(uedges[upper].to - uedges[upper].from, q2[i] - uedges[upper].from);
-        if (l_cross < 0) {
-            result[q2[i].first][q2[i].second] = 1;
-        } else if (l_cross == 0) {
-            result[q2[i].first][q2[i].second] = 2;
-        } else {
-            if (u_cross < 0) {
-                result[q2[i].first][q2[i].second] = 0;
-            } else if (u_cross == 0) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-        }
-    }
-
-    repi(q, queries) {
-        auto val = result[q.first][q.second];
-        if (val == 0) {
-            print("IN");
-        } else if (val == 1) {
-            print("OUT");
-        } else {
-            print("ON");
-        }
-    }
+    print(dp[N - 1]);
 
     return 0;
 }

@@ -134,137 +134,50 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
+using mint = modint998244353;
 using vm = vector<mint>;
 using vvm = vector<vm>;
 
 // clang-format on
 
-pll operator-(const pll &a, const pll &b) {
-    return {a.first - b.first, a.second - b.second};
-}
-
-struct Edge {
-    const pll &from;
-    const pll &to;
-
-    Edge(const pll &_from, const pll &_to) : from(_from), to(_to) {}
-};
-
-// > 0: b は a の左側
-inline ll cross(const pll &a, const pll &b) {
-    return a.first * b.second - a.second * b.first;
-}
-
 int main() {
-    INLL(N);
-    auto A = in_vpll(N);
-    INLL(Q);
-    auto queries = in_vpll(Q);
+    INLL(N, M);
+    auto board = in_vs(N);
 
-    ll min_x = LINF;
-    ll max_x = -LINF;
-    ll min_x_top = 0, min_x_bottom = 0;
-    ll max_x_top = 0, max_x_bottom = 0;
-    rep(i, N) {
-        if (A[i].first < min_x) {
-            min_x = A[i].first;
-            min_x_top = min_x_bottom = i;
-        } else if (A[i].first == min_x) {
-            if (A[min_x_top].second < A[i].second) {
-                min_x_top = i;
+    // dp[i][j]: i == 1: 現在の行はずっと 1, j[c] == 1: c 列目はずっと 1
+    vvm dp(2, vm(1 << M, 0));
+    dp[1][(1 << M) - 1] = 1;
+
+    vvm nxt(2, vm(1 << M, 0));
+
+    rep(r, N) {
+        rep(c, M) {
+            if (board[r][c] == '0' || board[r][c] == '?') {
+                rep(i, 2) rep(j, 1 << M) {
+                    nxt[0][j & ~(1 << c)] += dp[i][j];
+                }
             }
-            if (A[min_x_bottom].second > A[i].second) {
-                min_x_bottom = i;
+            if (board[r][c] == '1' || board[r][c] == '?') {
+                rep(i, 2) rep(j, 1 << M) {
+                    if (i == 0 && (j & (1 << c)) == 0) continue;
+                    nxt[i][j] += dp[i][j];
+                }
             }
+            dp = move(nxt);
+            nxt = vvm(2, vm(1 << M, 0));
         }
-        if (A[i].first > max_x) {
-            max_x = A[i].first;
-            max_x_top = max_x_bottom = i;
-        } else if (A[i].first == max_x) {
-            if (A[max_x_top].second < A[i].second) {
-                max_x_top = i;
-            }
-            if (A[max_x_bottom].second > A[i].second) {
-                max_x_bottom = i;
-            }
+        rep(j, 1 << M) {
+            dp[1][j] += dp[0][j];
+            dp[0][j] = 0;
         }
     }
 
-    vector<Edge> uedges, ledges;
-    for (ll i = min_x_top; i != max_x_top; i = (i + N - 1) % N) {
-        uedges.emplace_back(A[i], A[(i + N - 1) % N]);
-    }
-    for (ll i = min_x_bottom; i != max_x_bottom; i = (i + 1) % N) {
-        ledges.emplace_back(A[i], A[(i + 1) % N]);
+    mint ans = 0;
+    rep(j, 1 << M) {
+        ans += dp[1][j];
     }
 
-    auto q2 = queries;
-    sort(all(q2), [](pll &a, pll &b) { return a.first == b.first ? a.second < b.second : a.first < b.first; });
-    q2.erase(unique(all(q2)), q2.end());
-
-    // result[x][y]: (x, y) の結果 (0: IN, 1: OUT, 2: ON)
-    um<ll, um<ll, int>> result;
-
-    int q_start = 0, q_end = 0;
-    rep(i, q2.size()) {
-        if (q2[i].first < min_x) {
-            result[q2[i].first][q2[i].second] = 1;
-            q_start = i + 1;
-        } else if (q2[i].first == min_x) {
-            if (A[min_x_bottom].second <= q2[i].second && q2[i].second <= A[min_x_top].second) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-            q_start = i + 1;
-        }
-        if (q2[i].first > max_x) {
-            result[q2[i].first][q2[i].second] = 1;
-        } else if (q2[i].first == max_x) {
-            if (A[max_x_bottom].second <= q2[i].second && q2[i].second <= A[max_x_top].second) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-        } else {
-            q_end = i + 1;
-        }
-    }
-
-    int lower = 0, upper = 0;
-    reps(i, q_start, q_end) {
-        // from <= q2[i] < to
-        while (q2[i].first >= ledges[lower].to.first) lower++;
-        while (q2[i].first >= uedges[upper].to.first) upper++;
-
-        auto l_cross = cross(ledges[lower].to - ledges[lower].from, q2[i] - ledges[lower].from);
-        auto u_cross = cross(uedges[upper].to - uedges[upper].from, q2[i] - uedges[upper].from);
-        if (l_cross < 0) {
-            result[q2[i].first][q2[i].second] = 1;
-        } else if (l_cross == 0) {
-            result[q2[i].first][q2[i].second] = 2;
-        } else {
-            if (u_cross < 0) {
-                result[q2[i].first][q2[i].second] = 0;
-            } else if (u_cross == 0) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-        }
-    }
-
-    repi(q, queries) {
-        auto val = result[q.first][q.second];
-        if (val == 0) {
-            print("IN");
-        } else if (val == 1) {
-            print("OUT");
-        } else {
-            print("ON");
-        }
-    }
+    print(ans);
 
     return 0;
 }

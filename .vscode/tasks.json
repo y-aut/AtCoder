@@ -9,6 +9,7 @@
                 "-std=gnu++17",
                 "-Wall",
                 "-Wextra",
+                "-pthread",
                 "-g",
                 "-O1",
                 "-DONLINE_JUDGE",
@@ -43,7 +44,7 @@
                 "'${file}'"
             ],
             "group": {
-                "kind": "build",
+                "kind": "build"
             }
         },
         {
@@ -55,6 +56,49 @@
                 "${file}"
             ],
             "problemMatcher": []
+        },
+        {
+            "label": "make ABC directory",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                "${workspaceFolder}/shell/makefiles.sh",
+                "${workspaceFolder}",
+                "src/abc/${input:contestNum}",
+                "\"a b c d e f g x\""
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "make directory",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                "${workspaceFolder}/shell/makefiles.sh",
+                "${workspaceFolder}",
+                "${input:directoryName}",
+                "\"${input:fileNames}\""
+            ],
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "contestNum",
+            "description": "コンテスト番号",
+            "type": "promptString"
+        },
+        {
+            "id": "directoryName",
+            "description": "ディレクトリ",
+            "default": "src/",
+            "type": "promptString"
+        },
+        {
+            "id": "fileNames",
+            "description": "作成するファイル名（拡張子なし，スペース区切り）",
+            "default": "a b c d e f",
+            "type": "promptString"
         }
     ]
 }

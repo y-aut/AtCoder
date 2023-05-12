@@ -1,4 +1,4 @@
 #include <fstream>
 int main() {
-    ifstream in("/mnt/c/Users/y_aut/Documents/Personal/Programs/AtCoder/in.txt");
+    ifstream in("/home/y_aut/AtCoder/in.txt");
     cin.rdbuf(in.rdbuf());

@@ -140,131 +140,25 @@ using vvm = vector<vm>;
 
 // clang-format on
 
-pll operator-(const pll &a, const pll &b) {
-    return {a.first - b.first, a.second - b.second};
-}
-
-struct Edge {
-    const pll &from;
-    const pll &to;
-
-    Edge(const pll &_from, const pll &_to) : from(_from), to(_to) {}
-};
-
-// > 0: b は a の左側
-inline ll cross(const pll &a, const pll &b) {
-    return a.first * b.second - a.second * b.first;
-}
-
 int main() {
-    INLL(N);
-    auto A = in_vpll(N);
-    INLL(Q);
-    auto queries = in_vpll(Q);
+    auto S = in_str();
 
-    ll min_x = LINF;
-    ll max_x = -LINF;
-    ll min_x_top = 0, min_x_bottom = 0;
-    ll max_x_top = 0, max_x_bottom = 0;
-    rep(i, N) {
-        if (A[i].first < min_x) {
-            min_x = A[i].first;
-            min_x_top = min_x_bottom = i;
-        } else if (A[i].first == min_x) {
-            if (A[min_x_top].second < A[i].second) {
-                min_x_top = i;
-            }
-            if (A[min_x_bottom].second > A[i].second) {
-                min_x_bottom = i;
-            }
+    vll dp(1 << 10, 0);
+
+    ll ans = 0;
+
+    repi(c, S) {
+        int mask = 1 << (c - '0');
+        vll nxt(1 << 10, 0);
+        nxt[mask] = 1;
+        rep(i, 1 << 10) {
+            nxt[i ^ mask] += dp[i];
         }
-        if (A[i].first > max_x) {
-            max_x = A[i].first;
-            max_x_top = max_x_bottom = i;
-        } else if (A[i].first == max_x) {
-            if (A[max_x_top].second < A[i].second) {
-                max_x_top = i;
-            }
-            if (A[max_x_bottom].second > A[i].second) {
-                max_x_bottom = i;
-            }
-        }
+        ans += nxt[0];
+        dp = nxt;
     }
 
-    vector<Edge> uedges, ledges;
-    for (ll i = min_x_top; i != max_x_top; i = (i + N - 1) % N) {
-        uedges.emplace_back(A[i], A[(i + N - 1) % N]);
-    }
-    for (ll i = min_x_bottom; i != max_x_bottom; i = (i + 1) % N) {
-        ledges.emplace_back(A[i], A[(i + 1) % N]);
-    }
-
-    auto q2 = queries;
-    sort(all(q2), [](pll &a, pll &b) { return a.first == b.first ? a.second < b.second : a.first < b.first; });
-    q2.erase(unique(all(q2)), q2.end());
-
-    // result[x][y]: (x, y) の結果 (0: IN, 1: OUT, 2: ON)
-    um<ll, um<ll, int>> result;
-
-    int q_start = 0, q_end = 0;
-    rep(i, q2.size()) {
-        if (q2[i].first < min_x) {
-            result[q2[i].first][q2[i].second] = 1;
-            q_start = i + 1;
-        } else if (q2[i].first == min_x) {
-            if (A[min_x_bottom].second <= q2[i].second && q2[i].second <= A[min_x_top].second) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-            q_start = i + 1;
-        }
-        if (q2[i].first > max_x) {
-            result[q2[i].first][q2[i].second] = 1;
-        } else if (q2[i].first == max_x) {
-            if (A[max_x_bottom].second <= q2[i].second && q2[i].second <= A[max_x_top].second) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-        } else {
-            q_end = i + 1;
-        }
-    }
-
-    int lower = 0, upper = 0;
-    reps(i, q_start, q_end) {
-        // from <= q2[i] < to
-        while (q2[i].first >= ledges[lower].to.first) lower++;
-        while (q2[i].first >= uedges[upper].to.first) upper++;
-
-        auto l_cross = cross(ledges[lower].to - ledges[lower].from, q2[i] - ledges[lower].from);
-        auto u_cross = cross(uedges[upper].to - uedges[upper].from, q2[i] - uedges[upper].from);
-        if (l_cross < 0) {
-            result[q2[i].first][q2[i].second] = 1;
-        } else if (l_cross == 0) {
-            result[q2[i].first][q2[i].second] = 2;
-        } else {
-            if (u_cross < 0) {
-                result[q2[i].first][q2[i].second] = 0;
-            } else if (u_cross == 0) {
-                result[q2[i].first][q2[i].second] = 2;
-            } else {
-                result[q2[i].first][q2[i].second] = 1;
-            }
-        }
-    }
-
-    repi(q, queries) {
-        auto val = result[q.first][q.second];
-        if (val == 0) {
-            print("IN");
-        } else if (val == 1) {
-            print("OUT");
-        } else {
-            print("ON");
-        }
-    }
+    print(ans);
 
     return 0;
 }

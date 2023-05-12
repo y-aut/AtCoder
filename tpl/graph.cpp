@@ -198,7 +198,7 @@ public:
     void merge(const ll v1, const ll v2) {
         if (is_connected(v1, v2))
             return;
-        parents[root(v2)] = v1;
+        parents[root(v2)] = root(v1);
     }
 };
 
@@ -265,10 +265,10 @@ vll topological_sort(const vvll &edges) {
 class Tree {
 protected:
     const ll size;
+    const vvll &edges;
     const ll root;
     vll depth;
     ll height; // max(depth) + 1
-    const vvll &edges;
     vll parents;
     vvll children;
     vll partial_size; // 部分木のノード数

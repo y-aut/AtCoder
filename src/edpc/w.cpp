@@ -140,7 +140,49 @@ using vvm = vector<vm>;
 
 // clang-format on
 
+ll op(ll a, ll b) { return max(a, b); }
+ll e() { return -LINF; }
+ll add(ll a, ll b) { return a + b; }
+ll id() { return 0; }
+
+using ls = lazy_segtree<ll, op, e, ll, add, add, id>;
+
 int main() {
+    INLL(N, M);
+    auto lra = in_vvll(3, M);
+    repi(i, lra) {
+        i[0]--;
+        i[1]--;
+    }
+
+    unordered_multimap<ll, const vll &> hash;
+    repi(i, lra) hash.emplace(i[1], i);
+
+    // dp[i][j]: i 文字目，最後の 1 が j 文字目 (0 <= j <= i)
+    ls dp(N);
+
+    rep(i, N) {
+        // dp[i][i]: max(0, dp[i-1][j]) + r[i]
+        ll tmp = 0;
+        if (i) {
+            chmax(tmp, dp.prod(0, i));
+        }
+        auto range = hash.equal_range(i);
+        for (auto itr = range.first; itr != range.second; itr++) {
+            tmp += itr->second[2];
+        }
+        dp.set(i, tmp);
+        // dp[i][j]: dp[i-1][j] + r[i](l<=j)
+        if (i) {
+            for (auto itr = range.first; itr != range.second; itr++) {
+                if (itr->second[0] < i) {
+                    dp.apply(itr->second[0], i, itr->second[2]);
+                }
+            }
+        }
+    }
+
+    print(max(0ll, dp.all_prod()));
 
     return 0;
 }
