@@ -1,6 +1,37 @@
-#include "./template.cpp"
+#include "../tpl/template.cpp"
 
-// --------------------- ここからコピー ---------------------
+#pragma region "BFS"
+
+// 各頂点への距離を求める
+vll bfs(const vvll &edges, ll v) {
+    vll ans(edges.size(), -1);
+    ans[v] = 0;
+
+    queue<ll> q;
+    repi(i, edges[v]) {
+        if (ans[i] == -1) {
+            q.push(i);
+            ans[i] = ans[v] + 1;
+        }
+    }
+
+    while (true) {
+        repi(i, edges[v]) {
+            if (ans[i] == -1) {
+                q.push(i);
+                ans[i] = ans[v] + 1;
+            }
+        }
+        if (q.empty()) break;
+        v = q.front();
+        q.pop();
+    }
+
+    return ans;
+}
+
+#pragma endregion
+
 #pragma region "ダイクストラ法"
 
 struct WEdge {
@@ -289,7 +320,6 @@ private:
 
     void set_parents_and_children() {
         parents[root] = root;
-        rep(i, size) children.pb(vll());
         rep(i, size) repi(j, edges[i]) {
             if (depth[i] < depth[j]) {
                 parents[j] = i;
@@ -346,11 +376,16 @@ public:
 
     ll get_size() const { return size; }
     ll get_root() const { return root; }
+    const vll &get_depth() const { return depth; }
     ll get_depth(const ll v) const { return depth[v]; }
     ll get_height() const { return height; }
-    vll get_edges(const ll v) const { return edges[v]; }
+    const vvll &get_edges() const { return edges; }
+    const vll &get_edges(const ll v) const { return edges[v]; }
+    const vll &get_parent() const { return parents; }
     ll get_parent(const ll v) const { return parents[v]; }
-    vll get_children(const ll v) const { return children[v]; }
+    const vvll &get_children() const { return children; }
+    const vll &get_children(const ll v) const { return children[v]; }
+    const vll &get_partial_size() const { return partial_size; }
     ll get_partial_size(const ll v) const { return partial_size[v]; }
 
     // 行きがけ順に頂点を取得する
@@ -517,6 +552,54 @@ private:
             res[node] = mapping(accum, node);
         }
     }
+};
+
+#pragma endregion
+
+#pragma region "WTree"
+
+// Tree の edges は実体に変更する
+
+struct WEdge {
+    ll to;
+    ll cost;
+};
+using WGraph = vector<vector<WEdge>>;
+
+class WTree : public Tree {
+protected:
+    const WGraph &wedges;
+    vll wdepth;
+
+private:
+    void set_wdepth() {
+        set_wdepth_impl(0, 0);
+    }
+
+    void set_wdepth_impl(const ll v, const ll c) {
+        wdepth[v] = c;
+        repi(i, wedges[v]) {
+            if (wdepth[i.to] == -1)
+                set_wdepth_impl(i.to, c + i.cost);
+        }
+    }
+
+    static vvll wedges_to_edges(const WGraph &wedges) {
+        vvll ans(wedges.size(), vll());
+        rep(i, wedges.size()) repi(j, wedges[i]) ans[i].pb(j.to);
+        return ans;
+    }
+
+public:
+    WTree(const WGraph &_wedges, const ll _root = 0)
+        : Tree(wedges_to_edges(_wedges), _root), wedges(_wedges), wdepth(size, -1) {
+        set_wdepth();
+    }
+
+    const vll &get_wdepth() const { return wdepth; }
+    ll get_wdepth(const ll v) const { return wdepth[v]; }
+    const WGraph &get_wedges() const { return wedges; }
+    const vector<WEdge> &get_wedges(const ll v) const { return wedges[v]; }
 };
 
 #pragma endregion

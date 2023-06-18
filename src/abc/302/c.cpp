@@ -154,60 +154,39 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
-
-int X = -1;
-bool f(pii x) { return x.first <= X; }
-
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+bool check(string &a, string &b) {
+    bool flg = false;
+    rep(i, a.size()) {
+        if (a[i] != b[i]) {
+            if (flg) return false;
+            flg = true;
+        }
+    }
+    return flg;
 }
 
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(N, M);
+    VS(S, N);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
+    vi ind;
+    rep(i, N) ind.pb(i);
 
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
-
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    do {
+        bool flg = false;
+        rep(i, N - 1) {
+            if (!check(S[ind[i]], S[ind[i + 1]])) {
+                flg = true;
+                break;
+            }
         }
-        seg.apply(nl, nr, 1);
-    }
+        if (!flg) {
+            print("Yes");
+            return 0;
+        }
+    } while (next_permutation(all(ind)));
 
-    print(seg.all_prod().first);
+    print("No");
 
     return 0;
 }

@@ -154,60 +154,93 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
-
-int X = -1;
-bool f(pii x) { return x.first <= X; }
-
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
-}
-
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(N, K);
+    VLL(A, N);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
+    sort(all(A));
+
+    if (A[0] > K) {
+        // 1 ~ K は作れない
+        vll ans;
+        rrep(i, K) ans.pb(i);
+        print(ans);
+        return 0;
     }
 
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
+    // 作れないと確定したもの
+    set<ll> unable;
+    // 今のところ作れないもの (unable 含む)
+    set<ll> yet;
+
+    // 1 ~ A[0] - 1 は作れない
+    rrep(i, A[0] - 1) {
+        unable.insert(i);
+        yet.insert(i);
     }
 
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
+    ll sum = A[0];
 
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    reps(i, 1, N) {
+        // (yet の要素 + A[i]) のうち，sum + 1 ~ A[i] - 1 は確実に作れない
+        // A[i] + 1 ~ は暫定的に作れない
+        {
+            auto itr = yet.lower_bound(sum + 1 - A[i]);
+            vll to_add;
+            for (; itr != yet.end(); itr++) {
+                if (*itr + A[i] < A[i]) {
+                    unable.insert(*itr + A[i]);
+                }
+                to_add.pb(*itr + A[i]);
+            }
+            repi(j, to_add) yet.insert(j);
         }
-        seg.apply(nl, nr, 1);
+
+        // yet のうち，A[i] 未満のものは確実に作れない
+        // A[i] を引くと yet でないものは作れる
+        {
+            usll to_erase;
+            repi(j, yet) {
+                if (j < A[i]) {
+                    unable.insert(j);
+                } else {
+                    if (!yet.count(j - A[i])) {
+                        to_erase.insert(j);
+                    }
+                }
+            }
+            repi(j, to_erase) yet.erase(j);
+        }
+
+        if (A[i] > sum + 1) {
+            // sum + 1 ~ A[i] - 1 は確実に作れない
+            rreps(j, sum + 1, A[i] - 1) {
+                yet.insert(j);
+                unable.insert(j);
+                if (unable.size() >= K * 2) break;
+            }
+        }
+        if (unable.size() >= K * 2) break;
+
+        sum += A[i];
     }
 
-    print(seg.all_prod().first);
+    // yet は作れない
+    repi(i, yet) unable.insert(i);
+    if (unable.size() < K) {
+        // sum + 1 ~ は作れない
+        for (ll i = sum + 1;; i++) {
+            unable.insert(i);
+            if (unable.size() >= K) break;
+        }
+    }
+
+    vll ans;
+    repi(i, unable) {
+        ans.pb(i);
+        if (ans.size() == K) break;
+    }
+    print(ans);
 
     return 0;
 }

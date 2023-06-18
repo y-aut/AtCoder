@@ -3,16 +3,15 @@ using namespace std;
 #include <atcoder/all>
 using namespace atcoder;
 
-#ifndef DEBUG
 // clang-format off
 /* accelration */
 // 高速バイナリ生成
 #pragma GCC target("avx")
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
-// cin cout の結びつけ解除, stdio と同期しない (入出力非同期化)
+// cin cout の結びつけ解除, stdioと同期しない(入出力非同期化)
+// cとstdの入出力を混在させるとバグるので注意
 struct Fast {Fast() {std::cin.tie(0); ios::sync_with_stdio(false);}} fast;
-#endif
 
 /* alias */
 // type
@@ -42,6 +41,7 @@ using uss = unordered_set<string>;
 /* define short */
 #define pb push_back
 #define eb emplace_back
+#define mp make_pair
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
@@ -79,6 +79,7 @@ using uss = unordered_set<string>;
 #define repi(a, v) for (auto&& a : (v))
 
 /* debug */
+// 標準エラー出力を含む提出はrejectされる場合もあるので注意
 #define debug(x) cerr << "\033[33m(line:" << __LINE__ << ") " << #x << ": " << x << "\033[m" << '\n';
 
 /* func */
@@ -147,67 +148,70 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
+using mint = modint998244353;
 using vm = vector<mint>;
 using vvm = vector<vm>;
-using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+pair<mint, mint> memo[300010][27];
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
-
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+// ? が n 個あるとき，同じ大文字が 2 つ以上ないパターン数（使える大文字は cnt 種類）
+pair<mint, mint> calc(int n, int cnt) {
+    if (memo[n][cnt].first != -1) return memo[n][cnt];
+    if (n == 0) return memo[n][cnt] = {1, 0};
+    if (cnt == 0) return memo[n][cnt] = {mint(26).pow(n), 0};
+    auto p1 = calc(n - 1, cnt);
+    auto p2 = calc(n - 1, cnt - 1);
+    return memo[n][cnt] = {p1.first * 26 + p2.first * cnt,
+                           p1.second * 26 + (p2.second + p2.first) * cnt};
 }
 
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    STR(S);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
+    rep(i, 300010) rep(j, 27) memo[i][j] = {-1, -1};
 
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
+    // dp[0]: DD, dp[1]: DDo, dp[2]: DDoS
+    mint dp[3] = {};
 
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
+    int one = 0;
+    bool two = false;
+    int ques = 0;
 
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    repi(c, S) {
+        if (c == '?') {
+            dp[2] = dp[1] * 26 + dp[2] * 52;
+            dp[1] = dp[0] * 26 + dp[1] * 26;
+            dp[0] *= 26;
+            if (!two) {
+                // one, ques の大文字は皆異なる
+                // いずれかの大文字に一致
+                auto cnt = __builtin_popcount(one);
+                auto p = calc(ques, 26 - cnt);
+                dp[0] += p.second + p.first * cnt;
+            }
+            ques++;
+        } else if ('a' <= c && c <= 'z') {
+            dp[1] += dp[0];
+            dp[0] = 0;
+        } else {
+            dp[2] += dp[1];
+            dp[1] = 0;
+            if (two) continue;
+            auto tmp = 1 << (c - 'A');
+            if (one & tmp) {
+                dp[0] += calc(ques, 26 - __builtin_popcount(one)).first;
+                two = true;
+            } else if (ques >= 1) {
+                dp[0] += ques * calc(ques - 1, 25 - __builtin_popcount(one)).first;
+            }
+            one ^= tmp;
         }
-        seg.apply(nl, nr, 1);
     }
 
-    print(seg.all_prod().first);
+    mint all = mint(52).pow(ques);
+    print(all - dp[2]);
 
     return 0;
 }

@@ -3,16 +3,15 @@ using namespace std;
 #include <atcoder/all>
 using namespace atcoder;
 
-#ifndef DEBUG
 // clang-format off
 /* accelration */
 // 高速バイナリ生成
 #pragma GCC target("avx")
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
-// cin cout の結びつけ解除, stdio と同期しない (入出力非同期化)
+// cin cout の結びつけ解除, stdioと同期しない(入出力非同期化)
+// cとstdの入出力を混在させるとバグるので注意
 struct Fast {Fast() {std::cin.tie(0); ios::sync_with_stdio(false);}} fast;
-#endif
 
 /* alias */
 // type
@@ -42,6 +41,7 @@ using uss = unordered_set<string>;
 /* define short */
 #define pb push_back
 #define eb emplace_back
+#define mp make_pair
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
@@ -79,6 +79,7 @@ using uss = unordered_set<string>;
 #define repi(a, v) for (auto&& a : (v))
 
 /* debug */
+// 標準エラー出力を含む提出はrejectされる場合もあるので注意
 #define debug(x) cerr << "\033[33m(line:" << __LINE__ << ") " << #x << ": " << x << "\033[m" << '\n';
 
 /* func */
@@ -154,60 +155,62 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+// K >= 0
+void solve(vll &A, int K, int depth = 0) {
+    int N = A.size();
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
+    if (N == 0) return;
 
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+    // 1 ~ A[0]-1
+    if (K < A[0] - 1) {
+        // K + 1 が先頭にくるもの
+        rep(i, N) {
+            if (A[i] == K + 1) {
+                reverse(A.begin(), A.begin() + i + 1);
+                break;
+            }
+        }
+        return;
+    }
+
+    K -= A[0] - 1;
+
+    // A[0] が先頭にあるもので K 番目 (K >= 0)
+    // N-1 個の選び方は N(N-1)/2 通り
+    // A[0] 自身を選ぶ場合もあわせて 0 ~ N(N-1)/2
+    if (K > N * (N - 1) / 2 + depth) {
+        K -= N * (N - 1) / 2 + depth;
+        // A[0] + K が先頭にくるもの
+        rep(i, N) {
+            if (A[i] == A[0] + K) {
+                reverse(A.begin(), A.begin() + i + 1);
+                break;
+            }
+        }
+        return;
+    }
+
+    // A[1] 以降を 1 からの連番に
+    vll B;
+    reps(i, 1, N) {
+        if (A[i] > A[0]) B.pb(A[i] - 1);
+        else B.pb(A[i]);
+    }
+
+    solve(B, K, depth + 1);
+    // B を戻す
+    rep(i, N - 1) {
+        if (B[i] >= A[0]) A[i + 1] = B[i] + 1;
+        else A[i + 1] = B[i];
+    }
 }
 
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(N, K);
+    VLL(A, N);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
-
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
-
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
-        }
-        seg.apply(nl, nr, 1);
-    }
-
-    print(seg.all_prod().first);
+    solve(A, K - 1);
+    print(A);
 
     return 0;
 }

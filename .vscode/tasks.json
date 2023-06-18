@@ -11,7 +11,9 @@
                 "-Wextra",
                 "-pthread",
                 "-g",
-                "-O1",
+                "-O0",
+                "-D",
+                "DEBUG",
                 "-DONLINE_JUDGE",
                 "-fno-inline",
                 "-ftrapv",
@@ -19,7 +21,7 @@
                 "-L/opt/boost/gcc/lib",
                 "-I${workspaceFolder}/ac-library",
                 "-o",
-                "'${workspaceFolder}/problem.exe'",
+                "'${workspaceFolder}/debug.exe'",
                 "'${file}'"
             ],
             "group": {
@@ -40,7 +42,7 @@
                 "-L/opt/boost/gcc/lib",
                 "-I${workspaceFolder}/ac-library",
                 "-o",
-                "'${workspaceFolder}/problem.exe'",
+                "'${workspaceFolder}/release.exe'",
                 "'${file}'"
             ],
             "group": {

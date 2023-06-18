@@ -1,6 +1,5 @@
-#include "./template.cpp"
+#include "../tpl/template.cpp"
 
-// --------------------- ここからコピー ---------------------
 #pragma region "多角形"
 
 struct Polygon {

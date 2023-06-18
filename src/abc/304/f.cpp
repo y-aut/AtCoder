@@ -111,8 +111,10 @@ template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
-template <typename T> inline void print(const vector<T>& v, string s = " ")
-    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
+template <typename T> inline void print(const vector<T>& v, string sep = " ")
+    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n';}
+template <typename T> inline void print(const set<T>& s, string sep = " ")
+    {repi(i, s) cout << i << (i != *s.end() ? sep : ""); cout << '\n';}
 template <typename T, typename S> inline void print(const pair<T, S>& p)
     {cout << p.first << " " << p.second << '\n';}
 template <typename T> inline void print(const T& x) {cout << x << '\n';}
@@ -147,67 +149,75 @@ CSI INF = 1000000006;
 CSLD EPS = 1e-10;
 CSLD PHI = 1.6180339887498948;
 
-using mint = int;
+using mint = modint998244353;
 using vm = vector<mint>;
 using vvm = vector<vm>;
 using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+// 2^i
+mint dbl[100010];
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
+mint calc(ll N, string &S, ll M) {
+    vb tmp(M, false);
+    rep(i, N) {
+        if (S[i] == '.') {
+            tmp[i % M] = true;
+        }
+    }
+    ll cnt = M;
+    repi(i, tmp) {
+        if (i) cnt--;
+    }
+    return dbl[cnt];
+}
 
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+vll divisor(ll N) {
+    vll ans;
+    rreps(i, 2, N) {
+        if (N % i == 0) ans.pb(i);
+    }
+    return ans;
+}
+
+// 異なる素因数の個数
+// 重複する素数があれば 0
+ll pcnt(ll n) {
+    ll ans = 0;
+    rreps(i, 2, n) {
+        if (n % i == 0) {
+            ans++;
+            n /= i;
+            if (n % i == 0) return 0;
+        }
+    }
+    return ans;
 }
 
 int main() {
     LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    STR(S);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
+    dbl[0] = 1;
+    reps(i, 1, 100010) {
+        dbl[i] = dbl[i - 1] * 2;
     }
 
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
+    mint ans = 0;
 
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    auto div = divisor(N);
+    repi(d, div) {
+        auto c = pcnt(d);
+        if (c == 0) continue;
+        if (c % 2 == 1) {
+            ans += calc(N, S, N / d);
+        } else {
+            ans -= calc(N, S, N / d);
         }
-        seg.apply(nl, nr, 1);
     }
 
-    print(seg.all_prod().first);
+    print(ans);
 
     return 0;
 }

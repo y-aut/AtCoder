@@ -154,60 +154,74 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+vpll ans;
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
+bool check(ll H, ll W, ll h, ll w, vs &S, int dir) {
+    int dh, dw;
+    switch (dir) {
+        case 0:
+            dh = 0;
+            dw = 1;
+            break;
+        case 1:
+            dh = 0;
+            dw = -1;
+            break;
+        case 2:
+            dh = 1;
+            dw = 0;
+            break;
+        case 3:
+            dh = -1;
+            dw = 0;
+            break;
+        case 4:
+            dh = 1;
+            dw = 1;
+            break;
+        case 5:
+            dh = 1;
+            dw = -1;
+            break;
+        case 6:
+            dh = -1;
+            dw = 1;
+            break;
+        default:
+            dh = -1;
+            dw = -1;
+            break;
+    }
+    string str = "snuke";
 
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+    ans.clear();
+    rep(i, 5) {
+        if (!(0 <= h && h < H && 0 <= w && w < W)) {
+            return false;
+        }
+        if (S[h][w] != str[i]) {
+            return false;
+        }
+        ans.pb({h + 1, w + 1});
+        h += dh;
+        w += dw;
+    }
+    return true;
 }
 
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(H, W);
+    VS(S, H);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
-
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
-
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    rep(i, H) rep(j, W) {
+        rep(d, 8) {
+            if (check(H, W, i, j, S, d)) {
+                repi(a, ans) {
+                    print(a);
+                }
+            }
         }
-        seg.apply(nl, nr, 1);
     }
-
-    print(seg.all_prod().first);
 
     return 0;
 }

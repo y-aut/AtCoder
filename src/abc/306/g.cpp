@@ -111,8 +111,10 @@ template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
-template <typename T> inline void print(const vector<T>& v, string s = " ")
-    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
+template <typename T> inline void print(const vector<T>& v, string sep = " ")
+    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n';}
+template <typename T> inline void print(const set<T>& s, string sep = " ")
+    {repi(i, s) cout << i << (i != *s.end() ? sep : ""); cout << '\n';}
 template <typename T, typename S> inline void print(const pair<T, S>& p)
     {cout << p.first << " " << p.second << '\n';}
 template <typename T> inline void print(const T& x) {cout << x << '\n';}
@@ -154,60 +156,202 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+#pragma region "Tree"
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
+class Tree {
+protected:
+    const ll size;
+    const vvll &edges;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
 
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+private:
+    void set_depth() {
+        set_depth_impl(0, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(const ll v, const ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, const ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, const ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(const ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        // set_parents_and_children();
+        // set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    const vll &get_depth() const { return depth; }
+    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    const vvll &get_edges() const { return edges; }
+    const vll &get_edges(const ll v) const { return edges[v]; }
+    const vll &get_parent() const { return parents; }
+    ll get_parent(const ll v) const { return parents[v]; }
+    const vvll &get_children() const { return children; }
+    const vll &get_children(const ll v) const { return children[v]; }
+    const vll &get_partial_size() const { return partial_size; }
+    ll get_partial_size(const ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+};
+
+#pragma endregion
+
+vvll get_scc_edges(ll N, ll M) {
+    auto edges = in_edges<false>(N, M);
+    scc_graph sg(N);
+    rep(i, N) repi(j, edges[i]) {
+        sg.add_edge(i, j);
+    }
+    auto scc = sg.scc();
+
+    ll tmp = 0;
+    rep(i, scc.size()) repi(j, scc[i]) {
+        if (j == 0) {
+            tmp = i;
+            break;
+        }
+    }
+    sort(all(scc[tmp]));
+    um<ll, ll> ind;
+    rep(i, scc[tmp].size()) ind[scc[tmp][i]] = i;
+    vvll ans(ind.size());
+    rep(i, N) {
+        if (!ind.count(i)) continue;
+        repi(j, edges[i]) {
+            if (ind.count(j)) {
+                ans[ind[i]].pb(ind[j]);
+            }
+        }
+    }
+    return ans;
+}
+
+Tree get_tree(vvll &edges) {
+    usll added;
+    vvll tedges(edges.size());
+    queue<ll> q;
+    q.push(0);
+    added.insert(0);
+    while (!q.empty()) {
+        auto v = q.front();
+        q.pop();
+        repi(i, edges[v]) {
+            if (!added.count(i)) {
+                added.insert(i);
+                q.push(i);
+                tedges[v].pb(i);
+            }
+        }
+    }
+    return tedges;
+}
+
+bool has_another(ll n) {
+    while (n % 2 == 0) n /= 2;
+    while (n % 5 == 0) n /= 5;
+    return n != 1;
 }
 
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
-
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
-
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
-
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    LL(T);
+    rep(t, T) {
+        LL(N, M);
+        auto edges = get_scc_edges(N, M);
+        if (edges.size() == 1) {
+            print("No");
+            continue;
         }
-        seg.apply(nl, nr, 1);
+        auto tree = get_tree(edges);
+        ll g = -1;
+        rep(i, edges.size()) repi(j, edges[i]) {
+            auto tmp = abs(tree.get_depth(i) + 1 - tree.get_depth(j));
+            if (tmp == 0) continue;
+            if (g == -1) g = tmp;
+            else g = gcd(g, tmp);
+        }
+        YesNo(!has_another(g));
     }
-
-    print(seg.all_prod().first);
 
     return 0;
 }

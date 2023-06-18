@@ -1,7 +1,6 @@
-#include "./template.cpp"
+#include "../tpl/template.cpp"
 
-// --------------------- ここからコピー ---------------------
-#pragma region 二項係数
+#pragma region "二項係数"
 
 class Binomial {
     const ll mod = 0;

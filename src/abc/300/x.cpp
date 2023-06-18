@@ -61,8 +61,9 @@ using uss = unordered_set<string>;
 
 /* REP macro */
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
+#define rreps(i, a, n) for (ll i = (a); i <= (ll)(n); i++)
 #define rep(i, n) reps(i, 0, n)
-#define rrep(i, n) reps(i, 1, n + 1)
+#define rrep(i, n) rreps(i, 1, n)
 #define repd(i, n) for (ll i = n - 1; i >= 0; i--)
 #define rrepd(i, n) for (ll i = n; i >= 1; i--)
 #define repi(a, v) for (auto&& a : (v))
@@ -145,6 +146,17 @@ using vvm = vector<vm>;
 // clang-format on
 
 int main() {
+    LL(N);
+
+    /**
+     * dp[L][N]
+     * dp2[L][N]: 先頭が 1
+     *
+     * dp[L][N] = dp[L][N-L] + dp2[L][N] + sum[i=1 ~ L-1][j=i*2 ~ N-L+i] dp[i][j-i] * dp2[L-i][N-j]
+     * dp2[L][N] = sum[i=2 ~ N-L+1] dp[L-2][N-1-i]
+     *
+     * dp[L][N] = dp[L][N-L] + sum[i=0 ~ L-1][j=0 ~ N-L] dp[i][j] * (sum[k=0~] dp[L-i-2][N-i-j-k-3])
+     */
 
     return 0;
 }

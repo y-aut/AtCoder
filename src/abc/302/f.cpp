@@ -154,60 +154,54 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+#pragma region "BFS"
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
+// 各頂点への距離を求める
+vll bfs(const vvll &edges, ll v) {
+    vll ans(edges.size(), -1);
+    ans[v] = 0;
 
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+    queue<ll> q;
+    repi(i, edges[v]) {
+        if (ans[i] == -1) {
+            q.push(i);
+            ans[i] = ans[v] + 1;
+        }
+    }
+
+    while (true) {
+        repi(i, edges[v]) {
+            if (ans[i] == -1) {
+                q.push(i);
+                ans[i] = ans[v] + 1;
+            }
+        }
+        if (q.empty()) break;
+        v = q.front();
+        q.pop();
+    }
+
+    return ans;
 }
 
+#pragma endregion
+
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(N, M);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
-
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
-
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    vvll edges(N + M, vll());
+    rep(i, N) {
+        LL(A);
+        VLL(S, A);
+        repi(s, S) {
+            edges[i].pb(N + s - 1);
+            edges[N + s - 1].pb(i);
         }
-        seg.apply(nl, nr, 1);
     }
 
-    print(seg.all_prod().first);
+    auto ans = bfs(edges, N)[N + M - 1];
+    if (ans != -1) ans = (ans - 2) / 2;
+    print(ans);
 
     return 0;
 }

@@ -61,8 +61,9 @@ using uss = unordered_set<string>;
 
 /* REP macro */
 #define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
+#define rreps(i, a, n) for (ll i = (a); i <= (ll)(n); i++)
 #define rep(i, n) reps(i, 0, n)
-#define rrep(i, n) reps(i, 1, n + 1)
+#define rrep(i, n) rreps(i, 1, n)
 #define repd(i, n) for (ll i = n - 1; i >= 0; i--)
 #define rrepd(i, n) for (ll i = n; i >= 1; i--)
 #define repi(a, v) for (auto&& a : (v))
@@ -144,7 +145,51 @@ using vvm = vector<vm>;
 
 // clang-format on
 
+vll get_primes(ll P) {
+    bool not_primes[101] = {};
+    rreps(i, 2, P) {
+        for (ll j = i * 2; j <= P; j += i) {
+            not_primes[j] = true;
+        }
+    }
+    vll ans;
+    rreps(i, 2, P) {
+        if (!not_primes[i]) ans.pb(i);
+    }
+    return ans;
+}
+
+void dfs(vll &ps, int pos, ll cur, ll N, vll &res) {
+    if (cur > N) return;
+    res.pb(cur);
+    reps(i, pos, ps.size()) {
+        dfs(ps, i, cur * ps[i], N, res);
+    }
+}
+
 int main() {
+    LL(N, P);
+
+    auto upper = get_primes(P);
+    const int psize = upper.size();
+
+    vll lower;
+    while (upper.size() > psize / 3) {
+        lower.pb(upper.back());
+        upper.pop_back();
+    }
+
+    vll uset, lset;
+    dfs(upper, 0, 1, N, uset);
+    dfs(lower, 0, 1, N, lset);
+    sort(all(uset));
+    sort(all(lset));
+
+    ll ans = 0;
+    repi(i, uset) {
+        ans += upper_bound(all(lset), N / i) - lset.begin();
+    }
+    print(ans);
 
     return 0;
 }

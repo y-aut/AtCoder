@@ -111,8 +111,10 @@ template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
-template <typename T> inline void print(const vector<T>& v, string s = " ")
-    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
+template <typename T> inline void print(const vector<T>& v, string sep = " ")
+    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n';}
+template <typename T> inline void print(const set<T>& s, string sep = " ")
+    {repi(i, s) cout << i << (i != *s.end() ? sep : ""); cout << '\n';}
 template <typename T, typename S> inline void print(const pair<T, S>& p)
     {cout << p.first << " " << p.second << '\n';}
 template <typename T> inline void print(const T& x) {cout << x << '\n';}
@@ -154,60 +156,122 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+vll memo;
+ll get_partial(vll &A, vvll &children, ll v) {
+    if (memo[v] != -1) return memo[v];
+    ll ans = (A[v] == -1 ? 1 : 0);
+    repi(c, children[v]) {
+        ans += get_partial(A, children, c);
+    }
+    return memo[v] = ans;
+}
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
+vector<set<ll>> memo_set;
+vb memo_set_exist;
+set<ll> &get_set(vll &A, vvll &children, ll v) {
+    if (memo_set_exist[v]) return memo_set[v];
+    if (A[v] != -1) memo_set[v].insert(A[v]);
+    repi(c, children[v]) {
+        auto &s = get_set(A, children, c);
+        repi(i, s) memo_set[v].insert(i);
+    }
+    memo_set_exist[v] = true;
+    return memo_set[v];
+}
 
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+ll get_mex(vll &A, vvll &children, ll v) {
+    auto s = get_set(A, children, v);
+    ll ans = 0;
+    while (s.count(ans)) ans++;
+    return ans;
 }
 
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(T);
+    rep(t, T) {
+        LL(N, K);
+        VLL(P, N - 1);
+        rep(i, N - 1) P[i]--;
+        VLL(A, N);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
-
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
-
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+        // i の親は P[i-1]
+        vvll children(N);
+        rep(i, N - 1) {
+            children[P[i]].pb(i + 1);
         }
-        seg.apply(nl, nr, 1);
-    }
+        vll leaves;
+        rep(i, N) {
+            if (children[i].empty()) leaves.pb(i);
+        }
 
-    print(seg.all_prod().first);
+        if (K == 0) {
+            bool alice = false;
+            repi(i, leaves) {
+                if (A[i] != 0) {
+                    alice = true;
+                    break;
+                }
+            }
+            if (alice) {
+                print("Alice");
+            } else {
+                print("Bob");
+            }
+            continue;
+        }
+
+        if (K == 1) {
+            bool alice = false;
+            repi(i, leaves) {
+                if (A[i] <= 0) {
+                    alice = true;
+                    break;
+                }
+            }
+            if (alice) {
+                print("Alice");
+                continue;
+            }
+        }
+
+        // leaves are ok
+        memo.assign(N, -1);
+        memo_set.assign(N, set<ll>());
+        memo_set_exist.assign(N, false);
+
+        bool alice = false;
+        rep(i, N) {
+            auto tmp = get_partial(A, children, i);
+            if (tmp == 0) {
+                auto mex = get_mex(A, children, i);
+                if (mex == K) {
+                    alice = true;
+                    break;
+                }
+            } else if (tmp == 1) {
+                if (children[i].empty()) {
+                    continue;
+                }
+                auto s = get_set(A, children, i);
+                if (s.count(K)) continue;
+                ll cnt = 0;
+                rep(i, K) {
+                    if (!s.count(i)) {
+                        if (++cnt == 2) break;
+                    }
+                }
+                if (cnt <= 1) {
+                    alice = true;
+                    break;
+                }
+            }
+        }
+        if (alice) {
+            print("Alice");
+        } else {
+            print("Bob");
+        }
+    }
 
     return 0;
 }

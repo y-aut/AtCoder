@@ -3,7 +3,6 @@ using namespace std;
 #include <atcoder/all>
 using namespace atcoder;
 
-#ifndef DEBUG
 // clang-format off
 /* accelration */
 // 高速バイナリ生成
@@ -12,7 +11,6 @@ using namespace atcoder;
 #pragma GCC optimize("unroll-loops")
 // cin cout の結びつけ解除, stdio と同期しない (入出力非同期化)
 struct Fast {Fast() {std::cin.tie(0); ios::sync_with_stdio(false);}} fast;
-#endif
 
 /* alias */
 // type
@@ -42,6 +40,7 @@ using uss = unordered_set<string>;
 /* define short */
 #define pb push_back
 #define eb emplace_back
+#define mp make_pair
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
@@ -154,60 +153,75 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
-
-int X = -1;
-bool f(pii x) { return x.first <= X; }
-
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+// A[a]++, A[b]--
+void add(int N, int a, int b, vvi &res) {
+    vi ans(N, 0);
+    int ind = 3;
+    rep(i, N) {
+        if (i == a) ans[i] = 2;
+        else if (i == b) ans[i] = 1;
+        else ans[i] = ind++;
+    }
+    res.pb(ans);
+    rep(i, N) {
+        if (i == a) ans[i] = N + 2 - ans[i];
+        else if (i == b) ans[i] = N - ans[i];
+        else ans[i] = N + 1 - ans[i];
+    }
+    res.pb(ans);
 }
 
 int main() {
     LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    VLL(A, N);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
+    vvi res;
 
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
-
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
+    auto sum = accumulate(all(A), 0);
+    if (N % 2 == 1) {
+        if (sum % N) {
+            print("No");
+            return 0;
         }
-        seg.apply(nl, nr, 1);
+    } else {
+        if (sum * 2 % N) {
+            print("No");
+            return 0;
+        }
+        if (sum % N) {
+            vi tmp;
+            rep(i, N) {
+                A[i] += i + 1;
+                tmp.pb(i + 1);
+            }
+            res.pb(tmp);
+            sum += N * (N + 1) / 2;
+        }
     }
 
-    print(seg.all_prod().first);
+    auto m = sum / N;
+    while (true) {
+        int less = -1, greater = -1;
+        rep(i, N) {
+            if (less == -1 && A[i] < m) {
+                less = i;
+                if (greater != -1) break;
+            } else if (greater == -1 && A[i] > m) {
+                greater = i;
+                if (less != -1) break;
+            }
+        }
+        if (less == -1) {
+            break;
+        }
+        add(N, less, greater, res);
+        A[less]++;
+        A[greater]--;
+    }
+
+    print("Yes");
+    print(res.size());
+    repi(i, res) print(i);
 
     return 0;
 }

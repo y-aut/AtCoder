@@ -3,16 +3,15 @@ using namespace std;
 #include <atcoder/all>
 using namespace atcoder;
 
-#ifndef DEBUG
 // clang-format off
 /* accelration */
 // 高速バイナリ生成
 #pragma GCC target("avx")
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
-// cin cout の結びつけ解除, stdio と同期しない (入出力非同期化)
+// cin cout の結びつけ解除, stdioと同期しない(入出力非同期化)
+// cとstdの入出力を混在させるとバグるので注意
 struct Fast {Fast() {std::cin.tie(0); ios::sync_with_stdio(false);}} fast;
-#endif
 
 /* alias */
 // type
@@ -42,6 +41,7 @@ using uss = unordered_set<string>;
 /* define short */
 #define pb push_back
 #define eb emplace_back
+#define mp make_pair
 #define um unordered_map
 #define us unordered_set
 #define all(obj) (obj).begin(), (obj).end()
@@ -53,12 +53,12 @@ using uss = unordered_set<string>;
 #define CSLD constexpr static ld
 
 /* set variables */
-#define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
-#define INT(...) VAR(int, __VA_ARGS__)
-#define LL(...) VAR(ll, __VA_ARGS__)
-#define CHR(...) VAR(char, __VA_ARGS__)
-#define STR(...) VAR(string, __VA_ARGS__)
-#define DBL(...) VAR(double, __VA_ARGS__)
+#define IN(type, ...) type __VA_ARGS__; set_vars(__VA_ARGS__)
+#define INT(...) IN(int, __VA_ARGS__)
+#define LL(...) IN(ll, __VA_ARGS__)
+#define CHR(...) IN(char, __VA_ARGS__)
+#define STR(...) IN(str, __VA_ARGS__)
+#define DBL(...) IN(double, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
 #define VD(a, b) auto a = in_vd(b)
@@ -79,6 +79,7 @@ using uss = unordered_set<string>;
 #define repi(a, v) for (auto&& a : (v))
 
 /* debug */
+// 標準エラー出力を含む提出はrejectされる場合もあるので注意
 #define debug(x) cerr << "\033[33m(line:" << __LINE__ << ") " << #x << ": " << x << "\033[m" << '\n';
 
 /* func */
@@ -108,8 +109,9 @@ template <bool bidir> inline vvll in_edges(int N, int height)
 template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
     {vector<usll> res(N, usll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-inline void IN() {}
-template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
+inline void set_vars() {}
+template <typename First, typename... Rest> inline void set_vars(First& first, Rest&... rest)
+    {cin >> first; set_vars(rest...);}
 inline int ctoi(char c) {return c - '0';}
 template <typename T> inline void print(const vector<T>& v, string s = " ")
     {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
@@ -150,64 +152,27 @@ CSLD PHI = 1.6180339887498948;
 using mint = int;
 using vm = vector<mint>;
 using vvm = vector<vm>;
-using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
-
-int X = -1;
-bool f(pii x) { return x.first <= X; }
-
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
-}
-
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(N, M);
+    VLL(A, N);
+    VLL(B, M);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
+    vll C = A;
+    repi(i, B) C.pb(i);
+    sort(all(C));
 
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
+    map<ll, ll> m;
+    rep(i, N + M) m[C[i]] = i;
 
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
-        }
-        seg.apply(nl, nr, 1);
-    }
-
-    print(seg.all_prod().first);
+    vll ans;
+    repi(i, A) ans.pb(m[i] + 1);
+    print(ans);
+    ans.clear();
+    repi(i, B) ans.pb(m[i] + 1);
+    print(ans);
 
     return 0;
 }

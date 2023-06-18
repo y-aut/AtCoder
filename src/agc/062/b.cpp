@@ -111,8 +111,10 @@ template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
-template <typename T> inline void print(const vector<T>& v, string s = " ")
-    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? s : ""); cout << '\n';}
+template <typename T> inline void print(const vector<T>& v, string sep = " ")
+    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n';}
+template <typename T> inline void print(const set<T>& s, string sep = " ")
+    {repi(i, s) cout << i << (i != *s.end() ? sep : ""); cout << '\n';}
 template <typename T, typename S> inline void print(const pair<T, S>& p)
     {cout << p.first << " " << p.second << '\n';}
 template <typename T> inline void print(const T& x) {cout << x << '\n';}
@@ -154,60 +156,46 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-pii op(pii a, pii b) { return {a.first + b.first, a.second + b.second}; }
-pii e() { return {0, 0}; }
-pii mapping(int f, pii x) { return f == -1 ? x : pii{f * x.second, x.second}; }
-int composition(int f, int g) { return f == -1 ? g : f; }
-int id() { return -1; }
+ll memo[103][103][103] = {};
 
-int X = -1;
-bool f(pii x) { return x.first <= X; }
-
-void print_seg(lazy_segtree<pii, op, e, int, mapping, composition, id> seg, int size) {
-    vpii segv;
-    rep(i, size) segv.pb(seg.get(i));
-    dprint(segv);
+// [l, r) が 2^k 未満のときの最小コスト
+ll f(vll &C, vll &P, ll l, ll r, ll k) {
+    if (memo[l][r][k] != -1) return memo[l][r][k];
+    if (l + 1 >= r) return memo[l][r][k] = 0;
+    if (k == 0) {
+        reps(i, l, r - 1) {
+            if (P[i] > P[i + 1]) return memo[l][r][k] = LINF;
+        }
+        return memo[l][r][k] = 0;
+    }
+    // 2^(k-1) をもつのがどこからか
+    ll ans = LINF;
+    rreps(i, l, r) {
+        // [l, i) は 2^(k-1) 未満，[i, r) は 2^(k-1) 以上
+        auto left = f(C, P, l, i, k - 1);
+        if (left == LINF) continue;
+        auto right = f(C, P, i, r, k - 1);
+        if (right == LINF) continue;
+        right += C[k - 1] * (r - i);
+        chmin(ans, left + right);
+    }
+    return memo[l][r][k] = ans;
 }
 
 int main() {
-    LL(N);
-    VPLL(LR, N);
-    repi(lr, LR) lr.second++;
+    LL(N, K);
+    VLL(C, K);
+    VLL(P, N);
 
-    // 座圧
-    set<ll> comp;
-    repi(lr, LR) {
-        comp.insert(lr.first);
-        comp.insert(lr.second);
-    }
+    reverse(all(C));
+    vll P2(N);
+    rep(i, N) P2[P[i] - 1] = i;
 
-    um<ll, ll> map;
-    vll vec;
-    int ind = 0;
-    repi(i, comp) {
-        map[i] = ind++;
-        vec.pb(i);
-    }
+    rep(i, 103) rep(j, 103) rep(k, 103) memo[i][j][k] = -1;
 
-    vpii segv;
-    rep(i, vec.size() - 1) segv.eb(0, vec[i + 1] - vec[i]);
-
-    lazy_segtree<pii, op, e, int, mapping, composition, id> seg(segv);
-    repi(lr, LR) {
-        auto nl = map[lr.first];
-        auto nr = map[lr.second];
-        X = seg.prod(nl, nr).second;
-        int right = seg.max_right<f>(nl);
-        auto prod = seg.prod(nl, right);
-        seg.apply(nl, right, 0);
-        if (right != segv.size()) {
-            auto g = seg.get(right);
-            seg.set(right, {max(0, g.first - (X - prod.first)), g.second});
-        }
-        seg.apply(nl, nr, 1);
-    }
-
-    print(seg.all_prod().first);
+    auto ans = f(C, P2, 0, N, K);
+    if (ans == LINF) ans = -1;
+    print(ans);
 
     return 0;
 }
