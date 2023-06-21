@@ -1,26 +1,25 @@
+#include <atcoder/all>
 #include <bits/stdc++.h>
 using namespace std;
-#include <atcoder/all>
 using namespace atcoder;
 
-#ifndef DEBUG
 // clang-format off
-/* accelration */
-// 高速バイナリ生成
+
+#ifndef DEBUG
 #pragma GCC target("avx")
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
-// cin cout の結びつけ解除, stdio と同期しない (入出力非同期化)
 struct Fast {Fast() {std::cin.tie(0); ios::sync_with_stdio(false);}} fast;
 #endif
 
 /* alias */
 // type
+#define us unordered_set
+#define um unordered_map
 using ull = unsigned long long;
 using ll = long long;
-using ld = long double;
 // pair
-using pii = pair<int, int>;
+using pi = pair<int, int>;
 using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
@@ -32,25 +31,23 @@ using vs = vector<string>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
 using vvb = vector<vb>;
-using vpii = vector<pii>;
+using vpi = vector<pi>;
 using vpll = vector<pll>;
 // unordered set
-using usi = unordered_set<int>;
-using usll = unordered_set<ll>;
-using uss = unordered_set<string>;
+using usi = us<int>;
+using usll = us<ll>;
+using uss = us<string>;
+// unordered map
+using umi = um<int, int>;
+using umll = um<ll, ll>;
 
 /* define short */
-#define pb push_back
-#define eb emplace_back
-#define um unordered_map
-#define us unordered_set
-#define all(obj) (obj).begin(), (obj).end()
-#define YESNO(bool) if(bool){cout<<"YES"<<'\n';}else{cout<<"NO"<<'\n';}
-#define yesno(bool) if(bool){cout<<"yes"<<'\n';}else{cout<<"no"<<'\n';}
-#define YesNo(bool) if(bool){cout<<"Yes"<<'\n';}else{cout<<"No"<<'\n';}
 #define CSI constexpr static int
 #define CSLL constexpr static ll
-#define CSLD constexpr static ld
+#define CSD constexpr static double
+#define pb push_back
+#define eb emplace_back
+#define all(obj) (obj).begin(), (obj).end()
 
 /* set variables */
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
@@ -78,14 +75,11 @@ using uss = unordered_set<string>;
 #define rrepd(i, n) for (ll i = n; i >= 1; i--)
 #define repi(a, v) for (auto&& a : (v))
 
-/* debug */
-#define debug(x) cerr << "\033[33m(line:" << __LINE__ << ") " << #x << ": " << x << "\033[m" << '\n';
-
 /* func */
 inline int in_int() {int x; cin >> x; return x;}
 inline ll in_ll() {ll x; cin >> x; return x;}
 inline double in_double() {double x; cin >> x; return x;}
-inline pii in_pii() {pii x; cin >> x.first >> x.second; return x;}
+inline pi in_pi() {pi x; cin >> x.first >> x.second; return x;}
 inline pll in_pll() {pll x; cin >> x.first >> x.second; return x;}
 inline char in_char() {char c; cin >> c; return c;}
 inline string in_str() {string x; cin >> x; return x;}
@@ -94,8 +88,8 @@ inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return r
 inline vd in_vd(int length) {vd res; rep(i, length) res.pb(in_double()); return res;}
 inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
 inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
-inline vpii in_vpii(int height)
-    {vpii res; rep(i, height) {pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
+inline vpi in_vpi(int height)
+    {vpi res; rep(i, height) {pi tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
 inline vpll in_vpll(int height)
     {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
 inline vvi in_vvi(int height, int width)
@@ -124,30 +118,44 @@ template <typename T, typename S> inline void print(const map<T, S>& m)
     {for (auto&& p : m) print(p);}
 template <int V> inline void print(const static_modint<V> v) {print(v.val());}
 inline void print(const modint v) {print(v.val());}
-// 第一引数と第二引数を比較し、第一引数(a)をより大きい/小さい値に上書き
 template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
 template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
-// デバッグ用関数
-template <typename T> void dprint(const vector<T> &v) {
-    rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const vector<vector<T>> &v) {
-    rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
-template<typename T> void dprint(const T v[], const int size) {
-    rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}
-}
-template <typename T> void dprint(const T v[], const int W, const int H) {
-    rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}
-}
+
+// Print
+#define YES print("YES")
+#define NO print("NO")
+#define Yes print("Yes")
+#define No print("No")
+#define YESNO(bool) if (bool) YES; else NO
+#define YesNo(bool) if (bool) Yes; else No
+
+// Debug Print
+#ifdef DEBUG
+#define debug(x) cerr << "\033[33m(line:" << __LINE__ << ") " << #x << ": " << x << "\033[m" << '\n'
+template <typename T> void dprint(const vector<T> &v)
+    {rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}}
+template <typename T> void dprint(const vector<vector<T>> &v)
+    {rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}}
+template<typename T> void dprint(const T v[], const int size)
+    {rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}}
+template <typename T> void dprint(const T v[], const int W, const int H)
+    {rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}}
+#else
+#define debug(x) (void)0
+template <typename T> void dprint(const vector<T> &v) {}
+template <typename T> void dprint(const vector<vector<T>> &v) {}
+template<typename T> void dprint(const T v[], const int size) {}
+template <typename T> void dprint(const T v[], const int W, const int H) {}
+#endif
 
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
-CSLD EPS = 1e-10;
-CSLD PHI = 1.6180339887498948;
+CSD EPS = 1e-10;
+CSD PI = 3.141592653589793;
+CSD PHI = 1.6180339887498948;
 
 using mint = int;
 using vm = vector<mint>;
@@ -202,11 +210,11 @@ int main() {
     rep(i, N) P[i]--;
 
     if (solve(P) % 2) {
-        print("No");
+        No;
         return 0;
     }
 
-    print("Yes");
+    Yes;
     vpll ans;
     impl(P, 0, ans);
 
