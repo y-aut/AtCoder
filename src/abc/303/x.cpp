@@ -164,51 +164,182 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
-// dp[i][j][k]: [i, N), 出次数の和が j, |S| = k なる S の個数
-mint dp[510][510][510];
-mint solve(ll i, ll j, ll k, ll N, vll &d) {
-    if (j < 0 || k < 0) return 0;
-    if (dp[i][j][k] != -1) return dp[i][j][k];
-    if (i == N) {
-        return dp[i][j][k] = (j == 0 && k == 0);
+#pragma region "多項式"
+
+class Polynomial;
+using Poly = Polynomial;
+
+class Polynomial {
+    // \sum a[i]x^i
+    vm a;
+
+public:
+    Polynomial(const vm &_a) : a(_a) {}
+
+    ll get_size() const { return a.size(); }
+    mint get(const ll i) const { return a[i]; }
+    vm &get() { return a; }
+
+    // 逆元を求める
+    Poly inv() const {
+        ll d = get_size();
+        Poly f({1});
+        ll accuracy = 1;
+        while (accuracy < d) {
+            accuracy <<= 1;
+            f = f * 2 - *this * f * f;
+            f.a.resize(accuracy);
+        }
+        f.a.resize(d);
+        return f;
     }
-    if (k == 0) {
-        return dp[i][j][k] = (j == 0);
+
+    // 累乗を求める
+    Poly pow(ll k) const {
+        Poly ans({1}), p = *this;
+        for (ll mask = 1; k; mask <<= 1) {
+            if (k & mask) {
+                k ^= mask;
+                ans *= p;
+            }
+            if (k) p *= p;
+        }
+        return ans;
     }
-    return dp[i][j][k] = solve(i + 1, j, k, N, d) + solve(i + 1, j - d[i], k - 1, N, d);
-}
+
+    // pow(k) の x^n の係数を求める
+    mint pow_n(ll k, ll n) const {
+        Poly ans({1}), p = *this;
+        for (ll mask = 1; k; mask <<= 1) {
+            if (k & mask) {
+                k ^= mask;
+                ans *= p;
+                if (ans.get_size() > n + 1) ans.a.resize(n + 1);
+            }
+            if (k) {
+                p *= p;
+                if (p.get_size() > n + 1) p.a.resize(n + 1);
+            }
+        }
+        return ans.get_size() > n ? ans[n] : 0;
+    }
+
+    // 偶数番目の項のみを取り出す
+    Poly even() const {
+        vm ans;
+        for (ll i = 0; i < get_size(); i += 2) {
+            ans.pb(a[i]);
+        }
+        return ans;
+    }
+
+    // 奇数番目の項のみを取り出す
+    Poly odd() const {
+        vm ans;
+        for (ll i = 1; i < get_size(); i += 2) {
+            ans.pb(a[i]);
+        }
+        return ans;
+    }
+
+    // 奇数項目の係数を -1 倍したものを取得する
+    Poly bar() const {
+        vm ans;
+        rep(i, get_size()) {
+            if (i % 2 == 0) ans.pb(a[i]);
+            else ans.pb(-a[i]);
+        }
+        return ans;
+    }
+
+    // *this / p の x^n の係数を求める (Bostan-Mori)
+    mint div_n(Poly p, ll n) const {
+        Poly cpy = *this;
+        while (n > 0) {
+            auto bar_p = p.bar();
+            auto f = cpy * bar_p;
+            if (n % 2 == 0) cpy = f.even();
+            else cpy = f.odd();
+            p = (p * bar_p).even();
+            n >>= 1;
+        }
+        return cpy[0] / p[0];
+    }
+
+    const mint &operator[](ll i) const { return a[i]; }
+    mint &operator[](ll i) { return a[i]; }
+
+    const Poly operator-() const {
+        auto ans = a;
+        repi(i, ans) i = -i;
+        return ans;
+    }
+
+    Poly &operator+=(const Poly &p) {
+        if (p.get_size() > get_size()) a.resize(p.get_size(), 0);
+        rep(i, p.get_size()) a[i] += p.a[i];
+        return *this;
+    }
+    const Poly operator+(const Poly &p) const {
+        auto ans = *this;
+        ans += p;
+        return ans;
+    }
+
+    Poly &operator-=(const Poly &p) { return operator+=(-p); }
+    const Poly operator-(const Poly &p) const { return operator+(-p); }
+
+    Poly &operator*=(const mint v) {
+        repi(i, a) i *= v;
+        return *this;
+    }
+    const Poly operator*(const mint v) const {
+        auto ans = *this;
+        ans *= v;
+        return ans;
+    }
+
+    Poly &operator*=(const Poly &p) {
+        a = convolution(a, p.a);
+        return *this;
+    }
+    const Poly operator*(const Poly &p) const {
+        auto ans = *this;
+        ans *= p;
+        return ans;
+    }
+
+    Poly &operator/=(const mint v) {
+        repi(i, a) i /= v;
+        return *this;
+    }
+    const Poly operator/(const mint v) const {
+        auto ans = *this;
+        ans /= v;
+        return ans;
+    }
+
+    Poly &operator/=(const Poly &p) { return operator*=(p.inv()); }
+    const Poly operator/(const Poly &p) const { return operator*(p.inv()); }
+};
+
+#pragma endregion
 
 int main() {
-    LL(N);
-    VLL(d, N);
-
-    rep(i, 510) rep(j, 510) rep(k, 510) dp[i][j][k] = -1;
+    LL(N, K);
+    VLL(S, K);
 
     vm fact(N + 1);
     fact[0] = 1;
     reps(i, 1, N + 1) fact[i] = fact[i - 1] * i;
 
-    mint tcnt = fact[N - 2] / fact[d[0] - 1];
-    reps(i, 1, N) tcnt /= fact[d[i]];
+    vm a(S[K - 1], 0);
+    repi(i, S) a[i - 1] = 1 / fact[i - 1];
 
-    mint f = 1;
-    repi(i, d) f *= fact[i];
-
-    mint ans = tcnt;
-    reps(v, 1, N) {
-        if (d[v] == 0) {
-            ans += tcnt;
-            continue;
-        }
-        rrep(k, N - v) {
-            // |S| = k
-            auto cnt = solve(v + 1, k - 1 - d[v], k - 1, N, d);
-            auto tmp = fact[k - 2] * fact[N - k - 1] * d[0] * d[v] / f;
-            ans += cnt * tmp;
-        }
-    }
-
-    print(ans);
+    Poly p(a);
+    auto res = p.pow_n(N, N - 2);
+    res *= fact[N - 2];
+    print(res);
 
     return 0;
 }
