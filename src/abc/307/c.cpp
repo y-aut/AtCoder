@@ -33,8 +33,6 @@ using vvll = vector<vll>;
 using vvb = vector<vb>;
 using vpi = vector<pi>;
 using vpll = vector<pll>;
-using vvpi = vector<vpi>;
-using vvpll = vector<vpll>;
 // unordered set
 using usi = us<int>;
 using usll = us<ll>;
@@ -104,9 +102,6 @@ template <bool bidir> inline vvll in_edges(int N, int height)
 template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
     {vector<usll> res(N, usll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-template <bool bidir> inline vvpll in_wedges(int N, int height)
-    {vvpll res(N, vpll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; ll w = in_ll(); res[a].eb(b, w); if (bidir) res[b].eb(a, w);} return res;}
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
@@ -175,7 +170,77 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
+vs crop(vs &A) {
+    int hs = 0, he = A.size(), ws = 0, we = A[0].size();
+    rep(i, A.size()) {
+        if (A[i].find('#') == string::npos) hs++;
+        else break;
+    }
+    repd(i, A.size()) {
+        if (A[i].find('#') == string::npos) he--;
+        else break;
+    }
+    rep(i, A[0].size()) {
+        bool flg = false;
+        rep(j, A.size()) {
+            if (A[j][i] == '#') {
+                flg = true;
+                break;
+            }
+        }
+        if (!flg) ws++;
+        else break;
+    }
+    repd(i, A[0].size()) {
+        bool flg = false;
+        rep(j, A.size()) {
+            if (A[j][i] == '#') {
+                flg = true;
+                break;
+            }
+        }
+        if (!flg) we--;
+        else break;
+    }
+    vs ans;
+    reps(i, hs, he) {
+        ans.pb(A[i].substr(ws, we - ws));
+    }
+    return ans;
+}
+
 int main() {
+    LL(HA, WA);
+    VS(A, HA);
+    LL(HB, WB);
+    VS(B, HB);
+    LL(HX, WX);
+    VS(X, HX);
+
+    A = crop(A);
+    B = crop(B);
+    X = crop(X);
+
+    rep(i, X.size() - A.size() + 1) rep(j, X[0].size() - A[0].size() + 1) {
+        rep(k, X.size() - B.size() + 1) rep(l, X[0].size() - B[0].size() + 1) {
+            bool flg = true;
+            rep(m, X.size()) rep(n, X[0].size()) {
+                bool black = (0 <= m - i && m - i < A.size() && 0 <= n - j && n - j < A[0].size() && A[m - i][n - j] == '#') ||
+                             (0 <= m - k && m - k < B.size() && 0 <= n - l && n - l < B[0].size() && B[m - k][n - l] == '#');
+                if ((X[m][n] == '#') != black) {
+                    flg = false;
+                    m = LINF;
+                    break;
+                }
+            }
+            if (flg) {
+                Yes;
+                return 0;
+            }
+        }
+    }
+
+    No;
 
     return 0;
 }

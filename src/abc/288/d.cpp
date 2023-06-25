@@ -33,8 +33,6 @@ using vvll = vector<vll>;
 using vvb = vector<vb>;
 using vpi = vector<pi>;
 using vpll = vector<pll>;
-using vvpi = vector<vpi>;
-using vvpll = vector<vpll>;
 // unordered set
 using usi = us<int>;
 using usll = us<ll>;
@@ -104,9 +102,6 @@ template <bool bidir> inline vvll in_edges(int N, int height)
 template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
     {vector<usll> res(N, usll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-template <bool bidir> inline vvpll in_wedges(int N, int height)
-    {vvpll res(N, vpll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; ll w = in_ll(); res[a].eb(b, w); if (bidir) res[b].eb(a, w);} return res;}
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
@@ -137,22 +132,16 @@ template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((co
 // Debug Print
 #ifdef DEBUG
 #define debug(x) cerr << "\033[33m(line:" << __LINE__ << ") " << #x << ": " << x << "\033[m" << '\n'
-template <typename T> void dprint(ll i, const T &v)
-    {cout << "[" << i << "]: "; print(v); cout << flush;}
-template <typename T> void dprint(ll i, ll j, const T &v)
-    {cout << "[" << i << "][" << j << "]: "; print(v); cout << flush;}
 template <typename T> void dprint(const vector<T> &v)
-    {rep(i, v.size()) dprint(i, v[i]);}
+    {rep(i, v.size()) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}}
 template <typename T> void dprint(const vector<vector<T>> &v)
-    {rep(i, v.size()) rep(j, v[i].size()) dprint(i, j, v[i][j]);}
+    {rep(i, v.size()) rep(j, v[i].size()) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}}
 template<typename T> void dprint(const T v[], const int size)
-    {rep(i, size) dprint(i, v[i]);}
+    {rep(i, size) {cout << "[" << i << "]: "; print(v[i]); cout << flush;}}
 template <typename T> void dprint(const T v[], const int W, const int H)
-    {rep(i, W) rep(j, H) dprint(i, j, v[i][j]);}
+    {rep(i, W) rep(j, H) {cout << "[" << i << "][" << j << "]: "; print(v[i][j]); cout << flush;}}
 #else
 #define debug(x) (void)0
-template <typename T> void dprint(ll i, const T &v) {}
-template <typename T> void dprint(ll i, ll j, const T &v) {}
 template <typename T> void dprint(const vector<T> &v) {}
 template <typename T> void dprint(const vector<vector<T>> &v) {}
 template<typename T> void dprint(const T v[], const int size) {}
@@ -175,7 +164,40 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
+inline ll calc(vll &A, vll &acc, ll K, ll l, ll pos) {
+    // A[pos] + A[pos-K] + A[pos-2K] + ... (pos-nK >= l)
+    ll start = l + (pos - l) % K;
+    ll ans = acc[start];
+    if (pos + K < A.size()) ans -= acc[pos + K];
+    return ans;
+}
+
 int main() {
+    LL(N, K);
+    VLL(A, N);
+
+    // \sum[n] a[i+nK]
+    vll acc(N);
+    for (ll i = N - 1; i >= 0; i--) {
+        if (i >= N - K) acc[i] = A[i];
+        else acc[i] = A[i] + acc[i + K];
+    }
+
+    LL(Q);
+    rep(q, Q) {
+        LL(l, r);
+        l--;
+        bool flg = true;
+        auto tmp = r - K == l ? 0 : calc(A, acc, K, l, r - K - 1);
+        reps(i, r - K, r - 1) {
+            auto a = calc(A, acc, K, l, i) - tmp;
+            if (a != A[r - 1]) {
+                flg = false;
+                break;
+            }
+        }
+        YesNo(flg);
+    }
 
     return 0;
 }

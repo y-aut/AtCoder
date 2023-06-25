@@ -175,7 +175,84 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
+#pragma region "動的ダイクストラ"
+
+// 距離 (0, d] の頂点集合を取得し，開始頂点に追加する．
+class DynamicDijkstra {
+    const vvpll &edges;
+    vb starts;
+    priority_queue<pll, vector<pll>, greater<pll>> q;
+
+    void add_starts(const vll &new_starts) {
+        repi(i, new_starts) starts[i] = true;
+        repi(i, new_starts) repi(j, edges[i]) {
+            if (!starts[j.first]) q.emplace(j.second, j.first);
+        }
+    }
+
+public:
+    DynamicDijkstra(const vvpll &_edges, vll _starts) : edges(_edges), starts(edges.size(), false) {
+        add_starts(_starts);
+    }
+
+    vll update(ll d) {
+        vll ans;
+
+        // q は距離が 0 より大きい頂点集合
+        // q2 は q のうち距離が d 以下の頂点集合
+        priority_queue<pll, vector<pll>, greater<pll>> q2;
+        while (!q.empty()) {
+            auto p = q.top();
+            if (p.first > d) break;
+            q.pop();
+            if (starts[p.second]) continue;
+            q2.push(p);
+        }
+
+        while (!q2.empty()) {
+            auto p = q2.top();
+            q2.pop();
+            if (starts[p.second]) continue;
+            ans.pb(p.second);
+            starts[p.second] = true;
+
+            repi(i, edges[p.second]) {
+                if (starts[i.first]) continue;
+                ll tmp = p.first + i.second;
+                if (tmp <= d) {
+                    q2.emplace(tmp, i.first);
+                } else {
+                    q.emplace(tmp, i.first);
+                }
+            }
+        }
+
+        add_starts(ans);
+        return ans;
+    }
+};
+
+#pragma endregion
+
 int main() {
+    LL(N, M);
+    auto edges = in_wedges<true>(N, M);
+    LL(K);
+    VLL(A, K);
+    LL(D);
+    VLL(X, D);
+
+    vll ans(N, -1);
+    repi(i, A) ans[--i] = 0;
+
+    DynamicDijkstra di(edges, A);
+
+    rep(i, D) {
+        auto res = di.update(X[i]);
+        repi(j, res) ans[j] = i + 1;
+    }
+
+    print(ans, "\n");
 
     return 0;
 }

@@ -34,60 +34,46 @@ vll bfs(const vvll &edges, ll v) {
 
 #pragma region "ダイクストラ法"
 
-struct WEdge {
-    ll to;
-    ll cost;
-};
-using WGraph = vector<vector<WEdge>>;
-
 class Dijkstra {
+    const vvpll &edges;
+    ll start;
     vll dist;
-    // 直前の頂点を記録する配列
-    vll prev;
+    vll prev; // 直前の頂点を記録する配列
 
-public:
-    Dijkstra(const WGraph &graph, const ll startIndex) : dist(graph.size(), LINF), prev(graph.size(), -1) {
-        // 「現時点での最短距離, 頂点」の順に取り出す priority_queue
+    void set_dist() {
+        // (現時点での最短距離, 頂点)
         priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace((dist[startIndex] = 0), startIndex);
+        q.emplace(dist[start] = 0, start);
 
         while (!q.empty()) {
-            const auto distance = q.top().first;
-            const auto from = q.top().second;
+            auto p = q.top();
             q.pop();
+            if (dist[p.second] < p.first) continue;
 
-            // 最短距離でなければ処理しない
-            if (dist[from] < distance) {
-                continue;
-            }
-
-            // 現在の頂点からの各辺について
-            for (const auto &edge : graph[from]) {
-                // to までの新しい距離
-                ll d = dist[from] + edge.cost;
-
-                // d が現在の記録より小さければ更新
-                if (d < dist[edge.to]) {
-                    prev[edge.to] = from;
-                    q.emplace((dist[edge.to] = d), edge.to);
+            repi(i, edges[p.second]) {
+                ll d = dist[p.second] + i.second;
+                if (d < dist[i.first]) {
+                    prev[i.first] = p.second;
+                    q.emplace(dist[i.first] = d, i.first);
                 }
             }
         }
     }
 
-    // 最短距離を取得
-    ll get_distance(const ll v) const {
-        return dist[v];
+public:
+    Dijkstra(const vvpll &_edges, ll _start) : edges(_edges), start(_start), dist(edges.size(), LINF), prev(edges.size(), -1) {
+        set_dist();
     }
 
+    ll get_dist(ll v) const { return dist[v]; }
+    vll &get_dist() { return dist; }
+
     // 最短経路を取得
-    vll get_path(const ll v) const {
-        auto path = vll();
-        for (int i = v; i >= 0; i = prev[i]) {
-            path.push_back(i);
-        }
-        reverse(path.begin(), path.end());
-        return path;
+    vll get_path(ll v) const {
+        vll ans;
+        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
+        reverse(all(ans));
+        return ans;
     }
 };
 
@@ -563,6 +549,9 @@ private:
 struct WEdge {
     ll to;
     ll cost;
+
+    WEdge() {}
+    WEdge(ll _to, ll _cost) : to(_to), cost(_cost) {}
 };
 using WGraph = vector<vector<WEdge>>;
 

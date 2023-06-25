@@ -82,6 +82,18 @@
                 "\"${input:fileNames}\""
             ],
             "problemMatcher": []
+        },
+        {
+            "label": "compare outputs",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                "${workspaceFolder}/shell/compare.sh",
+                "${workspaceFolder}",
+                "${input:exeFile1}",
+                "${input:exeFile2}"
+            ],
+            "problemMatcher": []
         }
     ],
     "inputs": [
@@ -100,6 +112,18 @@
             "id": "fileNames",
             "description": "作成するファイル名（拡張子なし，スペース区切り）",
             "default": "a b c d e f",
+            "type": "promptString"
+        },
+        {
+            "id": "exeFile1",
+            "description": "比較対象の実行ファイル (1)",
+            "default": "debug.exe",
+            "type": "promptString"
+        },
+        {
+            "id": "exeFile2",
+            "description": "比較対象の実行ファイル (2)",
+            "default": "debug2.exe",
             "type": "promptString"
         }
     ]

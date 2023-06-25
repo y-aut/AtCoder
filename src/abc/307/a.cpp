@@ -33,8 +33,6 @@ using vvll = vector<vll>;
 using vvb = vector<vb>;
 using vpi = vector<pi>;
 using vpll = vector<pll>;
-using vvpi = vector<vpi>;
-using vvpll = vector<vpll>;
 // unordered set
 using usi = us<int>;
 using usll = us<ll>;
@@ -104,9 +102,6 @@ template <bool bidir> inline vvll in_edges(int N, int height)
 template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
     {vector<usll> res(N, usll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-template <bool bidir> inline vvpll in_wedges(int N, int height)
-    {vvpll res(N, vpll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; ll w = in_ll(); res[a].eb(b, w); if (bidir) res[b].eb(a, w);} return res;}
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
@@ -176,6 +171,14 @@ using pmm = pair<mint, mint>;
 // clang-format on
 
 int main() {
+    LL(N);
+    VLL(A, N * 7);
+
+    rep(i, N) {
+        ll ans = 0;
+        reps(j, i * 7, (i + 1) * 7) ans += A[j];
+        print(ans);
+    }
 
     return 0;
 }

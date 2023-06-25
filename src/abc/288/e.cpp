@@ -33,8 +33,6 @@ using vvll = vector<vll>;
 using vvb = vector<vb>;
 using vpi = vector<pi>;
 using vpll = vector<pll>;
-using vvpi = vector<vpi>;
-using vvpll = vector<vpll>;
 // unordered set
 using usi = us<int>;
 using usll = us<ll>;
@@ -104,9 +102,6 @@ template <bool bidir> inline vvll in_edges(int N, int height)
 template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
     {vector<usll> res(N, usll());
     rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
-template <bool bidir> inline vvpll in_wedges(int N, int height)
-    {vvpll res(N, vpll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; ll w = in_ll(); res[a].eb(b, w); if (bidir) res[b].eb(a, w);} return res;}
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
 inline int ctoi(char c) {return c - '0';}
@@ -175,7 +170,41 @@ using pmm = pair<mint, mint>;
 
 // clang-format on
 
+ll op(ll a, ll b) { return min(a, b); }
+ll e() { return LINF; }
+
 int main() {
+    LL(N, M);
+    VLL(A, N);
+    VLL(C, N);
+    VLL(X, M);
+
+    repi(i, X) i--;
+    segtree<ll, op, e> Cmin(C);
+
+    // dp[j]: [0, j) の商品を i 個買い，j を買うときの最安値
+    segtree<ll, op, e> dp(N);
+    ll ans = LINF;
+
+    // 0 個のとき，[0, j) に必須が入っていれば LINF
+    rep(j, X[0] + 1) dp.set(j, A[j] + C[j]);
+    chmin(ans, dp.prod(X[X.size() - 1], N));
+
+    reps(i, 1, N) {
+        segtree<ll, op, e> nxt(N);
+        reps(j, i, N) {
+            // m は j 未満のなかで必須のものの最大
+            auto itr = lower_bound(all(X), j);
+            ll m = itr == X.begin() ? 0 : *prev(itr);
+            // k (max(m, i - 1) <= k < j) が最大とする
+            auto val = dp.prod(max(m, i - 1), j) + A[j] + Cmin.prod(j - i, j + 1);
+            nxt.set(j, val);
+        }
+        dp = move(nxt);
+        chmin(ans, dp.prod(X[X.size() - 1], N));
+    }
+
+    print(ans);
 
     return 0;
 }

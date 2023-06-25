@@ -7,7 +7,7 @@ for f in $3; do
     else
         cp $1/tpl/template.cpp $1/$2/$f.cpp
         count=$(expr $count + 1)
-        echo -e Created $2/$f.cpp.
+        echo Created $2/$f.cpp.
     fi
 done
 echo
