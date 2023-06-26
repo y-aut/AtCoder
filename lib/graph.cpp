@@ -35,8 +35,8 @@ vll bfs(const vvll &edges, ll v) {
 #pragma region "ダイクストラ法"
 
 class Dijkstra {
-    const vvpll &edges;
-    ll start;
+    const vvpll &wedges;
+    const ll start;
     vll dist;
     vll prev; // 直前の頂点を記録する配列
 
@@ -50,7 +50,7 @@ class Dijkstra {
             q.pop();
             if (dist[p.second] < p.first) continue;
 
-            repi(i, edges[p.second]) {
+            repi(i, wedges[p.second]) {
                 ll d = dist[p.second] + i.second;
                 if (d < dist[i.first]) {
                     prev[i.first] = p.second;
@@ -61,7 +61,7 @@ class Dijkstra {
     }
 
 public:
-    Dijkstra(const vvpll &_edges, ll _start) : edges(_edges), start(_start), dist(edges.size(), LINF), prev(edges.size(), -1) {
+    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
         set_dist();
     }
 
@@ -111,7 +111,7 @@ public:
     }
 
     // 最短距離を取得
-    ll get_distance(const ll v) const {
+    ll get_distance(ll v) const {
         return dist[v];
     }
 };
@@ -128,7 +128,7 @@ class SCC {
     vll order, component;
     vector<bool> used;
 
-    void dfs(const ll v) {
+    void dfs(ll v) {
         used[v] = true;
         for (auto nv : graph[v]) {
             if (!used[nv])
@@ -137,7 +137,7 @@ class SCC {
         order.pb(v);
     }
 
-    void rdfs(const ll v, const ll k) {
+    void rdfs(ll v, ll k) {
         component[v] = k;
         for (auto nv : r_graph[v]) {
             if (component[nv] < 0)
@@ -162,7 +162,7 @@ public:
     }
 
     // 頂点(u, v)が同じ強連結成分に含まれるか
-    bool is_same(const ll u, const ll v) const { return component[u] == component[v]; }
+    bool is_same(ll u, ll v) const { return component[u] == component[v]; }
 
     // 各強連結成分を取得する
     vvll get_components() const {
@@ -198,9 +198,9 @@ class UnionFind {
     vll parents;
 
 public:
-    UnionFind(const ll _size) : size(_size), parents(size, -1) {}
+    UnionFind(ll _size) : size(_size), parents(size, -1) {}
 
-    ll root(const ll v) {
+    ll root(ll v) {
         if (parents[v] == -1) {
             return v;
         } else {
@@ -208,11 +208,11 @@ public:
         }
     }
 
-    bool is_connected(const ll v1, const ll v2) {
+    bool is_connected(ll v1, ll v2) {
         return root(v1) == root(v2);
     }
 
-    void merge(const ll v1, const ll v2) {
+    void merge(ll v1, ll v2) {
         if (is_connected(v1, v2))
             return;
         parents[root(v2)] = root(v1);
@@ -223,7 +223,7 @@ public:
 
 #pragma region "閉路検出"
 
-bool is_dag_impl(const vvll &edges, const ll v, vc &status) {
+bool is_dag_impl(const vvll &edges, ll v, vc &status) {
     status[v] = 1;
     repi(i, edges[v]) {
         if (status[i] == 1)
@@ -296,7 +296,7 @@ private:
         height = *max_element(all(depth)) + 1;
     }
 
-    void set_depth_impl(const ll v, const ll d) {
+    void set_depth_impl(ll v, ll d) {
         depth[v] = d;
         repi(i, edges[v]) {
             if (depth[i] == -1)
@@ -315,21 +315,21 @@ private:
         }
     }
 
-    void get_preorder_impl(vll &order, const ll v) const {
+    void get_preorder_impl(vll &order, ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_preorder_impl(order, i);
         }
     }
 
-    void get_postorder_impl(vll &order, const ll v) const {
+    void get_postorder_impl(vll &order, ll v) const {
         repi(i, children[v]) {
             get_postorder_impl(order, i);
         }
         order.pb(v);
     }
 
-    void get_euler_tour_impl(vll &order, const ll v) const {
+    void get_euler_tour_impl(vll &order, ll v) const {
         order.pb(v);
         repi(i, children[v]) {
             get_euler_tour_impl(order, i);
@@ -341,7 +341,7 @@ private:
         set_partial_size_impl(root);
     }
 
-    void set_partial_size_impl(const ll v) {
+    void set_partial_size_impl(ll v) {
         partial_size[v] = 1;
         repi(c, children[v]) {
             set_partial_size_impl(c);
@@ -350,8 +350,8 @@ private:
     }
 
 public:
-    Tree(const vvll &_edges, const ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
-                                                   parents(size, -1), children(size, vll()), partial_size(size, 0) {
+    Tree(const vvll &_edges, ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                             parents(size, -1), children(size, vll()), partial_size(size, 0) {
         if (size == 0) {
             throw "The tree size is 0.";
         }
@@ -363,16 +363,16 @@ public:
     ll get_size() const { return size; }
     ll get_root() const { return root; }
     const vll &get_depth() const { return depth; }
-    ll get_depth(const ll v) const { return depth[v]; }
+    ll get_depth(ll v) const { return depth[v]; }
     ll get_height() const { return height; }
     const vvll &get_edges() const { return edges; }
-    const vll &get_edges(const ll v) const { return edges[v]; }
+    const vll &get_edges(ll v) const { return edges[v]; }
     const vll &get_parent() const { return parents; }
-    ll get_parent(const ll v) const { return parents[v]; }
+    ll get_parent(ll v) const { return parents[v]; }
     const vvll &get_children() const { return children; }
-    const vll &get_children(const ll v) const { return children[v]; }
+    const vll &get_children(ll v) const { return children[v]; }
     const vll &get_partial_size() const { return partial_size; }
-    ll get_partial_size(const ll v) const { return partial_size[v]; }
+    ll get_partial_size(ll v) const { return partial_size[v]; }
 
     // 行きがけ順に頂点を取得する
     vll get_preorder() const {
@@ -422,7 +422,7 @@ class LCADoubling : public Tree {
     }
 
 public:
-    LCADoubling(const vvll &_edges, const ll _root = 0) : Tree(_edges, _root) {
+    LCADoubling(const vvll &_edges, ll _root = 0) : Tree(_edges, _root) {
         set_doubling();
     }
 
@@ -456,7 +456,7 @@ public:
         return parents[v1];
     }
 
-    ll get_dist(const ll v1, const ll v2) const {
+    ll get_dist(ll v1, ll v2) const {
         auto l = get_lca(v1, v2);
         return depth[v1] + depth[v2] - 2 * depth[l];
     }
@@ -496,7 +496,7 @@ public:
         }
     }
 
-    T get(const ll node) { return res[node]; }
+    T get(ll node) { return res[node]; }
 
 private:
     void init() {
@@ -546,18 +546,9 @@ private:
 
 // Tree の edges は実体に変更する
 
-struct WEdge {
-    ll to;
-    ll cost;
-
-    WEdge() {}
-    WEdge(ll _to, ll _cost) : to(_to), cost(_cost) {}
-};
-using WGraph = vector<vector<WEdge>>;
-
 class WTree : public Tree {
 protected:
-    const WGraph &wedges;
+    const vvpll &wedges;
     vll wdepth;
 
 private:
@@ -565,30 +556,30 @@ private:
         set_wdepth_impl(0, 0);
     }
 
-    void set_wdepth_impl(const ll v, const ll c) {
+    void set_wdepth_impl(ll v, ll c) {
         wdepth[v] = c;
         repi(i, wedges[v]) {
-            if (wdepth[i.to] == -1)
-                set_wdepth_impl(i.to, c + i.cost);
+            if (wdepth[i.first] == -1)
+                set_wdepth_impl(i.first, c + i.second);
         }
     }
 
-    static vvll wedges_to_edges(const WGraph &wedges) {
+    static vvll wedges_to_edges(const vvpll &wedges) {
         vvll ans(wedges.size(), vll());
-        rep(i, wedges.size()) repi(j, wedges[i]) ans[i].pb(j.to);
+        rep(i, wedges.size()) repi(j, wedges[i]) ans[i].pb(j.first);
         return ans;
     }
 
 public:
-    WTree(const WGraph &_wedges, const ll _root = 0)
+    WTree(const vvpll &_wedges, ll _root = 0)
         : Tree(wedges_to_edges(_wedges), _root), wedges(_wedges), wdepth(size, -1) {
         set_wdepth();
     }
 
     const vll &get_wdepth() const { return wdepth; }
-    ll get_wdepth(const ll v) const { return wdepth[v]; }
-    const WGraph &get_wedges() const { return wedges; }
-    const vector<WEdge> &get_wedges(const ll v) const { return wedges[v]; }
+    ll get_wdepth(ll v) const { return wdepth[v]; }
+    const vvpll &get_wedges() const { return wedges; }
+    const vpll &get_wedges(ll v) const { return wedges[v]; }
 };
 
 #pragma endregion

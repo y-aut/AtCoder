@@ -4,25 +4,13 @@
         {
             "label": "debug build",
             "type": "shell",
-            "command": "/usr/bin/g++",
+            "command": "source",
             "args": [
-                "-std=gnu++17",
-                "-Wall",
-                "-Wextra",
-                "-pthread",
-                "-g",
-                "-O0",
-                "-D",
-                "DEBUG",
-                "-DONLINE_JUDGE",
-                "-fno-inline",
-                "-ftrapv",
-                "-I/opt/boost/gcc/include",
-                "-L/opt/boost/gcc/lib",
-                "-I${workspaceFolder}/ac-library",
-                "-o",
-                "'${workspaceFolder}/debug.exe'",
-                "'${file}'"
+                "${workspaceFolder}/shell/build.sh",
+                "d",
+                "${workspaceFolder}",
+                "${file}",
+                "debug.exe"
             ],
             "group": {
                 "kind": "build",
@@ -30,20 +18,30 @@
             }
         },
         {
+            "label": "debug build with output name",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                "${workspaceFolder}/shell/build.sh",
+                "d",
+                "${workspaceFolder}",
+                "${file}",
+                "${input:outFileName}"
+            ],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
             "label": "release build",
             "type": "shell",
-            "command": "/usr/bin/g++",
+            "command": "source",
             "args": [
-                "-std=gnu++17",
-                "-g",
-                "-O3",
-                "-DONLINE_JUDGE",
-                "-I/opt/boost/gcc/include",
-                "-L/opt/boost/gcc/lib",
-                "-I${workspaceFolder}/ac-library",
-                "-o",
-                "'${workspaceFolder}/release.exe'",
-                "'${file}'"
+                "${workspaceFolder}/shell/build.sh",
+                "r",
+                "${workspaceFolder}",
+                "${file}",
+                "release.exe"
             ],
             "group": {
                 "kind": "build"
@@ -67,7 +65,7 @@
                 "${workspaceFolder}/shell/makefiles.sh",
                 "${workspaceFolder}",
                 "src/abc/${input:contestNum}",
-                "\"a b c d e f g x\""
+                "'a b c d e f g x'"
             ],
             "problemMatcher": []
         },
@@ -79,7 +77,7 @@
                 "${workspaceFolder}/shell/makefiles.sh",
                 "${workspaceFolder}",
                 "${input:directoryName}",
-                "\"${input:fileNames}\""
+                "'${input:fileNames}'"
             ],
             "problemMatcher": []
         },
@@ -115,6 +113,12 @@
             "type": "promptString"
         },
         {
+            "id": "outFileName",
+            "description": "出力ファイルの名前",
+            "default": "model.exe",
+            "type": "promptString"
+        },
+        {
             "id": "exeFile1",
             "description": "比較対象の実行ファイル (1)",
             "default": "debug.exe",
@@ -123,7 +127,7 @@
         {
             "id": "exeFile2",
             "description": "比較対象の実行ファイル (2)",
-            "default": "debug2.exe",
+            "default": "model.exe",
             "type": "promptString"
         }
     ]
