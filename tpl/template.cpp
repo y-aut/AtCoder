@@ -9,7 +9,7 @@ using namespace atcoder;
 #pragma GCC target("avx")
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
-struct Fast {Fast() {std::cin.tie(0); ios::sync_with_stdio(false);}} fast;
+struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
 /* alias */
@@ -78,55 +78,56 @@ using umll = um<ll, ll>;
 #define repi(a, v) for (auto&& a : (v))
 
 /* func */
-inline int in_int() {int x; cin >> x; return x;}
-inline ll in_ll() {ll x; cin >> x; return x;}
-inline double in_double() {double x; cin >> x; return x;}
-inline pi in_pi() {pi x; cin >> x.first >> x.second; return x;}
-inline pll in_pll() {pll x; cin >> x.first >> x.second; return x;}
-inline char in_char() {char c; cin >> c; return c;}
-inline string in_str() {string x; cin >> x; return x;}
-inline vi in_vi(int length) {vi res; rep(i, length) res.pb(in_int()); return res;}
-inline vll in_vll(int length) {vll res; rep(i, length) res.pb(in_ll()); return res;}
-inline vd in_vd(int length) {vd res; rep(i, length) res.pb(in_double()); return res;}
-inline vc in_vc(int length) {vc res; rep(i, length) res.pb(in_char()); return res;}
-inline vs in_vs(int height) {vs res; rep(i, height) res.pb(in_str()); return res;}
+// input
+inline int in_int() { int x; cin >> x; return x; }
+inline ll in_ll() { ll x; cin >> x; return x; }
+inline double in_double() { double x; cin >> x; return x; }
+inline pi in_pi() { pi x; cin >> x.first >> x.second; return x; }
+inline pll in_pll() { pll x; cin >> x.first >> x.second; return x; }
+inline char in_char() { char c; cin >> c; return c; }
+inline string in_str() { string x; cin >> x; return x; }
+inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
+inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
+inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
+inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
+inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
 inline vpi in_vpi(int height)
-    {vpi res; rep(i, height) {pi tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp);} return res;}
+    { vpi res; rep(i, height) { pi tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp); } return res; }
 inline vpll in_vpll(int height)
-    {vpll res; rep(i, height) {pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp);} return res;}
+    { vpll res; rep(i, height) { pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp); } return res; }
 inline vvi in_vvi(int height, int width)
-    {vvi res; rep(i, height) {vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp);} return res;}
+    { vvi res; rep(i, height) { vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp); } return res; }
 inline vvll in_vvll(int height, int width)
-    {vvll res; rep(i, height) {vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp);} return res;}
+    { vvll res; rep(i, height) { vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp); } return res; }
 template <bool bidir> inline vvll in_edges(int N, int height)
-    {vvll res(N, vll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].pb(b); if (bidir) res[b].pb(a);} return res;}
+    { vvll res(N, vll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
+    res[a].pb(b); if (bidir) res[b].pb(a); } return res; }
 template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
-    {vector<usll> res(N, usll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; res[a].insert(b); if (bidir) res[b].insert(a);} return res;}
+    { vector<usll> res(N, usll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
+    res[a].insert(b); if (bidir) res[b].insert(a); } return res; }
 template <bool bidir> inline vvpll in_wedges(int N, int height)
-    {vvpll res(N, vpll());
-    rep(i, height) {ll a = in_ll()-1; ll b = in_ll()-1; ll w = in_ll(); res[a].eb(b, w); if (bidir) res[b].eb(a, w);} return res;}
+    { vvpll res(N, vpll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1; ll w = in_ll();
+    res[a].eb(b, w); if (bidir) res[b].eb(a, w); } return res; }
 inline void IN() {}
-template <typename First, typename... Rest> inline void IN(First& first, Rest&... rest) {cin >> first; IN(rest...);}
-inline int ctoi(char c) {return c - '0';}
-template <typename T> inline void print(const vector<T>& v, string sep = " ")
-    {rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n';}
-template <typename T> inline void print(const set<T>& s, string sep = " ")
-    {repi(i, s) cout << i << (i != *s.end() ? sep : ""); cout << '\n';}
-template <typename T, typename S> inline void print(const pair<T, S>& p)
-    {cout << p.first << " " << p.second << '\n';}
-template <typename T> inline void print(const T& x) {cout << x << '\n';}
-template <typename T, typename S> inline void print(const vector<pair<T, S>>& v)
-    {for (auto&& p : v) print(p);}
-template <typename T, typename S> inline void print(const map<T, S>& m)
-    {for (auto&& p : m) print(p);}
-template <int V> inline void print(const static_modint<V> v) {print(v.val());}
-inline void print(const modint v) {print(v.val());}
-template <typename T> inline bool chmin(T& a, const T& b) {bool compare; if ((compare = a > b)) a = b; return compare;}
-template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((compare = a < b)) a = b; return compare;}
+template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// Print
+// change min/max
+template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
+template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
+
+// print
+template <typename T> inline void print(const T &v) { cout << v << '\n'; }
+template <typename T> inline void print(const vector<T> &v, string sep = " ")
+    { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const set<T> &v, string sep = " ")
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
+template <typename T, typename S> inline void print(const pair<T, S> &v)
+    { cout << v.first << " " << v.second << '\n'; }
+template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
+template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
+template <int V> inline void print(const static_modint<V> &v) { print(v.val()); }
+inline void print(const modint &v) { print(v.val()); }
+
 #define YES print("YES")
 #define NO print("NO")
 #define Yes print("Yes")
@@ -134,29 +135,21 @@ template <typename T> inline bool chmax(T& a, const T& b) {bool compare; if ((co
 #define YESNO(bool) if (bool) YES; else NO
 #define YesNo(bool) if (bool) Yes; else No
 
-// Debug Print
 #ifdef DEBUG
-#define debug(x) cerr << "\033[33m(line:" << __LINE__ << ") " << #x << ": " << x << "\033[m" << '\n'
-template <typename T> void dprint(ll i, const T &v)
-    {cout << "[" << i << "]: "; print(v); cout << flush;}
-template <typename T> void dprint(ll i, ll j, const T &v)
-    {cout << "[" << i << "][" << j << "]: "; print(v); cout << flush;}
-template <typename T> void dprint(const vector<T> &v)
-    {rep(i, v.size()) dprint(i, v[i]);}
-template <typename T> void dprint(const vector<vector<T>> &v)
-    {rep(i, v.size()) rep(j, v[i].size()) dprint(i, j, v[i][j]);}
-template<typename T> void dprint(const T v[], const int size)
-    {rep(i, size) dprint(i, v[i]);}
-template <typename T> void dprint(const T v[], const int W, const int H)
-    {rep(i, W) rep(j, H) dprint(i, j, v[i][j]);}
+#define debug(...) dprint(__LINE__, head_name(__VA_ARGS__), __VA_ARGS__)
+#define head_name(x, ...) #x
+template <typename T> inline void dprint(ll line, string name, const T &v)
+    { cout << "\033[33m(line:" << line << ") " << name << ": "; print(v); cout << "\033[m" << flush; }
+template <typename T> inline void dprint(ll line, string name, const vector<T> &v)
+    { rep(i, v.size()) dprint(line, name + "[" + to_string(i) + "]", v[i]); }
+template <typename T, typename S> inline void dprint(ll line, string name, const map<T, S> &v)
+    { repi(i, v) dprint(line, name + "[" + to_string(i.first) + "]", i.second); }
+template <typename T, typename S> inline void dprint(ll line, string name, const um<T, S> &v)
+    { repi(i, v) dprint(line, name + "[" + to_string(i.first) + "]", i.second); }
+template <typename T, typename... Rest> inline void dprint(ll line, string name, const T v, ll size, Rest... rest)
+    { rep(i, size) dprint(line, name + "[" + to_string(i) + "]", v[i], rest...); }
 #else
-#define debug(x) (void)0
-template <typename T> void dprint(ll i, const T &v) {}
-template <typename T> void dprint(ll i, ll j, const T &v) {}
-template <typename T> void dprint(const vector<T> &v) {}
-template <typename T> void dprint(const vector<vector<T>> &v) {}
-template<typename T> void dprint(const T v[], const int size) {}
-template <typename T> void dprint(const T v[], const int W, const int H) {}
+#define debug(...) (void)0
 #endif
 
 /* constants */

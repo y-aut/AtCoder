@@ -78,7 +78,8 @@
         "variant": "cpp",
         "span": "cpp",
         "queue": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "source_location": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"
