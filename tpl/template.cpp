@@ -1,3 +1,5 @@
+#pragma region "Template"
+
 #include <atcoder/all>
 #include <bits/stdc++.h>
 using namespace std;
@@ -19,7 +21,7 @@ struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 using ull = unsigned long long;
 using ll = long long;
 // pair
-using pi = pair<int, int>;
+using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
@@ -28,12 +30,12 @@ using vd = vector<double>;
 using vb = vector<bool>;
 using vc = vector<char>;
 using vs = vector<string>;
+using vpii = vector<pii>;
+using vpll = vector<pll>;
 using vvi = vector<vi>;
 using vvll = vector<vll>;
 using vvb = vector<vb>;
-using vpi = vector<pi>;
-using vpll = vector<pll>;
-using vvpi = vector<vpi>;
+using vvpii = vector<vpii>;
 using vvpll = vector<vpll>;
 // unordered set
 using usi = us<int>;
@@ -43,6 +45,10 @@ using uss = us<string>;
 using umi = um<int, int>;
 using umll = um<ll, ll>;
 
+/* extract params */
+#define HEAD_NAME(x, ...) #x
+#define OVERLOAD3(_1, _2, _3, x, ...) x
+
 /* define short */
 #define CSI constexpr static int
 #define CSLL constexpr static ll
@@ -50,6 +56,8 @@ using umll = um<ll, ll>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
+#define pcnt __builtin_popcount
+#define pcntll __builtin_popcountll
 
 /* set variables */
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
@@ -69,20 +77,29 @@ using umll = um<ll, ll>;
 #define VVLL(a, h, w) auto a = in_vvll(h, w)
 
 /* REP macro */
-#define reps(i, a, n) for (ll i = (a); i < (ll)(n); i++)
-#define rreps(i, a, n) for (ll i = (a); i <= (ll)(n); i++)
-#define rep(i, n) reps(i, 0, n)
-#define rrep(i, n) rreps(i, 1, n)
+#define REP2(i, a, n) for (ll i = (a); i < (ll)(n); i++)
+#define REP1(i, n) REP2(i, 0, n)
+#define RREP2(i, a, n) for (ll i = (a); i <= (ll)(n); i++)
+#define RREP1(i, n) RREP2(i, 1, n)
+#define rep(...) OVERLOAD3(__VA_ARGS__, REP2, REP1)(__VA_ARGS__)
+#define rrep(...) OVERLOAD3(__VA_ARGS__, RREP2, RREP1)(__VA_ARGS__)
 #define repd(i, n) for (ll i = n - 1; i >= 0; i--)
 #define rrepd(i, n) for (ll i = n; i >= 1; i--)
 #define repi(a, v) for (auto&& a : (v))
+
+/* mint */
+#define DEFINE_MOD(v)               \
+    using mint = static_modint<v>;  \
+    using vm = vector<mint>;        \
+    using vvm = vector<vm>;         \
+    using pmm = pair<mint, mint>
 
 /* func */
 // input
 inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
-inline pi in_pi() { pi x; cin >> x.first >> x.second; return x; }
+inline pii in_pii() { pii x; cin >> x.first >> x.second; return x; }
 inline pll in_pll() { pll x; cin >> x.first >> x.second; return x; }
 inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
@@ -91,8 +108,8 @@ inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return 
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
-inline vpi in_vpi(int height)
-    { vpi res; rep(i, height) { pi tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp); } return res; }
+inline vpii in_vpii(int height)
+    { vpii res; rep(i, height) { pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp); } return res; }
 inline vpll in_vpll(int height)
     { vpll res; rep(i, height) { pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp); } return res; }
 inline vvi in_vvi(int height, int width)
@@ -135,9 +152,10 @@ inline void print(const modint &v) { print(v.val()); }
 #define YESNO(bool) if (bool) YES; else NO
 #define YesNo(bool) if (bool) Yes; else No
 
-#ifdef DEBUG
-#define debug(...) dprint(__LINE__, head_name(__VA_ARGS__), __VA_ARGS__)
-#define head_name(x, ...) #x
+#ifndef DEBUG
+#define debug(...) (void)0
+#else
+#define debug(...) dprint(__LINE__, HEAD_NAME(__VA_ARGS__), __VA_ARGS__)
 template <typename T> inline void dprint(ll line, string name, const T &v)
     { cout << "\033[33m(line:" << line << ") " << name << ": "; print(v); cout << "\033[m" << flush; }
 template <typename T> inline void dprint(ll line, string name, const vector<T> &v)
@@ -148,8 +166,6 @@ template <typename T, typename S> inline void dprint(ll line, string name, const
     { repi(i, v) dprint(line, name + "[" + to_string(i.first) + "]", i.second); }
 template <typename T, typename... Rest> inline void dprint(ll line, string name, const T v, ll size, Rest... rest)
     { rep(i, size) dprint(line, name + "[" + to_string(i) + "]", v[i], rest...); }
-#else
-#define debug(...) (void)0
 #endif
 
 /* constants */
@@ -161,10 +177,9 @@ CSD EPS = 1e-10;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 
-using mint = int;
-using vm = vector<mint>;
-using vvm = vector<vm>;
-using pmm = pair<mint, mint>;
+#pragma endregion
+
+DEFINE_MOD(MOD);
 
 // clang-format on
 

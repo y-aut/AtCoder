@@ -79,7 +79,16 @@
         "span": "cpp",
         "queue": "cpp",
         "ranges": "cpp",
-        "source_location": "cpp"
+        "source_location": "cpp",
+        "barrier": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "coroutine": "cpp",
+        "latch": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "syncstream": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"

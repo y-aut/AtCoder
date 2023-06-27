@@ -4,6 +4,7 @@ if [ "$1" == "d" ]; then
         "-std=gnu++17"
         "-Wall"
         "-Wextra"
+        "-Wno-unknown-pragmas"
         "-pthread"
         "-g"
         "-O0"
