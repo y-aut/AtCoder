@@ -1,5 +1,6 @@
 #pragma region "Template"
 
+#define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
 using namespace std;
@@ -45,6 +46,13 @@ using uss = us<string>;
 using umi = um<int, int>;
 using umll = um<ll, ll>;
 
+/* mint */
+#define DEFINE_MOD(v)               \
+    using mint = static_modint<v>;  \
+    using vm = vector<mint>;        \
+    using vvm = vector<vm>;         \
+    using pmm = pair<mint, mint>
+
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
@@ -77,22 +85,24 @@ using umll = um<ll, ll>;
 #define VVLL(a, h, w) auto a = in_vvll(h, w)
 
 /* REP macro */
-#define REP2(i, a, n) for (ll i = (a); i < (ll)(n); i++)
+#define REP2(i, a, n) for (ll i = (ll)(a); i < (ll)(n); i++)
 #define REP1(i, n) REP2(i, 0, n)
-#define RREP2(i, a, n) for (ll i = (a); i <= (ll)(n); i++)
+#define RREP2(i, a, n) for (ll i = (ll)(a); i <= (ll)(n); i++)
 #define RREP1(i, n) RREP2(i, 1, n)
+#define REPD2(i, a, n) for (ll i = (ll)(n) - 1; i >= (ll)(a); i--)
+#define REPD1(i, n) REPD2(i, 0, n)
+#define RREPD2(i, a, n) for (ll i = (ll)(n); i >= (ll)(a); i--)
+#define RREPD1(i, n) RREPD2(i, 1, n)
 #define rep(...) OVERLOAD3(__VA_ARGS__, REP2, REP1)(__VA_ARGS__)
 #define rrep(...) OVERLOAD3(__VA_ARGS__, RREP2, RREP1)(__VA_ARGS__)
-#define repd(i, n) for (ll i = n - 1; i >= 0; i--)
-#define rrepd(i, n) for (ll i = n; i >= 1; i--)
+#define repd(...) OVERLOAD3(__VA_ARGS__, REPD2, REPD1)(__VA_ARGS__)
+#define rrepd(...) OVERLOAD3(__VA_ARGS__, RREPD2, RREPD1)(__VA_ARGS__)
 #define repi(a, v) for (auto&& a : (v))
 
-/* mint */
-#define DEFINE_MOD(v)               \
-    using mint = static_modint<v>;  \
-    using vm = vector<mint>;        \
-    using vvm = vector<vm>;         \
-    using pmm = pair<mint, mint>
+/* control */
+#define EXIT(...) ({ __VA_ARGS__; exit(0); })
+#define BREAK(...) ({ __VA_ARGS__; break; })
+#define CONTINUE(...) ({ __VA_ARGS__; continue; })
 
 /* func */
 // input
@@ -152,20 +162,10 @@ inline void print(const modint &v) { print(v.val()); }
 #define YESNO(bool) if (bool) YES; else NO
 #define YesNo(bool) if (bool) Yes; else No
 
-#ifndef DEBUG
-#define debug(...) (void)0
+#ifdef DEBUG
+#include "debug.hpp"
 #else
-#define debug(...) dprint(__LINE__, HEAD_NAME(__VA_ARGS__), __VA_ARGS__)
-template <typename T> inline void dprint(ll line, string name, const T &v)
-    { cout << "\033[33m(line:" << line << ") " << name << ": "; print(v); cout << "\033[m" << flush; }
-template <typename T> inline void dprint(ll line, string name, const vector<T> &v)
-    { rep(i, v.size()) dprint(line, name + "[" + to_string(i) + "]", v[i]); }
-template <typename T, typename S> inline void dprint(ll line, string name, const map<T, S> &v)
-    { repi(i, v) dprint(line, name + "[" + to_string(i.first) + "]", i.second); }
-template <typename T, typename S> inline void dprint(ll line, string name, const um<T, S> &v)
-    { repi(i, v) dprint(line, name + "[" + to_string(i.first) + "]", i.second); }
-template <typename T, typename... Rest> inline void dprint(ll line, string name, const T v, ll size, Rest... rest)
-    { rep(i, size) dprint(line, name + "[" + to_string(i) + "]", v[i], rest...); }
+#define debug(...) (void)0
 #endif
 
 /* constants */

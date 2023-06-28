@@ -1,4 +1,0 @@
-#include <fstream>
-int main() {
-    ifstream in("/home/y_aut/AtCoder/in.txt");
-    cin.rdbuf(in.rdbuf());

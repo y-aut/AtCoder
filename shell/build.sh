@@ -16,6 +16,7 @@ if [ "$1" == "d" ]; then
         "-I/opt/boost/gcc/include"
         "-L/opt/boost/gcc/lib"
         "-I$2/ac-library"
+        "-I$2/tpl"
         "-o"
         "$2/$4"
         "$3"
