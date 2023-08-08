@@ -183,7 +183,32 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+bool is_ok(vll &A, vll &B, ll v) {
+    ll cnt = 0;
+    repi(i, A) if (i <= v) cnt++;
+    repi(i, B) if (i >= v) cnt--;
+    return cnt >= 0;
+}
+
 int main() {
+    LL(N, M);
+    VLL(A, N);
+    VLL(B, M);
+
+    ll lower = 0, upper = INF;
+    while (true) {
+        if (lower + 2 >= upper) {
+            if (!is_ok(A, B, lower)) lower++;
+            print(lower);
+            return 0;
+        }
+        ll middle = (lower + upper) / 2;
+        if (is_ok(A, B, middle)) {
+            upper = middle + 1;
+        } else {
+            lower = middle;
+        }
+    }
 
     return 0;
 }

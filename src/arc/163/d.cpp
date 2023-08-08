@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -179,11 +179,82 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
+#pragma region "二項係数"
+
+class Binomial {
+    const ll mod = 0;
+    vll fact, fact_inv, inv;
+
+public:
+    Binomial(const ll size, const ll _mod) : mod(_mod), fact(size + 5), fact_inv(size + 5), inv(size + 5) {
+        fact[0] = fact[1] = 1;
+        fact_inv[0] = fact_inv[1] = 1;
+        inv[1] = 1;
+
+        for (ll i = 2; i < size + 5; i++) {
+            fact[i] = fact[i - 1] * i % mod;
+            inv[i] = mod - inv[mod % i] * (mod / i) % mod;
+            fact_inv[i] = fact_inv[i - 1] * inv[i] % mod;
+        }
+    }
+
+    /// nCk % mod を求める
+    ll nCk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[k] * fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nPk % mod を求める
+    ll nPk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nHk % mod を求める
+    ll nHk(const ll n, const ll k) const {
+        if (n == 0 && k == 0)
+            return 1;
+        return nCk(n + k - 1, k);
+    }
+};
+
+#pragma endregion
+
+Binomial binom(30 * 30, MOD2);
+
+mint calc(ll N, ll M) {
+    vm dp(M + 1, 0);
+    dp[0] = 1;
+    rep(i, 1, N) {
+        vm nxt(M + 1, 0);
+        rep(j, M + 1) {
+            rep(k, min(i + 1, M + 1 - j)) {
+                nxt[j + k] += binom.nCk(i, k) * dp[j];
+            }
+        }
+        dp = move(nxt);
+    }
+    return dp[M];
+}
+
 int main() {
+    LL(N, M);
+
+    M = N * (N - 1) / 2 - M;
+
+    mint ans = 0;
+    rep(i, 1, N) {
+        rep(j, M + 1) {
+            ans += calc(i + 1, j) * calc(N - i, M - j);
+        }
+    }
+    print(ans);
 
     return 0;
 }

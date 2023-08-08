@@ -184,6 +184,28 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N, M);
+    vll P, C;
+    vector<usll> F(N, usll());
+    rep(i, N) {
+        P.pb(in_ll());
+        C.pb(in_ll());
+        rep(j, C.back()) F[i].insert(in_ll());
+    }
+
+    rep(i, N) rep(j, N) {
+        if (i == j) continue;
+        if (P[i] < P[j]) continue;
+        bool flg = false;
+        repi(k, F[i]) {
+            if (!F[j].count(k)) BREAK(flg = true);
+        }
+        if (flg) continue;
+        if (P[i] > P[j]) EXIT(Yes);
+        if (F[j].size() > F[i].size()) EXIT(Yes);
+    }
+
+    No;
 
     return 0;
 }

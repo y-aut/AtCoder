@@ -184,6 +184,22 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    VLL(A, N);
+
+    vll nxt(N);
+    rep(i, N) nxt[i] = i + 1;
+
+    ll ans = 0;
+    repd(i, N) {
+        if (A[i] == 1) {
+            ll cur = i;
+            while (nxt[cur] < N && A[nxt[cur]] == A[cur] + 1) cur = nxt[cur];
+            if (i > 0) nxt[i - 1] = nxt[cur];
+            ans += nxt[cur] - i;
+        }
+    }
+    print(ans);
 
     return 0;
 }

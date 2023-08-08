@@ -184,6 +184,20 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    vll pow3{1};
+    rep(i, 39) pow3.pb(pow3.back() * 3);
+
+    LL(T);
+    rep(t, T) {
+        LL(N, K);
+        ll cnt = 0;
+        while (N) {
+            auto itr = upper_bound(all(pow3), N) - pow3.begin() - 1;
+            cnt += N / pow3[itr];
+            N %= pow3[itr];
+        }
+        YesNo(K >= cnt && (K - cnt) % 2 == 0);
+    }
 
     return 0;
 }

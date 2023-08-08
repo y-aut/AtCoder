@@ -183,7 +183,84 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+CSLL RESET = LINF - 1LL;
+
+ll op(ll a, ll b) { return 0; }
+ll e() { return LINF; }
+ll mapping(ll f, ll x) {
+    if (f == RESET) return LINF;
+    else return min(f, x);
+}
+ll composition(ll f, ll g) {
+    if (f == RESET) return f;
+    else return min(f, g);
+}
+ll id() { return LINF; }
+
+vvll pos;
+vll pos_size;
+usll pos_edit;
+
+lazy_segtree<ll, op, e, ll, mapping, composition, id> p_erase;
+
+inline void size_calc(ll i) {
+    auto p = p_erase.get(i);
+    if (p == LINF) return;
+    // p 以降は消去
+    p_erase.set(i, LINF);
+    pos_size[i] = lower_bound(pos[i].begin(), pos[i].begin() + pos_size[i], p) - pos[i].begin();
+}
+
+inline ll get(ll i1, ll i2) {
+    size_calc(i1);
+    return pos[i1][i2];
+}
+
+inline void add(ll ind, ll val) {
+    size_calc(ind);
+    if (pos[ind].size() == pos_size[ind]) pos[ind].pb(val);
+    else pos[ind][pos_size[ind]] = val;
+    pos_size[ind]++;
+    pos_edit.insert(ind);
+}
+
 int main() {
+    LL(N);
+    VLL(A, N);
+
+    vll dp(N, 0);
+    pos.assign(N + 1, vll());
+    pos_size.assign(N + 1, 0);
+    p_erase = lazy_segtree<ll, op, e, ll, mapping, composition, id>(N + 1);
+
+    if (A[0] == 1) {
+        dp[0] = 1;
+        add(A[0], 1);
+    }
+
+    rep(i, 1, N) {
+        if (A[i] == 1) {
+            dp[i] = dp[i - 1] + 1;
+            add(A[i], i + 1);
+            continue;
+        }
+
+        size_calc(A[i] - 1);
+        if (pos_size[A[i] - 1] == 0) {
+            repi(j, pos_edit) pos_size[j] = 0;
+            pos_edit.clear();
+            p_erase.apply(0, N + 1, RESET);
+            continue;
+        }
+
+        auto p = get(A[i] - 1, pos_size[A[i] - 1] - 1);
+        dp[i] += dp[p - 1];
+        p_erase.apply(0, N + 1, p);
+        add(A[i], i + 1);
+    }
+
+    debug(dp);
+    print(accumulate(all(dp), 0LL));
 
     return 0;
 }

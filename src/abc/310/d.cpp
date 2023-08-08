@@ -184,6 +184,40 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N, T, M);
+    VPLL(AB, M);
+
+    vector<usll> ng(N, usll());
+    repi(i, AB) {
+        ng[i.first - 1].insert(i.second - 1);
+        ng[i.second - 1].insert(i.first - 1);
+    }
+
+    um<string, ll> dp;
+    dp["0"] = 1;
+    rep(i, 1, N) {
+        um<string, ll> nxt;
+        repi(p, dp) {
+            ll next_team = (*max_element(all(p.first)) - '0') + 1;
+            usll cand;
+            rep(j, next_team + 1) cand.insert(j);
+            rep(j, i) {
+                if (ng[i].count(j)) cand.erase(p.first[j] - '0');
+            }
+            repi(j, cand) {
+                nxt[p.first + (char)('0' + j)] += p.second;
+            }
+        }
+        dp = move(nxt);
+    }
+
+    ll ans = 0;
+    repi(i, dp) {
+        auto str = i.first;
+        sort(all(str));
+        if (unique(all(str)) - str.begin() == T) ans += i.second;
+    }
+    print(ans);
 
     return 0;
 }

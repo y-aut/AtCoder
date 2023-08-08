@@ -184,6 +184,25 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    STR(S);
+
+    vll A, B;
+    rep(i, N + 1) {
+        if (S[i] == 'A') A.pb(i);
+        else B.pb(i);
+    }
+
+    rrep(k, N) {
+        ll bcnt = k / 2;
+        ll acnt = k - bcnt;
+        if (acnt >= B.size()) print("Alice");
+        else if (bcnt >= A.size()) print("Bob");
+        else {
+            if (A[bcnt] < B[acnt]) print("Alice");
+            else print("Bob");
+        }
+    }
 
     return 0;
 }

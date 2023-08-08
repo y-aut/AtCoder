@@ -183,7 +183,127 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+#pragma region "BFS"
+
+// 各頂点への距離を求める
+vll bfs(const vvll &edges, ll v) {
+    vll ans(edges.size(), -1);
+    ans[v] = 0;
+
+    queue<ll> q;
+    repi(i, edges[v]) {
+        if (ans[i] == -1) {
+            q.push(i);
+            ans[i] = ans[v] + 1;
+        }
+    }
+
+    while (true) {
+        repi(i, edges[v]) {
+            if (ans[i] == -1) {
+                q.push(i);
+                ans[i] = ans[v] + 1;
+            }
+        }
+        if (q.empty()) break;
+        v = q.front();
+        q.pop();
+    }
+
+    return ans;
+}
+
+#pragma endregion
+
+void get_path(const vvll &edges, const vvll &dist, vector<vector<vector<usll>>> &path, ll start, ll goal) {
+    if (dist[start][goal] == 0) {
+        path[start][goal].pb({start});
+        return;
+    }
+    repi(i, edges[start]) {
+        if (dist[start][goal] == dist[i][goal] + 1) {
+            repi(s, path[i][goal]) {
+                auto cpy = s;
+                cpy.insert(start);
+                path[start][goal].pb(cpy);
+            }
+        }
+    }
+}
+
+bool calc(const vvll &edges) {
+    ll N = edges.size();
+    vvll dist;
+    rep(i, N) dist.pb(bfs(edges, i));
+    rep(i, N) rep(j, N) {
+        if (dist[i][j] == -1) return false;
+    }
+
+    map<ll, vpll> dist_dict;
+    rep(i, N) rep(j, N) {
+        dist_dict[dist[i][j]].eb(i, j);
+    }
+    vector<vector<vector<usll>>> path(N, vector<vector<usll>>(N));
+    repi(d, dist_dict) {
+        repi(p, d.second) get_path(edges, dist, path, p.first, p.second);
+    }
+
+    ll max_degree = 0;
+    rep(i, N) chmax(max_degree, (ll)edges[i].size());
+    usll max_degree_v;
+    rep(i, N) if (edges[i].size() == max_degree) max_degree_v.insert(i);
+
+    vd bs(N, 0);
+    rep(i, N) rep(j, i + 1, N) {
+        if (dist[i][j] < 2) continue;
+        repi(s, path[i][j]) {
+            repi(v, s) {
+                if (v == i || v == j) continue;
+                bs[v] += 1. / path[i][j].size();
+            }
+        }
+    }
+
+    double max_b = 0;
+    rep(i, N) chmax(max_b, bs[i]);
+    rep(i, N) {
+        if (abs(bs[i] - max_b) < EPS) {
+            if (max_degree_v.count(i)) return false;
+        }
+    }
+    return true;
+}
+
 int main() {
+    LL(N);
+    ll ecnt = N * (N - 1) / 2;
+    ll min_edges = LINF;
+    rep(i, 1LL << ecnt) {
+        // if (i == 0b111001000100001000011LL) {
+        //     ll j = 0;
+        // }
+        if (pcntll(i) >= min_edges) continue;
+        vvll edges(N, vll());
+        ll start = 0, goal = 1, mask = 1;
+        while (start < N - 1) {
+            if (i & mask) {
+                edges[start].pb(goal);
+                edges[goal].pb(start);
+            }
+            if (++goal == N) {
+                start++;
+                goal = start + 1;
+            }
+            mask <<= 1;
+        }
+        if (calc(edges)) {
+            min_edges = pcntll(i);
+            print("Found");
+            rep(i, N) repi(j, edges[i]) {
+                if (i < j) print(pll(i, j));
+            }
+        }
+    }
 
     return 0;
 }

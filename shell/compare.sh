@@ -4,7 +4,7 @@ while true; do
     out1=$($1/$2 <$1/in.txt)
     out2=$($1/$3 <$1/in.txt)
     if [ "$out1" != "$out2" ]; then
-        echo -e "out1:\n$out1\n\nout2:\n$out2" >$1/out.txt
+        echo -e "$2:\n$out1\n\n$3:\n$out2" >$1/out.txt
         echo Found an input.
         exit 0
     fi

@@ -179,11 +179,49 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
+vm process(vll &A, const vm &B) {
+    ll N = A.size();
+    vm newB(N, 0);
+    rep(i, N) newB[A[i]] += B[i];
+    return newB;
+}
+
+vm solve(vll &A, const vm &B, ll K) {
+    ll N = A.size();
+    if (K == 0) return B;
+    auto newB = process(A, B);
+    if (K % 2 == 0) {
+        auto res = solve(A, newB, K - 1);
+        rep(i, N) res[i] += B[i];
+        return res;
+    }
+    rep(i, N) newB[i] += B[i];
+    vll newA(N);
+    rep(i, N) newA[i] = A[A[i]];
+    return solve(newA, newB, K / 2);
+}
+
 int main() {
+    LL(N, K);
+    VLL(A, N);
+    VLL(B, N);
+
+    repi(i, A) i--;
+
+    vm B2;
+    repi(i, B) B2.pb(i);
+
+    B2 = solve(A, process(A, B2), K - 1);
+    rep(i, N) B2[i] /= K;
+
+    vll ans;
+    repi(i, B2) ans.pb(i.val());
+
+    print(ans);
 
     return 0;
 }

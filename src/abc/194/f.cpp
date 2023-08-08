@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -183,7 +183,65 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+vvm memo;
+vm memo2;
+
+mint calc(ll n, ll m, ll K) {
+    // 16^n のうち，K 種類，m 種類使用済み
+    if (m > K) return 0;
+    if (memo[n][m] != -1) return memo[n][m];
+    if (n == 1) {
+        if (K == m) return memo[n][m] = K;
+        else if (K == m + 1) return memo[n][m] = 16 - m;
+        else return memo[n][m] = 0;
+    }
+    return memo[n][m] = m * calc(n - 1, m, K) + (16 - m) * calc(n - 1, m + 1, K);
+}
+
+mint calc2(ll n, ll K) {
+    // 先頭の 0 なし
+    if (memo2[n] != -1) return memo2[n];
+    if (n == 0) return memo2[n] = 0;
+    if (n == 1) {
+        if (K == 1) return memo2[n] = 15;
+        else return memo2[n] = 0;
+    }
+    return memo2[n] = calc2(n - 1, K) + calc(n - 1, 1, K) * 15;
+}
+
+inline ll ctoi(char c) {
+    if ('0' <= c && c <= '9') return c - '0';
+    else return c - 'A' + 10;
+}
+
 int main() {
+    STR(N);
+    LL(K);
+
+    memo = vvm(N.size() + 1, vm(K + 1, -1));
+    memo2 = vm(N.size() + 1, -1);
+
+    mint ans = calc2(N.size() - 1, K);
+    usll used;
+
+    rep(i, N.size()) {
+        auto c = ctoi(N[i]);
+        if (i == N.size() - 1) {
+            ll cnt = 0;
+            rrep(j, i == 0 ? 1 : 0, c) {
+                if (used.count(j)) cnt++;
+            }
+            if (used.size() == K) ans += cnt;
+            else if (used.size() == K - 1) ans += c - cnt + (i == 0 ? 0 : 1);
+            continue;
+        }
+        rep(j, i == 0 ? 1 : 0, c) {
+            ans += calc(N.size() - i - 1, used.size() + (used.count(j) ? 0 : 1), K);
+        }
+        used.insert(c);
+    }
+
+    print(ans);
 
     return 0;
 }

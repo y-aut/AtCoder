@@ -184,6 +184,25 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N, K);
+    VPLL(ab, N);
+
+    map<ll, ll> fin;
+    ll cnt = 0;
+    repi(p, ab) {
+        fin[p.first] += p.second;
+        cnt += p.second;
+    }
+
+    if (cnt <= K) {
+        EXIT(print(1));
+    }
+    repi(p, fin) {
+        cnt -= p.second;
+        if (cnt <= K) {
+            EXIT(print(p.first + 1));
+        }
+    }
 
     return 0;
 }

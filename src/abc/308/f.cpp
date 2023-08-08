@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -183,7 +183,45 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+pll op(pll a, pll b) {
+    if (a.second < b.second) return b;
+    else if (a.second > b.second) return a;
+    if (a.first > b.first) return a;
+    else return b;
+}
+pll e() { return {0, 0}; }
+
 int main() {
+    LL(N, M);
+    VLL(P, N);
+    VLL(L, M);
+    VLL(D, M);
+
+    sort(all(P));
+
+    vpll v;
+    rep(i, M) v.eb(L[i], D[i]);
+    sort(all(v), [](pll a, pll b) { return a.first < b.first; });
+
+    vll Ls;
+    vpll Ds;
+    rep(i, M) {
+        Ls.pb(v[i].first);
+        Ds.eb(i, v[i].second);
+    }
+    segtree<pll, op, e> tree(Ds);
+
+    ll ans = 0;
+    rep(i, N) {
+        auto p = upper_bound(all(Ls), P[i]) - Ls.begin();
+        auto dmax = tree.prod(0, p);
+        if (dmax.second != 0) {
+            tree.set(dmax.first, {0, 0});
+        }
+        ans += P[i] - dmax.second;
+    }
+
+    print(ans);
 
     return 0;
 }

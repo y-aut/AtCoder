@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -184,6 +184,31 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    VLL(A, N);
+    STR(S);
+
+    ll dp[3][8] = {};
+
+    rep(i, N) {
+        if (S[i] == 'M') {
+            dp[0][1 << A[i]]++;
+        } else if (S[i] == 'E') {
+            rep(j, 8) {
+                dp[1][j | (1 << A[i])] += dp[0][j];
+            }
+        } else {
+            rep(j, 8) {
+                dp[2][j | (1 << A[i])] += dp[1][j];
+            }
+        }
+    }
+
+    ll ans = 0;
+    ll mex_list[] = {0, 1, 0, 2, 0, 1, 0, 3};
+    rep(i, 8) ans += dp[2][i] * mex_list[i];
+
+    print(ans);
 
     return 0;
 }

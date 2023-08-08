@@ -184,6 +184,9 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(A, B);
+    if (A % 3 == 0) EXIT(No);
+    YesNo(A + 1 == B);
 
     return 0;
 }

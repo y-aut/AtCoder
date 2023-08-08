@@ -184,6 +184,23 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    VS(A, N);
+    auto B = A;
+    rep(i, N) rep(j, N) {
+        if (i == 0) {
+            if (j == N - 1) B[i + 1][j] = A[i][j];
+            else B[i][j + 1] = A[i][j];
+        } else if (i == N - 1) {
+            if (j == 0) B[i - 1][j] = A[i][j];
+            else B[i][j - 1] = A[i][j];
+        } else {
+            if (j == 0) B[i - 1][j] = A[i][j];
+            else if (j == N - 1) B[i + 1][j] = A[i][j];
+        }
+    }
+
+    repi(i, B) print(i);
 
     return 0;
 }

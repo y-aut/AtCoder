@@ -183,7 +183,58 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+CSLL K = 100000000000LL;
+
 int main() {
+    LL(N);
+    VLL(A, N);
+    VLL(B, N);
+
+    map<ll, ll> AB;
+    rep(i, N) {
+        if (!AB.count(A[i])) AB[A[i]] = B[i];
+        else if (AB[A[i]] != B[i]) EXIT(No);
+    }
+
+    A.clear();
+    B.clear();
+    repi(i, AB) {
+        A.pb(i.first);
+        B.pb(i.second);
+    }
+    N = A.size();
+
+    if (N == 1) {
+        Yes;
+        print(1);
+        print(pll((B[0] + K - A[0]) % K, K));
+        return 0;
+    }
+
+    vll B2{B[0] + (N - 1) * K};
+    rep(i, 1, N) B2.pb(B[i] + (i - 1) * K);
+
+    vpll ans;
+    rep(i, N - 1) {
+        // N-i-1 と N-i の差
+        ll d = B2[(N - i) % N] - B2[N - i - 1];
+        ll x = d - A[(N - i) % N];
+        ll y = A[N - i - 1] + x;
+        ans.eb(x % y, y);
+        rep(j, N) A[j] = (A[j] + x) % y;
+    }
+
+    debug(B2);
+    debug(A);
+
+    ans.eb(B[1] % K, K);
+    rep(j, N) A[j] = (A[j] + B[1]) % K;
+
+    debug(A);
+
+    Yes;
+    print(ans.size());
+    print(ans);
 
     return 0;
 }

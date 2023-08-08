@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -183,7 +183,46 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+inline ll ind(ll y, ll x) { return y * 510 + x; }
+inline ll get_y(ll i) { return i / 510; }
+inline ll get_x(ll i) { return i % 510; }
+
 int main() {
+    LL(H, W);
+    VS(S, H);
+
+    if (S[0][0] != 's') EXIT(No);
+
+    set<ll> dp{0};
+    usll loop{0};
+
+    ll pos = 1;
+    rep(i, H * W + 10) {
+        set<ll> nxt;
+        repi(p, dp) {
+            ll y = get_y(p);
+            ll x = get_x(p);
+            vpll can;
+            if (y != 0) can.eb(y - 1, x);
+            if (y != H - 1) can.eb(y + 1, x);
+            if (x != 0) can.eb(y, x - 1);
+            if (x != W - 1) can.eb(y, x + 1);
+            repi(c, can) {
+                if (S[c.first][c.second] != "snuke"[pos]) continue;
+                auto n = ind(c.first, c.second);
+                if (loop.count(n)) continue;
+                loop.insert(n);
+                nxt.insert(n);
+            }
+        }
+        dp = move(nxt);
+        if (dp.empty()) EXIT(No);
+        if (dp.count(ind(H - 1, W - 1))) EXIT(Yes);
+        pos++;
+        pos %= 5;
+    }
+
+    No;
 
     return 0;
 }

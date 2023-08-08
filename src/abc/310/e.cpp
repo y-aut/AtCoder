@@ -184,6 +184,25 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    STR(S);
+
+    ll ans = 0;
+    pll dp{0, 0};
+    repi(c, S) {
+        pll nxt{0, 0};
+        if (c == '0') {
+            nxt.first = 1;
+            nxt.second = dp.first + dp.second;
+        } else {
+            nxt.first = dp.second;
+            nxt.second = dp.first + 1;
+        }
+        dp = nxt;
+        ans += dp.second;
+    }
+
+    print(ans);
 
     return 0;
 }

@@ -184,6 +184,25 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    map<string, map<string, double>> q;
+    q["A"]["south"] = 0;
+    q["B"]["east"] = 0;
+    q["C"]["east"] = 0;
+    q["C"]["south"] = 0;
+    q["D"]["exit"] = 0;
+    q["E"]["exit"] = 0;
+    q["x"]["-"] = 0;
+
+    LL(N);
+    rep(i, N) {
+        STR(state, action, goal);
+        DBL(r);
+        double qmax = -INF;
+        repi(i, q[goal]) chmax(qmax, i.second);
+        q[state][action] = q[state][action] / 2 + (r + qmax) / 2;
+    }
+
+    debug(q);
 
     return 0;
 }

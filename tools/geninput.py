@@ -1,20 +1,12 @@
 import random as rd
 
-T = 1
-N = rd.randint(2, 10)
-M = rd.randint(1, 10)
-UV = []
-for i in range(M):
-    while True:
-        u = rd.randint(1, N)
-        v = rd.randint(1, N)
-        if u != v:
-            break
-    UV.append((u, v))
-UV = set(UV)
-M = len(UV)
+N = rd.randint(1, 100)
+A = []
+B = []
+for i in range(N):
+    A.append(rd.randint(1, 10000))
+    B.append(rd.randint(1, 10000))
 
-print(T)
-print(N, M)
-for p in UV:
-    print(*p)
+print(N)
+print(*A)
+print(*B)

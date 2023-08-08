@@ -179,11 +179,44 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
 int main() {
+    LL(N, X);
+
+    vvm dp(N + 1, vm(1LL << (X * 2 - 1), 0));
+    dp[0][0] = 1;
+
+    rep(i, N) {
+        vvm nxt(N + 1, vm(1LL << (X * 2 - 1), 0));
+        rep(j, i + 1) rep(k, 1LL << (X * 2 - 1)) {
+            nxt[j][k >> 1] += dp[j][k];
+            for (ll l = 0, mask = 1; l < X * 2 - 1; l++, mask <<= 1) {
+                if (!(0 <= i - X + 1 + l && i - X + 1 + l <= N - 1)) continue;
+                if ((k & mask) == 0) {
+                    nxt[j + 1][(k | mask) >> 1] += dp[j][k];
+                }
+            }
+        }
+        dp = move(nxt);
+    }
+
+    vm fact(N + 1);
+    fact[0] = 1;
+    rrep(i, N) fact[i] = fact[i - 1] * i;
+
+    mint ans = 0;
+    rep(j, N + 1) {
+        mint sum = 0;
+        rep(k, 1LL << (X * 2 - 1)) {
+            sum += dp[j][k];
+        }
+        ans += sum * fact[N - j] * (j % 2 == 0 ? 1 : -1);
+    }
+
+    print(ans);
 
     return 0;
 }

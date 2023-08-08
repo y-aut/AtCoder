@@ -183,7 +183,53 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+inline ll index(ll y, ll x) {
+    return y * 3010 + x;
+}
+
+ll dist[3010][3010] = {};
+ll dp[3010][3010] = {};
 int main() {
+    LL(H, W, N);
+    VPLL(ab, N);
+    usll holes;
+    repi(p, ab) holes.insert(index(p.first - 1, p.second - 1));
+
+    rep(i, H) {
+        ll now = LINF;
+        rep(j, W) {
+            if (holes.count(index(i, j))) now = 0;
+            else now++;
+            dist[i][j] = now;
+        }
+    }
+    rep(j, W) {
+        ll now = LINF;
+        rep(i, H) {
+            if (holes.count(index(i, j))) now = 0;
+            else now++;
+            chmin(dist[i][j], now);
+        }
+    }
+
+    debug(dist, H, W);
+
+    rep(i, H) rep(j, W) {
+        if (holes.count(index(i, j))) continue;
+        if (i == 0 || j == 0) {
+            dp[i][j] = 1;
+            continue;
+        }
+        dp[i][j] = min(dp[i - 1][j - 1] + 1, dist[i][j]);
+    }
+
+    debug(dp, H, W);
+
+    ll ans = 0;
+    rep(i, H) rep(j, W) {
+        ans += dp[i][j];
+    }
+    print(ans);
 
     return 0;
 }

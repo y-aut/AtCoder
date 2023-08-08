@@ -184,6 +184,21 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    VS(S, N);
+
+    um<string, ll> s;
+    rep(i, N) {
+        if (s.count(S[i])) {
+            s[S[i]]++;
+        } else {
+            auto inv = S[i];
+            reverse(all(inv));
+            s[inv]++;
+        }
+    }
+
+    print(s.size());
 
     return 0;
 }

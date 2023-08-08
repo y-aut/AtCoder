@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -183,7 +183,40 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+inline ll ctoi(char c) {
+    if ('0' <= c && c <= '9') return c - '0';
+    else return c - 'A' + 10;
+}
+
 int main() {
+    STR(N);
+    LL(K);
+
+    vm dp(17, 0);
+
+    auto c = ctoi(N[0]);
+    dp[1] = c - 1;
+    usll used{c};
+
+    rep(i, 1, N.size()) {
+        // [0, i]
+        vm nxt(17, 0);
+        rep(j, K + 1) {
+            nxt[j] += dp[j] * j;
+            if (j != K) nxt[j + 1] += dp[j] * (16 - j);
+        }
+        nxt[1] += 15;
+        c = ctoi(N[i]);
+        rep(j, c) {
+            nxt[used.size() + (used.count(j) ? 0 : 1)]++;
+        }
+        used.insert(c);
+        dp = move(nxt);
+    }
+
+    mint ans = dp[K];
+    if (used.size() == K) ans++;
+    print(ans);
 
     return 0;
 }

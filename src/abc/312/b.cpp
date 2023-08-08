@@ -183,7 +183,23 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+bool is_ok(vs &S, ll h, ll w) {
+    rep(i, h, h + 4) rep(j, w, w + 4) {
+        if ((i < h + 3 && j < w + 3) ^ S[i][j] == '#') return false;
+    }
+    rep(i, h + 5, h + 9) rep(j, w + 5, w + 9) {
+        if ((i >= h + 6 && j >= w + 6) ^ S[i][j] == '#') return false;
+    }
+    return true;
+}
+
 int main() {
+    LL(N, M);
+    VS(S, N);
+
+    rep(i, N - 8) rep(j, M - 8) {
+        if (is_ok(S, i, j)) print(make_pair(i + 1, j + 1));
+    }
 
     return 0;
 }

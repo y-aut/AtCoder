@@ -184,6 +184,25 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N, M);
+    VPLL(edges, M);
+    VLL(c, N);
+
+    dsu uf(N);
+
+    vpll same;
+    repi(p, edges) {
+        p.first--;
+        p.second--;
+        if (c[p.first] == c[p.second]) same.pb(p);
+        else uf.merge(p.first, p.second);
+    }
+
+    repi(p, same) {
+        if (uf.same(p.first, p.second)) EXIT(Yes);
+    }
+
+    No;
 
     return 0;
 }

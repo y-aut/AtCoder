@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -183,7 +183,55 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+ll calc(ll N, ll M, vll &A) {
+    vll cu, cl;
+    rep(i, 2, N) {
+        if (A[i] < A[0]) cl.pb(A[0] - A[i]);
+        else if (A[i] > A[1]) cu.pb(A[i] - A[1]);
+    }
+
+    M -= N - 2 - cu.size() - cl.size();
+    if (M <= 0) return 0;
+
+    sort(all(cu));
+    sort(all(cl));
+
+    ll ans = LINF;
+    rrep(i, 0, cu.size()) {
+        if (cl.size() < M - i) continue;
+        ll vu = i == 0 ? 0 : cu[i - 1];
+        ll vl = i == M ? 0 : cl[M - i - 1];
+        chmin(ans, vu + vl);
+    }
+    return ans;
+}
+
 int main() {
+    LL(N, M);
+    VLL(A, N);
+
+    if (A[0] <= A[1]) {
+        print(calc(N, M, A));
+    } else {
+        auto tmp = A[1];
+        A[1] = A[0];
+        ll ans = calc(N, M, A) + abs(tmp - A[0]);
+        A[1] = tmp;
+
+        tmp = A[0];
+        A[0] = A[1];
+        chmin(ans, calc(N, M, A) + abs(tmp - A[1]));
+        A[0] = tmp;
+
+        sort(A.begin() + 2, A.end());
+        rep(i, 2, N - M + 1) {
+            if (A[1] <= A[i] && A[i + M - 1] <= A[0]) {
+                chmin(ans, A[0] - A[i] + A[i + M - 1] - A[1]);
+            }
+        }
+
+        print(ans);
+    }
 
     return 0;
 }

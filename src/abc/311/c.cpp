@@ -184,6 +184,27 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    VLL(A, N);
+    repi(i, A) i--;
+
+    scc_graph g(N);
+    rep(i, N) g.add_edge(i, A[i]);
+    auto res = g.scc();
+    repi(i, res) {
+        if (i.size() > 1) {
+            auto start = i[0];
+            vll ans{start + 1};
+            auto v = A[start];
+            while (v != start) {
+                ans.pb(v + 1);
+                v = A[v];
+            }
+            print(ans.size());
+            print(ans);
+            return 0;
+        }
+    }
 
     return 0;
 }

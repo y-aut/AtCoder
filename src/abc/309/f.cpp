@@ -183,7 +183,61 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+ll e() { return LINF; }
+ll f(ll a, ll b) { return min(a, b); }
+ll mapping(ll f, ll x) { return f == -1 ? x : f; }
+ll composition(ll f, ll g) { return f == -1 ? g : f; }
+ll id() { return -1; }
+
+ll thres = 0;
+bool g(ll x) { return x > thres; }
+
 int main() {
+    LL(N);
+    VVLL(hwd, N, 3);
+
+    repi(i, hwd) sort(all(i));
+    sort(all(hwd), [](vll a, vll b) {
+        if (a[0] == b[0]) {
+            if (a[1] == b[1]) return a[2] < b[2];
+            else return a[1] < b[1];
+        }
+        return a[0] < b[0];
+    });
+
+    // 座圧
+    vll cmp;
+    repi(i, hwd) cmp.pb(i[1]);
+    sort(all(cmp));
+    cmp.erase(unique(all(cmp)), cmp.end());
+    map<ll, ll> cmp2;
+    rep(i, cmp.size()) cmp2[cmp[i]] = i;
+    repi(i, hwd) i[1] = cmp2[i[1]];
+
+    lazy_segtree<ll, f, e, ll, mapping, composition, id> seg(cmp.size());
+    um<ll, ll> cur;
+    ll now = hwd[0][0];
+    cur[hwd[0][1]] = hwd[0][2];
+    rep(i, 1, N) {
+        auto &p = hwd[i];
+        if (p[0] > now) {
+            repi(j, cur) {
+                thres = j.second;
+                auto r = seg.max_right<g>(j.first);
+                seg.apply(j.first, r, j.second);
+            }
+            cur.clear();
+            now = p[0];
+        }
+        if (p[1] > 0) {
+            if (seg.get(p[1] - 1) < p[2]) {
+                EXIT(Yes);
+            }
+        }
+        if (!cur.count(p[1])) cur[p[1]] = p[2];
+    }
+
+    No;
 
     return 0;
 }

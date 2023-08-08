@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -184,6 +184,48 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(Q);
+
+    multiset<ll> list, bet;
+
+    rep(q, Q) {
+        ll a = in_ll();
+        if (a == 1) {
+            auto x = in_ll();
+            auto itr = list.insert(x);
+            if (list.size() == 1) continue;
+            if (itr == list.begin()) {
+                auto nxt = *next(itr);
+                bet.insert(x ^ nxt);
+            } else if (next(itr) == list.end()) {
+                auto pre = *prev(itr);
+                bet.insert(x ^ pre);
+            } else {
+                auto nxt = *next(itr);
+                auto pre = *prev(itr);
+                bet.erase(bet.find(nxt ^ pre));
+                bet.insert(x ^ nxt);
+                bet.insert(x ^ pre);
+            }
+        } else if (a == 2) {
+            auto x = in_ll();
+            auto itr = list.erase(list.find(x));
+            if (list.empty()) continue;
+            if (itr == list.begin()) {
+                bet.erase(bet.find(x ^ *itr));
+            } else if (itr == list.end()) {
+                bet.erase(bet.find(x ^ *prev(itr)));
+            } else {
+                auto nxt = *itr;
+                auto pre = *prev(itr);
+                bet.erase(bet.find(x ^ nxt));
+                bet.erase(bet.find(x ^ pre));
+                bet.insert(nxt ^ pre);
+            }
+        } else {
+            print(*bet.begin());
+        }
+    }
 
     return 0;
 }

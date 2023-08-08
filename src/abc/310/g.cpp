@@ -179,11 +179,124 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
+template <typename T>
+class SparseMatrix {
+    using mat = um<ll, um<ll, T>>;
+    mat rc;
+    mat cr;
+
+public:
+    SparseMatrix() {}
+    SparseMatrix(const mat &_rc, const mat &_cr) : rc(_rc), cr(_cr) {}
+
+    static SparseMatrix from_rc(const mat &rc) {
+        mat cr;
+        repi(i, rc) repi(j, i.second) {
+            cr[j.first][i.first] = j.second;
+        }
+        return SparseMatrix(rc, cr);
+    }
+
+    static SparseMatrix from_cr(const mat &cr) {
+        auto ans = from_rc(cr);
+        ans.transpose();
+        return ans;
+    }
+
+    const um<ll, T> &row(ll r) const { return rc[r]; }
+    const um<ll, T> &column(ll c) const { return cr[c]; }
+
+    T get(ll r, ll c) const { return rc[r][c]; }
+    void set(ll r, ll c, T val) {
+        if (val == (T)0) {
+            rc[r].erase(c);
+            if (rc[r].empty()) rc.erase(r);
+            return;
+        }
+        rc[r][c] = val;
+        rc[c][r] = val;
+    }
+
+    void transpose() { swap(rc, cr); }
+
+    SparseMatrix inv() const {
+        }
+
+    const SparseMatrix operator-() const {
+        auto ans = *this;
+        repi(i, ans.rc) repi(j, i.second) {
+            ans.set(i.first, j.first, get(i.first, j.first) * -1);
+        }
+        return ans;
+    }
+
+    SparseMatrix &operator+=(const SparseMatrix &m) {
+        repi(i, m.rc) repi(j, i.second) {
+            set(i.first, j.first, get(i.first, j.first) + j.second);
+        }
+        return *this;
+    }
+    const SparseMatrix operator+(const SparseMatrix &m) const {
+        auto ans = *this;
+        ans += m;
+        return ans;
+    }
+
+    SparseMatrix &operator-=(const SparseMatrix &m) { return operator+=(-m); }
+    const SparseMatrix operator-(const SparseMatrix &m) const { return operator+(-m); }
+
+    SparseMatrix &operator*=(const T v) {
+        repi(i, rc) repi(j, i.second) {
+            set(i.first, j.first, get(i.first, j.first) * v);
+        }
+        return *this;
+    }
+    const SparseMatrix operator*(const T v) const {
+        auto ans = *this;
+        ans *= v;
+        return ans;
+    }
+
+    SparseMatrix &operator*=(const SparseMatrix &m) {
+        return *this = *this * m;
+    }
+    const SparseMatrix operator*(const SparseMatrix &m) const {
+        SparseMatrix ans;
+        repi(i, rc) repi(j, i.second) {
+            repi(k, m.rc[j.first]) {
+                ans.set(i.first, k.first, ans.get(i.first, k.first) + j.second * k.second);
+            }
+        }
+        return ans;
+    }
+
+    SparseMatrix &operator/=(const T v) {
+        repi(i, rc) repi(j, i.second) {
+            set(i.first, j.first, get(i.first, j.first) / v);
+        }
+        return *this;
+    }
+    const SparseMatrix operator/(const T v) const {
+        auto ans = *this;
+        ans /= v;
+        return ans;
+    }
+
+    SparseMatrix &operator/=(const SparseMatrix &m) { return operator*=(m.inv()); }
+    const SparseMatrix operator/(const SparseMatrix &m) const { return operator*(m.inv()); }
+};
+
 int main() {
+    LL(N, K);
+    VLL(A, N);
+    VLL(B, N);
+
+    repi(i, A) i--;
+    vm dp(N);
 
     return 0;
 }

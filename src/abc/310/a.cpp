@@ -184,6 +184,11 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N, P, Q);
+    VLL(D, N);
+
+    auto m = *min_element(all(D));
+    print(min(P, Q + m));
 
     return 0;
 }

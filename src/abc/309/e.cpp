@@ -184,6 +184,33 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N, M);
+    VLL(P, N - 1);
+    VPLL(xy, M);
+
+    repi(i, P) i--;
+    repi(p, xy) p.first--;
+
+    vvll children(N, vll());
+    rep(i, N - 1) children[P[i]].pb(i + 1);
+
+    vll tmp(N, -1);
+    repi(p, xy) chmax(tmp[p.first], p.second);
+
+    queue<ll> q;
+    q.push(0);
+    while (!q.empty()) {
+        auto v = q.front();
+        q.pop();
+        repi(i, children[v]) {
+            if (tmp[v] > 0) chmax(tmp[i], tmp[v] - 1);
+            q.push(i);
+        }
+    }
+
+    ll ans = 0;
+    repi(i, tmp) if (i >= 0) ans++;
+    print(ans);
 
     return 0;
 }

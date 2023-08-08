@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -173,7 +173,7 @@ CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
 CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
-CSD EPS = 1e-10;
+CSD EPS = 1e-15;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 
@@ -184,6 +184,21 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    VPLL(AB, N);
+
+    vvll v;
+    rep(i, N) v.pb({i, AB[i].first, AB[i].second});
+
+    stable_sort(all(v), [](vll a, vll b) {
+        ll rate_a = a[1] * (b[1] + b[2]);
+        ll rate_b = b[1] * (a[1] + a[2]);
+        return rate_a > rate_b;
+    });
+
+    vll ans;
+    repi(i, v) ans.pb(i[0] + 1);
+    print(ans);
 
     return 0;
 }

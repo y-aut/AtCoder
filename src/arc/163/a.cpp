@@ -147,7 +147,7 @@ template <typename T> inline void print(const T &v) { cout << v << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ")
     { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+    { repi(i, v) cout << i << (i != *v.end() ? sep : ""); cout << '\n'; }
 template <typename T, typename S> inline void print(const pair<T, S> &v)
     { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
@@ -184,6 +184,24 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(T);
+    rep(t, T) {
+        LL(N);
+        STR(S);
+
+        bool flg = false;
+        rep(i, 1, N) {
+            if (S[i] > S[0]) BREAK(flg = true);
+        }
+        if (flg) CONTINUE(Yes);
+
+        rep(i, 1, N) {
+            if (S[i] == S[0] && S.substr(i) > S.substr(0, i)) BREAK(flg = true);
+        }
+        if (flg) CONTINUE(Yes);
+
+        No;
+    }
 
     return 0;
 }

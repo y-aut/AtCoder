@@ -184,6 +184,31 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N, D);
+    VS(S, N);
+
+    ll max = 0, cur = 0;
+    bool last = false;
+    rep(d, D) {
+        bool flg = false;
+        rep(i, N) {
+            if (S[i][d] == 'x') BREAK(flg = true);
+        }
+        if (flg) {
+            cur = 0;
+            last = false;
+            continue;
+        }
+        if (last) {
+            cur++;
+        } else {
+            cur = 1;
+            last = true;
+        }
+        chmax(max, cur);
+    }
+
+    print(max);
 
     return 0;
 }

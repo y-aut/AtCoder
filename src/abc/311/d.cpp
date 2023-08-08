@@ -183,7 +183,65 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+ll Width = 0;
+
+inline ll index(ll y, ll x) {
+    return y * Width + x;
+}
+
+inline ll get_x(ll i) {
+    return i % Width;
+}
+
+inline ll get_y(ll i) {
+    return i / Width;
+}
+
+inline bool get(vs &S, ll i) {
+    return S[get_y(i)][get_x(i)] == '.';
+}
+
+vll get_path(vs &S, ll cur, ll dir) {
+    vll ans;
+    ll step = 0;
+    if (dir == 0) step = 1;
+    else if (dir == 1) step = -1;
+    else if (dir == 2) step = Width;
+    else step = -Width;
+    while (get(S, cur + step)) {
+        cur += step;
+        ans.pb(cur);
+    }
+    return ans;
+}
+
 int main() {
+    LL(N, M);
+    VS(S, N);
+
+    Width = M;
+
+    queue<ll> stop;
+    stop.push(index(1, 1));
+    usll stop_hist;
+    usll visit{index(1, 1)};
+
+    while (!stop.empty()) {
+        auto s = stop.front();
+        stop.pop();
+        if (stop_hist.count(s)) continue;
+        stop_hist.insert(s);
+        rep(dir, 4) {
+            auto path = get_path(S, s, dir);
+            if (path.empty()) continue;
+            repi(i, path) visit.insert(i);
+            auto goal = path[path.size() - 1];
+            if (stop_hist.count(goal)) continue;
+            stop.push(goal);
+        }
+    }
+
+    print(visit.size());
 
     return 0;
 }

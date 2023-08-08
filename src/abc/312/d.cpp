@@ -179,11 +179,29 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
 int main() {
+    STR(S);
+
+    if (S.size() % 2 == 1) EXIT(print(0));
+
+    vm dp(S.size() / 2 + 1, 0);
+    dp[0] = 1;
+
+    repi(c, S) {
+        vm nxt(S.size() / 2 + 1, 0);
+        if (c == '(' || c == '?') {
+            rep(i, dp.size() - 1) nxt[i + 1] += dp[i];
+        }
+        if (c == ')' || c == '?') {
+            rep(i, 1, dp.size()) nxt[i - 1] += dp[i];
+        }
+        dp = move(nxt);
+    }
+    print(dp[0]);
 
     return 0;
 }

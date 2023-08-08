@@ -183,7 +183,50 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+inline void acc(vll &a) {
+    rep(i, 1, a.size()) a[i] += a[i - 1];
+}
+
 int main() {
+    LL(N, M);
+    VPLL(TX, N);
+
+    vll dn, nd, cut;
+    repi(i, TX) {
+        if (i.first == 0) dn.pb(i.second);
+        else if (i.first == 1) nd.pb(i.second);
+        else cut.pb(i.second);
+    }
+
+    sort(all(dn), greater<ll>());
+    sort(all(nd), greater<ll>());
+    sort(all(cut), greater<ll>());
+    acc(dn);
+    acc(nd);
+
+    ll ans = 0;
+    if (dn.size() >= M) ans = dn[M - 1];
+    else if (!dn.empty()) ans = dn[dn.size() - 1];
+
+    ll cut_sum = 0;
+    rep(i, cut.size()) {
+        // (cut_sum, cut_sum + cut[i]]
+        rep(j, cut_sum + 1, cut_sum + cut[i] + 1) {
+            if (j > nd.size()) break;
+            if (j + (i + 1) > M) break;
+            if (j + (i + 1) == M || dn.empty()) {
+                chmax(ans, nd[j - 1]);
+            } else if (dn.size() >= M - (i + 1) - j) {
+                chmax(ans, nd[j - 1] + dn[M - (i + 1) - j - 1]);
+            } else {
+                chmax(ans, nd[j - 1] + dn[dn.size() - 1]);
+            }
+        }
+        cut_sum += cut[i];
+        if (cut_sum >= nd.size()) break;
+    }
+
+    print(ans);
 
     return 0;
 }

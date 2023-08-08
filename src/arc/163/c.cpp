@@ -184,6 +184,34 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(T);
+
+    vector<set<ll>> ans;
+    rrep(i, 500) {
+        if (i == 1) ans.pb({1});
+        else if (i == 2) ans.pb({});
+        else if (i == 3) ans.pb({2, 3, 6});
+        else {
+            auto s = ans.back();
+            repi(i, s) {
+                if (!s.count(i + 1) && !s.count(i * (i + 1))) {
+                    auto cpy = i;
+                    s.erase(cpy);
+                    s.insert(cpy + 1);
+                    s.insert(cpy * (cpy + 1));
+                    ans.pb(s);
+                    break;
+                }
+            }
+        }
+    }
+
+    rep(t, T) {
+        LL(N);
+        if (ans[N - 1].empty()) CONTINUE(No);
+        Yes;
+        print(ans[N - 1]);
+    }
 
     return 0;
 }

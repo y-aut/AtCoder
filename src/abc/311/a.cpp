@@ -184,6 +184,14 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    STR(S);
+
+    us<char> s;
+    rep(i, N) {
+        s.insert(S[i]);
+        if (s.size() == 3) EXIT(print(i + 1));
+    }
 
     return 0;
 }

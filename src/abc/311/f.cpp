@@ -179,11 +179,30 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
 int main() {
+    LL(N, M);
+    VS(S, N);
+
+    fenwick_tree<mint> dp(N + 1);
+    dp.add(N, 1);
+    rep(i, M) {
+        ll top = LINF;
+        rep(j, N) {
+            if (S[j][i] == '#') BREAK(top = j);
+        }
+        ll w_max = top == LINF ? N : top;
+        fenwick_tree<mint> nxt(N + 1);
+        rep(j, w_max + 1) {
+            nxt.add(j, dp.sum(max(0LL, j - 1), N + 1));
+        }
+        dp = move(nxt);
+    }
+
+    print(dp.sum(0, N + 1));
 
     return 0;
 }

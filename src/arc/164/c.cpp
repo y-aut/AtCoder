@@ -184,6 +184,18 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    LL(N);
+    VPLL(AB, N);
+
+    ll best = 0, loss = LINF, cnt = 0;
+    repi(i, AB) {
+        best += max(i.first, i.second);
+        if (i.first > i.second) cnt++;
+        chmin(loss, abs(i.first - i.second));
+    }
+
+    if (cnt % 2 == 0) print(best);
+    else print(best - loss);
 
     return 0;
 }

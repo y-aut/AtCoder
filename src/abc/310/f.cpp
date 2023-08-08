@@ -179,11 +179,34 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
 int main() {
+    LL(N);
+    VLL(A, N);
+
+    vm dp(1 << 10, 0);
+    dp[0] = 1;
+    rep(i, N) {
+        vm nxt(1 << 10, 0);
+        rep(j, 1 << 10) {
+            for (ll k = 1, mask = 1; k <= min(10LL, A[i]); k++, mask <<= 1) {
+                auto newmask = (j << k) & ((1 << 10) - 1) | j | mask;
+                nxt[newmask] += dp[j];
+            }
+            if (A[i] > 10) nxt[j] += dp[j] * (A[i] - 10);
+        }
+        dp = move(nxt);
+    }
+
+    mint ans = 0;
+    rep(j, 1 << 10) {
+        if (j & (1 << 9)) ans += dp[j];
+    }
+    repi(i, A) ans /= i;
+    print(ans);
 
     return 0;
 }

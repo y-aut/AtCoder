@@ -179,11 +179,35 @@ CSD PHI = 1.6180339887498948;
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
 int main() {
+    LL(N);
+    STR(T);
+
+    vector<pmm> dp(N * 2 + 1, {0, 0});
+    dp[N].first = 1;
+
+    rep(i, N * 2) {
+        vector<pmm> nxt(N * 2 + 1, {0, 0});
+        rep(j, N * 2 + 1) {
+            if (T[i] != '-' && j != N * 2) {
+                nxt[j + 1].first += dp[j].first;
+                nxt[j + 1].second += dp[j].second;
+                if (j < N) nxt[j + 1].second += dp[j].first * ((N - j) * 2 - 1);
+            }
+            if (T[i] != '+' && j != 0) {
+                nxt[j - 1].first += dp[j].first;
+                nxt[j - 1].second += dp[j].second;
+                if (j > N) nxt[j - 1].second += dp[j].first * ((j - N) * 2 - 1);
+            }
+        }
+        dp = move(nxt);
+    }
+
+    print(dp[N].second);
 
     return 0;
 }

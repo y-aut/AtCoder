@@ -183,7 +183,31 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+ll belong[110][110][110];
+
 int main() {
+    LL(N);
+    VVLL(P, N, 6);
+
+    rep(i, 110) rep(j, 110) rep(k, 110) belong[i][j][k] = -1;
+    rep(i, N) {
+        auto &&p = P[i];
+        rep(x, p[0], p[3]) rep(y, p[1], p[4]) rep(z, p[2], p[5]) belong[x + 1][y + 1][z + 1] = i;
+    }
+
+    vector<usll> ans(N);
+    rep(i, 1, 109) rep(j, 1, 109) rep(k, 1, 109) {
+        auto n = belong[i][j][k];
+        if (n == -1) continue;
+        ll v = 0;
+        if ((v = belong[i][j][k - 1]) != -1 && v != n) ans[n].insert(v);
+        if ((v = belong[i][j][k + 1]) != -1 && v != n) ans[n].insert(v);
+        if ((v = belong[i][j - 1][k]) != -1 && v != n) ans[n].insert(v);
+        if ((v = belong[i][j + 1][k]) != -1 && v != n) ans[n].insert(v);
+        if ((v = belong[i - 1][j][k]) != -1 && v != n) ans[n].insert(v);
+        if ((v = belong[i + 1][j][k]) != -1 && v != n) ans[n].insert(v);
+    }
+    repi(i, ans) print(i.size());
 
     return 0;
 }

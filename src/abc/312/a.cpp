@@ -184,6 +184,11 @@ DEFINE_MOD(MOD);
 // clang-format on
 
 int main() {
+    STR(S);
+
+    vs ans{"ACE", "BDF", "CEG", "DFA", "EGB", "FAC", "GBD"};
+    repi(s, ans) if (s == S) EXIT(Yes);
+    No;
 
     return 0;
 }

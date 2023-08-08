@@ -183,7 +183,47 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+#pragma region "BFS"
+
+// 各頂点への距離を求める
+vll bfs(const vvll &edges, ll v) {
+    vll ans(edges.size(), -1);
+    ans[v] = 0;
+
+    queue<ll> q;
+    repi(i, edges[v]) {
+        if (ans[i] == -1) {
+            q.push(i);
+            ans[i] = ans[v] + 1;
+        }
+    }
+
+    while (true) {
+        repi(i, edges[v]) {
+            if (ans[i] == -1) {
+                q.push(i);
+                ans[i] = ans[v] + 1;
+            }
+        }
+        if (q.empty()) break;
+        v = q.front();
+        q.pop();
+    }
+
+    return ans;
+}
+
+#pragma endregion
+
 int main() {
+    LL(N1, N2, M);
+    auto edges = in_edges<true>(N1 + N2, M);
+
+    auto dist1 = bfs(edges, 0);
+    auto dist2 = bfs(edges, N1 + N2 - 1);
+
+    auto d = *max_element(all(dist1)) + *max_element(all(dist2)) + 1;
+    print(d);
 
     return 0;
 }
