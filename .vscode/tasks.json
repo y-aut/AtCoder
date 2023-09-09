@@ -121,7 +121,7 @@
         {
             "id": "exeFile1",
             "description": "比較対象の実行ファイル (1)",
-            "default": "release.exe",
+            "default": "debug.exe",
             "type": "promptString"
         },
         {

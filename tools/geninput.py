@@ -1,12 +1,9 @@
 import random as rd
 
-N = rd.randint(1, 100)
-A = []
-B = []
-for i in range(N):
-    A.append(rd.randint(1, 10000))
-    B.append(rd.randint(1, 10000))
+N = 100
+A = rd.randint(1, 100)
+B = rd.randint(1, 100)
+C = rd.randint(1, 100)
+X = rd.randint(1, 5000)
 
-print(N)
-print(*A)
-print(*B)
+print(N, A, B, C, X)
