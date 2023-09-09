@@ -49,4 +49,11 @@ else
         "-I/usr/include/eigen3"
     )
 fi
-/usr/bin/g++-12 ${args[@]}
+
+if [ "$(uname)" == 'Darwin' ]; then
+    export CPATH="/opt/homebrew/include/:$CPATH"
+    export LIBRARY_PATH="/opt/homebrew/lib:$LIBRARY_PATH"
+    /opt/homebrew/bin/g++-12 ${args[@]}
+else
+    /usr/bin/g++-12 ${args[@]}
+fi

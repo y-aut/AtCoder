@@ -23,7 +23,12 @@ args=(
     "tpl/template.hpp"
     "-I/usr/include/eigen3"
 )
-/usr/bin/g++-12 ${args[@]}
+if [ "$(uname)" == 'Darwin' ]; then
+    export CPATH="/opt/homebrew/include/:$CPATH"
+    /opt/homebrew/bin/g++-12 ${args[@]}
+else
+    /usr/bin/g++-12 ${args[@]}
+fi
 
 cp /dev/null $1/tpl/template
 while IFS= read line; do

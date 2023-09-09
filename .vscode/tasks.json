@@ -4,7 +4,7 @@
         {
             "label": "debug build",
             "type": "shell",
-            "command": "source",
+            "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/build.sh",
                 "d",
@@ -20,7 +20,7 @@
         {
             "label": "debug build with output name",
             "type": "shell",
-            "command": "source",
+            "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/build.sh",
                 "d",
@@ -35,7 +35,7 @@
         {
             "label": "release build",
             "type": "shell",
-            "command": "source",
+            "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/build.sh",
                 "r",
@@ -60,7 +60,7 @@
         {
             "label": "update template",
             "type": "shell",
-            "command": "source",
+            "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/update.sh",
                 "${workspaceFolder}"
@@ -70,7 +70,7 @@
         {
             "label": "make ABC directory",
             "type": "shell",
-            "command": "source",
+            "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/makefiles.sh",
                 "${workspaceFolder}",
@@ -82,7 +82,7 @@
         {
             "label": "make directory",
             "type": "shell",
-            "command": "source",
+            "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/makefiles.sh",
                 "${workspaceFolder}",
@@ -94,7 +94,7 @@
         {
             "label": "compare outputs",
             "type": "shell",
-            "command": "source",
+            "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/compare.sh",
                 "${workspaceFolder}",

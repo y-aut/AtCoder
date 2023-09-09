@@ -15,6 +15,23 @@
             "cStandard": "c11",
             "cppStandard": "c++20",
             "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/*",
+                "${workspaceFolder}/ac-library/**",
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/tpl/**",
+                "/opt/homebrew/include"
+            ],
+            "defines": [
+                "DEBUG"
+            ],
+            "compilerPath": "/opt/homebrew/bin/g++-12",
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "macos-gcc-arm64"
         }
     ],
     "version": 4
