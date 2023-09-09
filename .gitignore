@@ -5,3 +5,5 @@ tools/geninput.*
 tpl/template.hpp.gch
 tpl/template
 /*.exe
+.DS_Store
+*.dSYM
