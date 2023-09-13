@@ -3,6 +3,7 @@
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
+#include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
 
@@ -21,13 +22,17 @@ struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #define um unordered_map
 using ull = unsigned long long;
 using ll = long long;
+using mll = mpz_class;
+using md = mpf_class;
 // pair
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
 using vll = vector<ll>;
+using vmll = vector<mll>;
 using vd = vector<double>;
+using vmd = vector<md>;
 using vb = vector<bool>;
 using vc = vector<char>;
 using vs = vector<string>;
@@ -71,11 +76,13 @@ using umll = um<ll, ll>;
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
 #define INT(...) VAR(int, __VA_ARGS__)
 #define LL(...) VAR(ll, __VA_ARGS__)
+#define MLL(...) VAR(mll, __VA_ARGS__)
 #define CHR(...) VAR(char, __VA_ARGS__)
 #define STR(...) VAR(string, __VA_ARGS__)
 #define DBL(...) VAR(double, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
+#define VMLL(a, b) auto a = in_vmll(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
 #define VS(a, b) auto a = in_vs(b)
@@ -108,6 +115,7 @@ using umll = um<ll, ll>;
 // input
 inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
+inline mll in_mll() { mll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
 inline pii in_pii() { pii x; cin >> x.first >> x.second; return x; }
 inline pll in_pll() { pll x; cin >> x.first >> x.second; return x; }
@@ -115,6 +123,7 @@ inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
