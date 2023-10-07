@@ -147,9 +147,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// conversion
-inline mll to_mll(ll v) { return mll(to_string(v)); }
-
 // change min/max
 template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
 template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
@@ -160,18 +157,17 @@ inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 
 // print
-template <typename T> inline void print(const T &v, string end = "\n") { cout << v << end; }
-template <int V> inline void print(const static_modint<V> &v, string end = "\n") { print(v.val(), end); }
-inline void print(const modint &v, string end = "\n") { print(v.val(), end); }
-template <typename T, typename S> inline void print(const pair<T, S> &v, string end = "\n")
-    { cout << v.first << " " << v.second << end; }
+template <typename T> inline void print(const T &v) { cout << v << '\n'; }
+template <typename T> inline void print(const vector<T> &v, string sep = " ")
+    { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const set<T> &v, string sep = " ")
+    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+template <typename T, typename S> inline void print(const pair<T, S> &v)
+    { cout << v.first << " " << v.second << '\n'; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline void print(const vector<T> &v, string sep = " ")
-    { rep(i, v.size()) print(v[i], i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) print(i, i != *prev(v.end()) ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
+template <int V> inline void print(const static_modint<V> &v) { print(v.val()); }
+inline void print(const modint &v) { print(v.val()); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -201,7 +197,44 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
+ll get_depth(mll X) {
+    for (ll d = 0;; d++) {
+        if (X == 1) return d;
+        X /= 2;
+    }
+}
+
+mll child_cnt(mll N, mll X, ll K) {
+    if (K >= 62 || X > N) return 0;
+    if (K == 0) return 1;
+    X <<= K;
+    mll cnt = mll(1) << K;
+    if (X + cnt - 1 <= N) return cnt;
+    mll ans = N - X + 1;
+    if (ans < 0) return 0;
+    else return ans;
+}
+
 int main() {
+    LL(T);
+    rep(t, T) {
+        MLL(N, X);
+        LL(K);
+        if (K == 0) CONTINUE(print(1));
+        auto d = get_depth(X);
+        mll ans = child_cnt(N, X, K);
+        if (d >= K) ans++;
+        rrep(i, d) {
+            auto rest = K - (i + 1);
+            if (rest < 0) break;
+            mll now = X;
+            rep(j, i - 1) now /= 2;
+            if (now % 2 == 0) now++;
+            else now--;
+            ans += child_cnt(N, now, rest);
+        }
+        print(ans);
+    }
 
     return 0;
 }
