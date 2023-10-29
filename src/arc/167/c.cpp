@@ -151,8 +151,8 @@ template <typename First, typename... Rest> inline void IN(First &first, Rest &.
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 
 // change min/max
-template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
-template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
+template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
+template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
 
 // math
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
@@ -189,22 +189,83 @@ template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v)
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 1152921500000000000LL;
+CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSD EPS = 1e-10;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
-CSLL DX[] = {1, 0, -1, 0};
-CSLL DY[] = {0, 1, 0, -1};
-
-void solve();
-int main() { solve(); return 0; }
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 // clang-format on
 
-void solve() {
+#pragma region "二項係数"
+
+class Binomial {
+    const ll mod = 0;
+    vll fact, fact_inv, inv;
+
+public:
+    Binomial(const ll size, const ll _mod) : mod(_mod), fact(size + 5), fact_inv(size + 5), inv(size + 5) {
+        fact[0] = fact[1] = 1;
+        fact_inv[0] = fact_inv[1] = 1;
+        inv[1] = 1;
+
+        for (ll i = 2; i < size + 5; i++) {
+            fact[i] = fact[i - 1] * i % mod;
+            inv[i] = mod - inv[mod % i] * (mod / i) % mod;
+            fact_inv[i] = fact_inv[i - 1] * inv[i] % mod;
+        }
+    }
+
+    /// nCk % mod を求める
+    ll nCk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[k] * fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nPk % mod を求める
+    ll nPk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nHk % mod を求める
+    ll nHk(const ll n, const ll k) const {
+        if (n == 0 && k == 0)
+            return 1;
+        return nCk(n + k - 1, k);
+    }
+};
+
+#pragma endregion
+
+int main() {
+    LL(N, K);
+    VLL(A, N);
+    sort(all(A));
+
+    Binomial binom(N, MOD2);
+
+    mint edge;
+    rep(i, N) rep(j, i + 1, N) {
+        if (j - i <= K) edge++;
+    }
+
+    fenwick_tree<mint> dp(N);
+    rep(i, 1, N) {
+        fenwick_tree<mint> nxt(N);
+        rep(j, 1, N) {
+            nxt.add(j, (dp.sum(max(0LL, j - i), j) + A[i]) * (edge * 2 * binom.nCk(N - 2, i - 1)));
+        }
+        dp = move(nxt);
+    }
+
+    print(dp.sum(N - 1, N));
+
+    return 0;
 }

@@ -151,8 +151,8 @@ template <typename First, typename... Rest> inline void IN(First &first, Rest &.
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 
 // change min/max
-template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
-template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
+template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
+template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
 
 // math
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
@@ -189,16 +189,11 @@ template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v)
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 1152921500000000000LL;
+CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSD EPS = 1e-10;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
-CSLL DX[] = {1, 0, -1, 0};
-CSLL DY[] = {0, 1, 0, -1};
-
-void solve();
-int main() { solve(); return 0; }
 
 #pragma endregion
 
@@ -206,5 +201,12 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
-void solve() {
+int main() {
+    LL(N);
+    rep(i, N, LINF) {
+        auto s = to_string(i);
+        if ((s[0] - '0') * (s[1] - '0') == s[2] - '0') EXIT(print(i));
+    }
+
+    return 0;
 }

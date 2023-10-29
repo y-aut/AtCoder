@@ -151,8 +151,8 @@ template <typename First, typename... Rest> inline void IN(First &first, Rest &.
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 
 // change min/max
-template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
-template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
+template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
+template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
 
 // math
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
@@ -189,16 +189,11 @@ template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v)
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 1152921500000000000LL;
+CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSD EPS = 1e-10;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
-CSLL DX[] = {1, 0, -1, 0};
-CSLL DY[] = {0, 1, 0, -1};
-
-void solve();
-int main() { solve(); return 0; }
 
 #pragma endregion
 
@@ -206,5 +201,45 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
-void solve() {
+ll N;
+vll D;
+vvll LCK;
+
+int main() {
+    LL(N);
+    VLL(D, N);
+    VVLL(LCK, 2, 3);
+    if (LCK[0][0] < LCK[1][0] || LCK[0][0] == LCK[1][0] && LCK[0][1] > LCK[0][2]) swap(LCK[0], LCK[1]);
+
+    auto comp = [&](vll a, vll b) {
+        return a[1] * LCK[0][0] + a[2] * LCK[1][0] - a[0] > b[1] * LCK[0][0] + b[2] * LCK[1][0] - b[0];
+    };
+    multiset<vll, decltype(comp)> s(comp);
+    ll sum1 = 0, sum2 = 0;
+    rep(i, N) {
+        ll c = llceil(D[i], LCK[0][0]);
+        sum1 += c;
+        s.insert(vll{D[i], c, 0});
+    }
+
+    ll ans = LINF;
+    while (sum2 <= LCK[1][2]) {
+        if (sum1 <= LCK[0][2]) {
+            chmin(ans, sum1 * LCK[0][1] + sum2 * LCK[1][1]);
+        }
+        if (sum1 == 0) break;
+        sum1--;
+        while (s.begin()->at(1) == 0) s.erase(s.begin());
+        auto t = *s.begin();
+        t[1]--;
+        auto c = llceil(t[0] - LCK[0][0] * t[1], LCK[1][0]);
+        sum2 += c - t[2];
+        t[2] = c;
+        s.erase(s.begin());
+        s.insert(vll{t[0], t[1], t[2]});
+    }
+
+    print(ans == LINF ? -1 : ans);
+
+    return 0;
 }

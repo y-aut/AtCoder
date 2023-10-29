@@ -151,8 +151,8 @@ template <typename First, typename... Rest> inline void IN(First &first, Rest &.
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 
 // change min/max
-template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
-template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
+template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
+template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
 
 // math
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
@@ -189,16 +189,11 @@ template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v)
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 1152921500000000000LL;
+CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSD EPS = 1e-10;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
-CSLL DX[] = {1, 0, -1, 0};
-CSLL DY[] = {0, 1, 0, -1};
-
-void solve();
-int main() { solve(); return 0; }
 
 #pragma endregion
 
@@ -206,5 +201,80 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
-void solve() {
+#pragma region "ダイクストラ法"
+
+class Dijkstra {
+    const vvpll &wedges;
+    const ll start;
+    vll dist;
+    vll prev; // 直前の頂点を記録する配列
+
+    void set_dist() {
+        // (現時点での最短距離, 頂点)
+        priority_queue<pll, vector<pll>, greater<pll>> q;
+        q.emplace(dist[start] = 0, start);
+
+        while (!q.empty()) {
+            auto p = q.top();
+            q.pop();
+            if (dist[p.second] < p.first) continue;
+
+            repi(i, wedges[p.second]) {
+                ll d = dist[p.second] + i.second;
+                if (d < dist[i.first]) {
+                    prev[i.first] = p.second;
+                    q.emplace(dist[i.first] = d, i.first);
+                }
+            }
+        }
+    }
+
+public:
+    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
+        set_dist();
+    }
+
+    ll get_dist(ll v) const { return dist[v]; }
+    vll &get_dist() { return dist; }
+
+    // 最短経路を取得
+    vll get_path(ll v) const {
+        vll ans;
+        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
+        reverse(all(ans));
+        return ans;
+    }
+};
+
+#pragma endregion
+
+int main() {
+    LL(N, A, B, C);
+    VVLL(D, N, N);
+
+    vvpll edges1(N);
+    rep(i, N) {
+        rep(j, N) {
+            if (i == j) continue;
+            edges1[i].eb(j, D[i][j] * A);
+        }
+    }
+    Dijkstra graph1(edges1, 0);
+
+    vvpll edges2(N);
+    rep(i, N) {
+        rep(j, N) {
+            if (i == j) continue;
+            edges2[i].eb(j, D[i][j] * B + C);
+        }
+    }
+    Dijkstra graph2(edges2, N - 1);
+
+    ll ans = LINF;
+    rep(i, N) {
+        chmin(ans, graph1.get_dist(i) + graph2.get_dist(i));
+    }
+    print(ans);
+
+    return 0;
 }

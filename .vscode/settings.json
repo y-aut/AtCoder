@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.v": "coq",
+        "*.py": "python",
         "deque": "cpp",
         "string": "cpp",
         "vector": "cpp",
@@ -88,7 +89,10 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "syncstream": "cpp"
+        "syncstream": "cpp",
+        "expected": "cpp",
+        "spanstream": "cpp",
+        "stacktrace": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"

@@ -65,7 +65,7 @@
                 "${workspaceFolder}/shell/makefiles.sh",
                 "${workspaceFolder}",
                 "src/abc/${input:contestNum}",
-                "'a b c d e f g x'"
+                "'a b c d e f g'"
             ],
             "problemMatcher": []
         },

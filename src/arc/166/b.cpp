@@ -151,8 +151,8 @@ template <typename First, typename... Rest> inline void IN(First &first, Rest &.
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 
 // change min/max
-template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
-template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
+template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
+template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
 
 // math
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
@@ -189,16 +189,11 @@ template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v)
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 1152921500000000000LL;
+CSLL LINF = (1LL << 60);
 CSI INF = 1000000006;
 CSD EPS = 1e-10;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
-CSLL DX[] = {1, 0, -1, 0};
-CSLL DY[] = {0, 1, 0, -1};
-
-void solve();
-int main() { solve(); return 0; }
 
 #pragma endregion
 
@@ -206,5 +201,60 @@ DEFINE_MOD(MOD);
 
 // clang-format on
 
-void solve() {
+inline ll lcm(ll a, ll b) { return a / gcd(a, b) * b; }
+
+ll calc(ll N, vll &A, const vll &p) {
+    vvpll to(2, vpll());
+    rep(i, N) {
+        rep(j, 2) to[j].eb(i, (p[j] - A[i] % p[j]) % p[j]);
+    }
+    rep(j, 2) sort(all(to[j]), [](pll a, pll b) { return a.second < b.second; });
+
+    ll ans = LINF;
+    rep(i, 2) rep(j, 2) {
+        if (to[0][i].first == to[1][j].first) continue;
+        chmin(ans, to[0][i].second + to[1][j].second);
+    }
+    return ans;
+}
+
+int main() {
+    LL(N);
+    VLL(p, 3);
+    VLL(A, N);
+
+    ll ans = LINF;
+
+    if (N >= 3) {
+        vvpll to(3, vpll());
+        rep(i, N) {
+            rep(j, 3) to[j].eb(i, (p[j] - A[i] % p[j]) % p[j]);
+        }
+        rep(j, 3) sort(all(to[j]), [](pll a, pll b) { return a.second < b.second; });
+
+        rep(i, 3) rep(j, 3) rep(k, 3) {
+            if (to[0][i].first == to[1][j].first ||
+                to[1][j].first == to[2][k].first ||
+                to[2][k].first == to[0][i].first) continue;
+            chmin(ans, to[0][i].second + to[1][j].second + to[2][k].second);
+        }
+    }
+    if (N >= 2) {
+        chmin(ans, calc(N, A, {p[0], lcm(p[1], p[2])}));
+        chmin(ans, calc(N, A, {p[1], lcm(p[2], p[0])}));
+        chmin(ans, calc(N, A, {p[2], lcm(p[0], p[1])}));
+    }
+    {
+        ll pp = lcm(p[0], lcm(p[1], p[2]));
+        vpll to;
+        rep(i, N) {
+            to.eb(i, (pp - A[i] % pp) % pp);
+        }
+        sort(all(to), [](pll a, pll b) { return a.second < b.second; });
+
+        chmin(ans, to[0].second);
+    }
+    print(ans);
+
+    return 0;
 }
