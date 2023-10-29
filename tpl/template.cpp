@@ -191,20 +191,24 @@ CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
 CSLL LINF = 1152921500000000000LL;
 CSI INF = 1000000006;
-CSD EPS = 1e-10;
+CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 
+// clang-format on
+
 void solve();
-int main() { solve(); return 0; }
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
 
 #pragma endregion
 
 DEFINE_MOD(MOD);
-
-// clang-format on
 
 void solve() {
 }
