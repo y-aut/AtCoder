@@ -211,47 +211,35 @@ int main() {
 DEFINE_MOD(MOD);
 
 void solve() {
-    LL(T);
-    rep(t, T) {
-        LL(N);
-        VLL(P, N);
-        repi(i, P) i--;
+    LL(N, X);
+    VLL(A, N);
 
-        vll ind(N);
-        rep(i, N) ind[P[i]] = i;
-
-        vector<set<ll>> groups;
-        vb selected(N);
-
-        rep(i, N) {
-            if (selected[i]) continue;
-            set<ll> s;
-            ll n = i;
-            do {
-                s.insert(n);
-                selected[n] = true;
-                n = P[n];
-            } while (n != i);
-            groups.pb(s);
-        }
-
-        vll gr_ind(N);
-        rep(i, groups.size()) repi(j, groups[i]) gr_ind[j] = i;
-
-        set<ll> rest;
-        rep(i, 1, groups.size()) repi(j, groups[i]) rest.insert(j);
-
-        rep(i, N) {
-            if (rest.empty()) break;
-            auto n = *rest.begin();
-            if (n < P[i] || i == N - rest.size() - 1) {
-                swap(P[i], P[ind[n]]);
-                repi(j, groups[gr_ind[n]])
-                    rest.erase(j);
+    ll m = *max_element(all(A));
+    vpll bound;
+    rep(i, N) {
+        ll lower = A[i], upper = A[i];
+        while (true) {
+            if (upper >= m) {
+                if (lower > m) {
+                    bound.eb((upper - X) / 2, lower);
+                }
+                break;
             }
+            upper = upper * 2 + X;
+            lower *= 2;
         }
-
-        repi(i, P) i++;
-        print(P);
     }
+    debug(bound);
+    sort(all(bound));
+    debug(bound);
+    ll ans = LINF, upper_max = m;
+    repi(i, bound) {
+        chmin(ans, upper_max - i.first);
+        debug(ans);
+        chmax(upper_max, i.second);
+    }
+    chmin(ans, upper_max - m);
+
+    if (ans < X) ans = 0;
+    print(ans);
 }

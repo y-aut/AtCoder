@@ -213,45 +213,15 @@ DEFINE_MOD(MOD);
 void solve() {
     LL(T);
     rep(t, T) {
-        LL(N);
-        VLL(P, N);
-        repi(i, P) i--;
-
-        vll ind(N);
-        rep(i, N) ind[P[i]] = i;
-
-        vector<set<ll>> groups;
-        vb selected(N);
-
-        rep(i, N) {
-            if (selected[i]) continue;
-            set<ll> s;
-            ll n = i;
-            do {
-                s.insert(n);
-                selected[n] = true;
-                n = P[n];
-            } while (n != i);
-            groups.pb(s);
-        }
-
-        vll gr_ind(N);
-        rep(i, groups.size()) repi(j, groups[i]) gr_ind[j] = i;
-
-        set<ll> rest;
-        rep(i, 1, groups.size()) repi(j, groups[i]) rest.insert(j);
-
-        rep(i, N) {
-            if (rest.empty()) break;
-            auto n = *rest.begin();
-            if (n < P[i] || i == N - rest.size() - 1) {
-                swap(P[i], P[ind[n]]);
-                repi(j, groups[gr_ind[n]])
-                    rest.erase(j);
+        LL(L, R);
+        auto rs = to_string(R);
+        if (rs.size() != 1) {
+            if (rs[0] == '1') {
+                chmax(L, max(stoll(rs.substr(1)), R / 10) + 1);
+            } else {
+                chmax(L, stoll("1" + string(rs.size() - 1, '0')));
             }
         }
-
-        repi(i, P) i++;
-        print(P);
+        print(R - L + 1);
     }
 }

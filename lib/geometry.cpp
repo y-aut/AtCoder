@@ -2,7 +2,7 @@
 
 #pragma region "多角形"
 
-struct Polygon {
+class Polygon {
     const ll size;
     // 時計回り or 反時計回り
     const vpll &points;
