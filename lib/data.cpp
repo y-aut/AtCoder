@@ -21,6 +21,23 @@ public:
 
     set<pll> &get_set() { return s; }
 
+    // 指定した区間と交わる区間を取得する
+    vpll intersect(const pll &interval) {
+        vpll ans;
+        auto itr = prev(s.lower_bound(interval));
+        if (itr->first <= interval.first && interval.first < itr->second) {
+            ans.pb(*itr);
+        }
+        while (true) {
+            itr++;
+            if (interval.first <= itr->first && itr->first < interval.second) {
+                ans.pb(*itr);
+            } else break;
+        }
+        return ans;
+    }
+
+    // 区間を挿入し，マージする
     pll insert(const pll &interval) {
         ll x = interval.first, y = interval.second;
         auto itr = prev(s.lower_bound(interval));
