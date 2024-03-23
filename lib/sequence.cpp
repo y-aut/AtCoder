@@ -2,17 +2,20 @@
 
 #pragma region "座標圧縮"
 
-// 1 次元配列を座標圧縮する
-vll get_compressed(const vll &A) {
-    vll B = A;
-    sort(all(B));
-    B.erase(unique(all(B)), B.end());
+/// @brief 1 次元配列を座標圧縮する
+/// @param x 圧縮する配列
+/// @param xs 圧縮後の座標に対応する元の座標
+/// @return 圧縮後の配列
+vll get_compressed(const vll &x, vll &xs) {
+    xs.clear();
+    repi(i, x) xs.pb(i);
+    sort(all(xs));
+    xs.erase(unique(all(xs)), xs.end());
 
-    vll ans(A.size());
-    rep(i, A.size()) {
-        ans[i] = lower_bound(all(B), A[i]) - B.begin();
+    vll ans(x.size());
+    rep(i, x.size()) {
+        ans[i] = lower_bound(all(xs), x[i]) - xs.begin();
     }
-
     return ans;
 }
 
