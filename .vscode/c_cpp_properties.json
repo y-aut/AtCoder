@@ -3,7 +3,9 @@
         {
             "name": "WSL",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/*",
+                "${workspaceFolder}/ac-library/**",
+                "${workspaceFolder}/include/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++-12",

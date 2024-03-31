@@ -1,8 +1,8 @@
 #pragma region "Template"
 
 #define TEMPLATE_H
-#include <bits/stdc++.h>
 #include <atcoder/all>
+#include <bits/stdc++.h>
 #include <gmpxx.h>
 using namespace std;
 using namespace atcoder;

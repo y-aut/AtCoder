@@ -1,8 +1,8 @@
 #pragma region "Template"
 
 #define TEMPLATE_H
-#include <bits/stdc++.h>
 #include <atcoder/all>
+#include <bits/stdc++.h>
 #include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
@@ -211,4 +211,93 @@ int main() {
 DEFINE_MOD(MOD);
 
 void solve() {
+    LL(N);
+    VPLL(LR, N);
+
+    stack<tuple<ll, ll, bool>> target;
+    pll cur{0, LINF};
+    repd(i, N) {
+        if (LR[i].second < cur.first) {
+            if (target.empty()) {
+                target.emplace(i + 1, cur.first, false);
+            } else {
+                auto [id, val, second] = target.top();
+                if (second) {
+                    if (LR[i].second < val) {
+                        target.pop();
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            target.emplace(i, LR[i].second, true);
+            cur.first = cur.second = LR[i].second;
+        } else if (LR[i].first > cur.second) {
+            if (target.empty()) {
+                target.emplace(i + 1, cur.second, false);
+            }
+            target.emplace(i, LR[i].first, false);
+            cur.first = cur.second = LR[i].first;
+        } else {
+            cur = {max(cur.first, LR[i].first), min(cur.second, LR[i].second)};
+        }
+    }
+
+    vll ans(N, -1);
+    ans[0] = cur.first;
+    rep(i, 1, N) {
+        while (!target.empty()) {
+            auto [id, val, second] = target.top();
+            if (id < i) {
+                target.pop();
+                continue;
+            }
+            if (LR[i].first >= ans[i - 1]) {
+                ans[i] = LR[i].first;
+                break;
+            }
+            if (!second) {
+                if (ans[i - 1] >= val) {
+                    if (LR[i].first <= val && val <= LR[i].second) {
+                        ans[i] = val;
+                    } else if (LR[i].first > val) {
+                        ans[i] = LR[i].first;
+                    } else {
+                        ans[i] = LR[i].second;
+                    }
+                } else {
+                    if (LR[i].second <= ans[i - 1]) {
+                        ans[i] = LR[i].second;
+                    } else {
+                        ans[i] = ans[i - 1];
+                    }
+                }
+                break;
+            } else {
+                if (ans[i - 1] <= val) {
+                    target.pop();
+                    continue;
+                }
+                if (LR[i].first <= val && val <= LR[i].second) {
+                    ans[i] = val;
+                } else if (LR[i].first > val) {
+                    ans[i] = LR[i].first;
+                } else {
+                    ans[i] = LR[i].second;
+                }
+                break;
+            }
+        }
+        if (ans[i] == -1) {
+            if (LR[i].first <= ans[i - 1] && ans[i - 1] <= LR[i].second) {
+                ans[i] = ans[i - 1];
+            } else if (LR[i].first > ans[i - 1]) {
+                ans[i] = LR[i].first;
+            } else {
+                ans[i] = LR[i].second;
+            }
+        }
+    }
+
+    print(ans);
 }

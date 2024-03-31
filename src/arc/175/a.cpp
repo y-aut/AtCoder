@@ -1,8 +1,8 @@
 #pragma region "Template"
 
 #define TEMPLATE_H
-#include <bits/stdc++.h>
 #include <atcoder/all>
+#include <bits/stdc++.h>
 #include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
@@ -208,7 +208,53 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
+
+mint f(ll N, vll &P, string &S, bool left) {
+    mint ans = 1;
+    vb ex(N, true);
+    rep(i, N) {
+        if (ex[P[i]]) {
+            if (ex[(P[i] + 1) % N]) {
+                if (S[P[i]] == 'L' && !left || S[P[i]] == 'R' && left) {
+                    return 0;
+                }
+                if (left) {
+                    ex[P[i]] = false;
+                } else {
+                    ex[(P[i] + 1) % N] = false;
+                }
+            } else {
+                if (!left) {
+                    return 0;
+                }
+                if (S[P[i]] == '?') {
+                    ans *= 2;
+                }
+                ex[P[i]] = false;
+            }
+        } else {
+            if (ex[(P[i] + 1) % N]) {
+                if (left) {
+                    return 0;
+                }
+                if (S[P[i]] == '?') {
+                    ans *= 2;
+                }
+                ex[(P[i] + 1) % N] = false;
+            } else {
+                return 0;
+            }
+        }
+    }
+    return ans;
+}
 
 void solve() {
+    LL(N);
+    VLL(P, N);
+    STR(S);
+    repi(i, P) i--;
+
+    print(f(N, P, S, false) + f(N, P, S, true));
 }

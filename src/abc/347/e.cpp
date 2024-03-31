@@ -1,8 +1,8 @@
 #pragma region "Template"
 
 #define TEMPLATE_H
-#include <bits/stdc++.h>
 #include <atcoder/all>
+#include <bits/stdc++.h>
 #include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
@@ -211,4 +211,29 @@ int main() {
 DEFINE_MOD(MOD);
 
 void solve() {
+    LL(N, Q);
+    VLL(x, Q);
+    repi(i, x) i--;
+    fenwick_tree<ll> ary(Q);
+    vb s(N);
+    ll ssize = 0;
+    vvll inout(N);
+    rep(q, Q) {
+        s[x[q]] = !s[x[q]];
+        ssize += s[x[q]] ? 1 : -1;
+        ary.add(q, ssize);
+        inout[x[q]].pb(q);
+    }
+    vll ans(N);
+    rep(i, N) {
+        for (ll j = 0; j < inout[i].size(); j++) {
+            if (j == inout[i].size() - 1) {
+                ans[i] += ary.sum(inout[i][j], Q);
+            } else {
+                ans[i] += ary.sum(inout[i][j], inout[i][j + 1]);
+                j++;
+            }
+        }
+    }
+    print(ans);
 }

@@ -1,8 +1,8 @@
 #pragma region "Template"
 
 #define TEMPLATE_H
-#include <bits/stdc++.h>
 #include <atcoder/all>
+#include <bits/stdc++.h>
 #include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
@@ -211,4 +211,8 @@ int main() {
 DEFINE_MOD(MOD);
 
 void solve() {
+    STR(S);
+    us<string> ans;
+    rep(i, S.size()) rrep(j, S.size() - i) ans.insert(S.substr(i, j));
+    print(ans.size());
 }

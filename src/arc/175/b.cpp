@@ -1,8 +1,8 @@
 #pragma region "Template"
 
 #define TEMPLATE_H
-#include <bits/stdc++.h>
 #include <atcoder/all>
+#include <bits/stdc++.h>
 #include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
@@ -211,4 +211,42 @@ int main() {
 DEFINE_MOD(MOD);
 
 void solve() {
+    LL(N, A, B);
+    STR(S);
+
+    set<ll> bg, ed;
+    rep(i, N * 2) {
+        if (S[i] == '(') bg.insert(i);
+        else ed.insert(i);
+    }
+
+    ll ans = 0;
+    while (bg.size() < ed.size()) {
+        ll pos = *ed.begin();
+        bg.insert(pos);
+        ed.erase(pos);
+        S[pos] = '(';
+        ans += B;
+    }
+    while (bg.size() > ed.size()) {
+        ll pos = *prev(bg.end());
+        ed.insert(pos);
+        bg.erase(pos);
+        S[pos] = ')';
+        ans += B;
+    }
+
+    ll cur = 0;
+    rep(i, N * 2) {
+        if (S[i] == '(') cur++;
+        else {
+            if (cur == 0) {
+                cur++;
+                ans += min(A, B * 2);
+            } else {
+                cur--;
+            }
+        }
+    }
+    print(ans);
 }

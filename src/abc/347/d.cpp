@@ -1,8 +1,8 @@
 #pragma region "Template"
 
 #define TEMPLATE_H
-#include <bits/stdc++.h>
 #include <atcoder/all>
+#include <bits/stdc++.h>
 #include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
@@ -211,4 +211,30 @@ int main() {
 DEFINE_MOD(MOD);
 
 void solve() {
+    LL(a, b, C);
+    ll c1 = pcntll(C), c2 = 60 - c1;
+    if ((c1 + a - b) % 2 != 0) {
+        print(-1);
+        return;
+    }
+    ll d = (c1 + a - b) / 2;
+    if (!(0 <= d && d <= c1 && d <= a && a - d <= c2)) {
+        print(-1);
+        return;
+    }
+    ll X = 0, d1 = d, d2 = a - d;
+    for (ll i = 0, mask = 1; i < 60; i++, mask <<= 1) {
+        if (C & mask) {
+            if (d1 != 0) {
+                X ^= mask;
+                d1--;
+            }
+        } else {
+            if (d2 != 0) {
+                X ^= mask;
+                d2--;
+            }
+        }
+    }
+    print(pll(X, X ^ C));
 }

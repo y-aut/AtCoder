@@ -1,8 +1,8 @@
-# [d|r], workspaceFolder, file, outFileName
+# [d|r], workspaceFolder
+cd /usr/include/x86_64-linux-gnu/c++/12/bits
 if [ "$1" == "d" ]; then
     args=(
         "-std=gnu++20"
-        # "-H"
         "-O0"
         "-DONLINE_JUDGE"
         "-DATCODER"
@@ -19,12 +19,12 @@ if [ "$1" == "d" ]; then
         "-fconstexpr-ops-limit=2147483647"
         "-I$2/ac-library"
         "-I$2/include"
-        "-o"
-        "$2/$4"
-        "$3"
-        "-lgmpxx"
-        "-lgmp"
-        "-I/usr/include/eigen3"
+        # "-o"
+        # "stdc++.h.gch/precompile.gch"
+        "stdc++.h"
+        # "-lgmpxx"
+        # "-lgmp"
+        # "-I/usr/include/eigen3"
     )
 else
     args=(
@@ -42,11 +42,11 @@ else
         "-fconstexpr-ops-limit=2147483647"
         "-I$2/ac-library"
         "-o"
-        "$2/$4"
-        "$3"
+        "stdc++.h.gch/precompile.gch"
+        "stdc++.h"
         "-lgmpxx"
         "-lgmp"
         "-I/usr/include/eigen3"
     )
 fi
-time /usr/bin/g++-12 ${args[@]}
+sudo /usr/bin/g++-12 ${args[@]}
