@@ -5,9 +5,12 @@
             "includePath": [
                 "${workspaceFolder}/*",
                 "${workspaceFolder}/ac-library/**",
-                "${workspaceFolder}/include/**"
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/tpl/**"
             ],
-            "defines": [],
+            "defines": [
+                "DEBUG"
+            ],
             "compilerPath": "/usr/bin/g++-12",
             "cStandard": "c11",
             "cppStandard": "c++20",

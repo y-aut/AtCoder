@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef TEMPLATE_H
-#include "template.cpp"
+#include "template.hpp"
 #endif
 
 #define debug(...) dprint(__LINE__, HEAD_NAME(__VA_ARGS__), __VA_ARGS__)

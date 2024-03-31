@@ -2,4 +2,6 @@ in.txt
 out.txt
 src/test.*
 tools/geninput.*
+tpl/template.hpp.gch
+tpl/template
 /*.exe

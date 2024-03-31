@@ -52,8 +52,18 @@
             "type": "shell",
             "command": "cp",
             "args": [
-                "${workspaceFolder}/tpl/template.cpp",
+                "${workspaceFolder}/tpl/template",
                 "${file}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "update template",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                "${workspaceFolder}/shell/update.sh",
+                "${workspaceFolder}"
             ],
             "problemMatcher": []
         },

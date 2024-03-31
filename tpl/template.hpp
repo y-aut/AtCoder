@@ -1,8 +1,3 @@
-#pragma region "Template"
-
-#ifdef DEBUG
-#include "template.hpp"
-#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -199,20 +194,3 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
-#endif
-
-// clang-format on
-
-void solve();
-int main() {
-    cout << fixed << setprecision(16);
-    solve();
-    return 0;
-}
-
-#pragma endregion
-
-DEFINE_MOD(MOD);
-
-void solve() {
-}

@@ -2,7 +2,6 @@
 if [ "$1" == "d" ]; then
     args=(
         "-std=gnu++20"
-        # "-H"
         "-O0"
         "-DONLINE_JUDGE"
         "-DATCODER"
@@ -19,6 +18,7 @@ if [ "$1" == "d" ]; then
         "-fconstexpr-ops-limit=2147483647"
         "-I$2/ac-library"
         "-I$2/include"
+        "-I$2/tpl"
         "-o"
         "$2/$4"
         "$3"
@@ -49,4 +49,4 @@ else
         "-I/usr/include/eigen3"
     )
 fi
-time /usr/bin/g++-12 ${args[@]}
+/usr/bin/g++-12 ${args[@]}
