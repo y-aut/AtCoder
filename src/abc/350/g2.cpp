@@ -214,24 +214,41 @@ int main() {
 
 DEFINE_MOD(MOD);
 
+bitset<100010> to_bs(const usll &v) {
+    bitset<100010> ans;
+    repi(i, v) ans.set(i);
+    return ans;
+}
+
+ll check(const usll &a, const usll &b) {
+    repi(i, a) {
+        if (b.count(i)) return i;
+    }
+    return -1;
+}
+
+ll check(const usll &a, const bitset<100010> &b) {
+    repi(i, a) {
+        if (b.test(i)) return i;
+    }
+    return -1;
+}
+
+ll check(const bitset<100010> &a, const bitset<100010> &b) {
+    auto c = (a & b)._Find_first();
+    if (c == a.size()) return -1;
+    else return c;
+}
+
 void solve() {
     LL(N, Q);
 
     ll X = 0;
-    ll bs = 0;
 
-    vll parents(N, -1);
-    dsu uf(N);
-    um<ll, usll> added(N);
-    vvll edges(N);
+    um<ll, bitset<100010>> s;
+    vector<usll> adj(N);
 
-    auto dfs = [&](auto rec, ll v, ll parent) -> void {
-        parents[v] = parent;
-        repi(i, edges[v]) {
-            if (i == parent) continue;
-            rec(rec, i, v);
-        }
-    };
+    constexpr ll B = 100;
 
     rep(q, Q) {
         LL(a, b, c);
@@ -239,45 +256,30 @@ void solve() {
         ll u = ((b * (1 + X)) % MOD2) % N;
         ll v = ((c * (1 + X)) % MOD2) % N;
         if (A == 0) {
-            added[u].insert(v);
-            added[v].insert(u);
-            edges[u].pb(v);
-            edges[v].pb(u);
-        } else {
-            ll ans = 0;
-            if (uf.same(u, v)) {
-                if (parents[u] == parents[v]) {
-                    ans = parents[u] + 1;
-                } else if (parents[u] != -1 && parents[parents[u]] == v) {
-                    ans = parents[u] + 1;
-                } else if (parents[v] != -1 && parents[parents[v]] == u) {
-                    ans = parents[v] + 1;
-                }
+            if (s.count(u)) {
+                s[u].set(v);
             } else {
-                if (added.count(u)) {
-                    repi(i, added[u]) {
-                        if (added.count(v) && added[v].count(i) || parents[i] == v || parents[v] == i) BREAK(ans = i + 1);
-                    }
-                }
-                if (ans == 0 && added.count(v)) {
-                    repi(i, added[v]) {
-                        if (added.count(u) && added[u].count(i) || parents[i] == u || parents[u] == i) BREAK(ans = i + 1);
-                    }
+                adj[u].insert(v);
+                if (adj[u].size() >= B) {
+                    s[u] = to_bs(adj[u]);
                 }
             }
-            print(ans);
+            if (s.count(v)) {
+                s[v].set(u);
+            } else {
+                adj[v].insert(u);
+                if (adj[v].size() >= B) {
+                    s[v] = to_bs(adj[v]);
+                }
+            }
+        } else {
+            ll ans = -1;
+            if (s.count(u) && s.count(v)) ans = check(s[u], s[v]);
+            else if (s.count(u) && !s.count(v)) ans = check(adj[v], s[u]);
+            else if (!s.count(u) && s.count(v)) ans = check(adj[u], s[v]);
+            else ans = check(adj[u], adj[v]);
+            print(++ans);
             X = ans;
-        }
-
-        bs++;
-        if (bs * bs >= Q) {
-            parents.assign(N, -1);
-            rep(i, N) {
-                if (parents[i] == -1) dfs(dfs, i, -1);
-            }
-            repi(i, added) repi(j, i.second) uf.merge(i.first, j);
-            added.clear();
-            bs = 0;
         }
     }
 }

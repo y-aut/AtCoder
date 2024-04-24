@@ -2,6 +2,7 @@
 args=(
     "-std=gnu++20"
     "-O0"
+    "-gdwarf-3"
     "-DONLINE_JUDGE"
     "-DATCODER"
     "-DDEBUG"

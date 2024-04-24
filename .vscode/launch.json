@@ -62,6 +62,14 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "(lldb) ビルドせずに起動",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/debug.exe",
+            "args": [],
+            "cwd": "${fileDirname}"
         }
     ]
 }
