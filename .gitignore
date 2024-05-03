@@ -1,6 +1,7 @@
 in.txt
 out.txt
 src/test.*
+src/work
 tools/geninput.*
 tpl/template.hpp.gch
 tpl/template
