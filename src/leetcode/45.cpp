@@ -1,8 +1,12 @@
 #pragma region "Template"
 
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
+#include <gmpxx.h>
 using namespace std;
 using namespace atcoder;
 
@@ -21,13 +25,17 @@ struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #define um unordered_map
 using ull = unsigned long long;
 using ll = long long;
+using mll = mpz_class;
+using md = mpf_class;
 // pair
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 // vector
 using vi = vector<int>;
 using vll = vector<ll>;
+using vmll = vector<mll>;
 using vd = vector<double>;
+using vmd = vector<md>;
 using vb = vector<bool>;
 using vc = vector<char>;
 using vs = vector<string>;
@@ -71,11 +79,13 @@ using umll = um<ll, ll>;
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
 #define INT(...) VAR(int, __VA_ARGS__)
 #define LL(...) VAR(ll, __VA_ARGS__)
+#define MLL(...) VAR(mll, __VA_ARGS__)
 #define CHR(...) VAR(char, __VA_ARGS__)
 #define STR(...) VAR(string, __VA_ARGS__)
 #define DBL(...) VAR(double, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
+#define VMLL(a, b) auto a = in_vmll(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
 #define VS(a, b) auto a = in_vs(b)
@@ -108,6 +118,7 @@ using umll = um<ll, ll>;
 // input
 inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
+inline mll in_mll() { mll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
 inline pii in_pii() { pii x; cin >> x.first >> x.second; return x; }
 inline pll in_pll() { pll x; cin >> x.first >> x.second; return x; }
@@ -115,6 +126,7 @@ inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
@@ -138,22 +150,31 @@ template <bool bidir> inline vvpll in_wedges(int N, int height)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// conversion
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+
 // change min/max
-template <typename T> inline bool chmin(T &a, const T &b) { bool flg = a > b; if (flg) a = b; return flg; }
-template <typename T> inline bool chmax(T &a, const T &b) { bool flg = a < b; if (flg) a = b; return flg; }
+template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
+template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
+
+// math
+inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
+inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
+inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 
 // print
-template <typename T> inline void print(const T &v) { cout << v << '\n'; }
-template <typename T> inline void print(const vector<T> &v, string sep = " ")
-    { rep(i, v.size()) cout << v[i] << (i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) cout << i << (i != *prev(v.end()) ? sep : ""); cout << '\n'; }
-template <typename T, typename S> inline void print(const pair<T, S> &v)
-    { cout << v.first << " " << v.second << '\n'; }
+template <typename T> inline void print(const T &v, string end = "\n") { cout << v << end; }
+template <int V> inline void print(const static_modint<V> &v, string end = "\n") { print(v.val(), end); }
+inline void print(const modint &v, string end = "\n") { print(v.val(), end); }
+template <typename T, typename S> inline void print(const pair<T, S> &v, string end = "\n")
+    { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <int V> inline void print(const static_modint<V> &v) { print(v.val()); }
-inline void print(const modint &v) { print(v.val()); }
+template <typename T> inline void print(const vector<T> &v, string sep = " ")
+    { rep(i, v.size()) print(v[i], i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const set<T> &v, string sep = " ")
+    { repi(i, v) print(i, i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -171,139 +192,50 @@ inline void print(const modint &v) { print(v.val()); }
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = (1LL << 60);
+CSLL LINF = 1152921500000000000LL;
 CSI INF = 1000000006;
-CSD EPS = 1e-10;
+CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
+CSLL DX[] = {1, 0, -1, 0};
+CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
 
 #pragma endregion
 
 DEFINE_MOD(MOD);
 
-// clang-format on
+#include "leetcode.hpp"
 
-#pragma region "BFS"
-
-// 各頂点への距離を求める
-vll bfs(const vvll &edges, ll v) {
-    vll ans(edges.size(), -1);
-    ans[v] = 0;
-
-    queue<ll> q;
-    repi(i, edges[v]) {
-        if (ans[i] == -1) {
-            q.push(i);
-            ans[i] = ans[v] + 1;
-        }
-    }
-
-    while (true) {
-        repi(i, edges[v]) {
-            if (ans[i] == -1) {
-                q.push(i);
-                ans[i] = ans[v] + 1;
+class Solution {
+public:
+    int jump(vector<int> &nums) {
+        if (nums.size() == 1) return 0;
+        vector<int> best{0};
+        for (int i = 0; i < nums.size(); i++) {
+            int c = lower_bound(best.begin(), best.end(), i) - best.begin() + 1;
+            if (c >= best.size()) {
+                if (i + nums[i] <= best.back()) continue;
+                best.push_back(0);
             }
+            best[c] = max(best[c], i + nums[i]);
+            if (best[c] >= nums.size() - 1) return c;
         }
-        if (q.empty()) break;
-        v = q.front();
-        q.pop();
+        return 0;
     }
+};
 
-    return ans;
-}
-
-#pragma endregion
-
-void get_path(const vvll &edges, const vvll &dist, vector<vector<vector<usll>>> &path, ll start, ll goal) {
-    if (dist[start][goal] == 0) {
-        path[start][goal].pb({start});
-        return;
-    }
-    repi(i, edges[start]) {
-        if (dist[start][goal] == dist[i][goal] + 1) {
-            repi(s, path[i][goal]) {
-                auto cpy = s;
-                cpy.insert(start);
-                path[start][goal].pb(cpy);
-            }
-        }
-    }
-}
-
-bool calc(const vvll &edges) {
-    ll N = edges.size();
-    vvll dist;
-    rep(i, N) dist.pb(bfs(edges, i));
-    rep(i, N) rep(j, N) {
-        if (dist[i][j] == -1) return false;
-    }
-
-    map<ll, vpll> dist_dict;
-    rep(i, N) rep(j, N) {
-        dist_dict[dist[i][j]].eb(i, j);
-    }
-    vector<vector<vector<usll>>> path(N, vector<vector<usll>>(N));
-    repi(d, dist_dict) {
-        repi(p, d.second) get_path(edges, dist, path, p.first, p.second);
-    }
-
-    ll max_degree = 0;
-    rep(i, N) chmax(max_degree, (ll)edges[i].size());
-    usll max_degree_v;
-    rep(i, N) if (edges[i].size() == max_degree) max_degree_v.insert(i);
-
-    vd bs(N, 0);
-    rep(i, N) rep(j, i + 1, N) {
-        if (dist[i][j] < 2) continue;
-        repi(s, path[i][j]) {
-            repi(v, s) {
-                if (v == i || v == j) continue;
-                bs[v] += 1. / path[i][j].size();
-            }
-        }
-    }
-
-    double max_b = 0;
-    rep(i, N) chmax(max_b, bs[i]);
-    rep(i, N) {
-        if (abs(bs[i] - max_b) < EPS) {
-            if (max_degree_v.count(i)) return false;
-        }
-    }
-    return true;
-}
-
-int main() {
-    LL(N);
-    ll ecnt = N * (N - 1) / 2;
-    ll min_edges = LINF;
-    rep(i, 1LL << ecnt) {
-        // if (i == 0b111001000100001000011LL) {
-        //     ll j = 0;
-        // }
-        if (pcntll(i) >= min_edges) continue;
-        vvll edges(N, vll());
-        ll start = 0, goal = 1, mask = 1;
-        while (start < N - 1) {
-            if (i & mask) {
-                edges[start].pb(goal);
-                edges[goal].pb(start);
-            }
-            if (++goal == N) {
-                start++;
-                goal = start + 1;
-            }
-            mask <<= 1;
-        }
-        if (calc(edges)) {
-            min_edges = pcntll(i);
-            print("Found");
-            rep(i, N) repi(j, edges[i]) {
-                if (i < j) print(pll(i, j));
-            }
-        }
-    }
-
-    return 0;
+void solve() {
+    auto v = parse_vi("[2,0,8,0,3,4,7,5,6,1,0,0,5,9,7,5,3,6]");
+    Solution sol;
+    print(sol.jump(v));
 }

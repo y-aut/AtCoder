@@ -214,36 +214,56 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-void solve() {
-    LL(N);
-    VLL(A, N);
+ll K;
+
+ll big2big(pll s, pll t) {
+    s.first = llfloor(s.first, K);
+    s.second = llfloor(s.second, K);
+    t.first = llfloor(t.first, K);
+    t.second = llfloor(t.second, K);
 
     ll ans = 0;
-    rep(i, 1, N - 1) {
-        ll l = 0, r = 0;
-        ll v = -LINF;
-        rep(j, i + 1, N) {
-            if (A[j] >= A[i]) {
-                r = j;
-                break;
-            }
-            if (A[j] > v) {
-                v = A[j];
-                r = j;
-            }
-        }
-        v = -LINF;
-        repd(j, 0, i) {
-            if (A[j] >= A[i]) {
-                l = j;
-                break;
-            }
-            if (A[j] > v) {
-                v = A[j];
-                l = j;
-            }
-        }
-        chmax(ans, r - l);
+    auto m = min(abs(s.first - t.first), abs(s.second - t.second));
+    if (abs(s.first - t.first) != abs(s.second - t.second)) {
+        ans += min(4LL, K + 1) * abs(abs(s.first - t.first) - abs(s.second - t.second)) / 2;
     }
-    print(ans);
+    ans += m * 2;
+    return ans;
+}
+
+ll f(pll s, pll t) {
+    ll ans = abs(s.first - t.first) + abs(s.second - t.second);
+
+    if (K == 1) {
+        return ans;
+    }
+
+    bool ss = (llfloor(s.first, K) + llfloor(s.second, K)) % 2 == 0;
+    bool ts = (llfloor(t.first, K) + llfloor(t.second, K)) % 2 == 0;
+
+    if (ss) {
+        if (ts) {
+            chmin(ans, f(s, {t.first + K, t.second}) + K - (t.first % K));
+            chmin(ans, f(s, {t.first - K, t.second}) + (t.first % K) + 1);
+            chmin(ans, f(s, {t.first, t.second + K}) + K - (t.second % K));
+            chmin(ans, f(s, {t.first, t.second - K}) + (t.second % K) + 1);
+        } else {
+            chmin(ans, f({s.first + K, s.second}, t) + K - (s.first % K));
+            chmin(ans, f({s.first - K, s.second}, t) + (s.first % K) + 1);
+            chmin(ans, f({s.first, s.second + K}, t) + K - (s.second % K));
+            chmin(ans, f({s.first, s.second - K}, t) + (s.second % K) + 1);
+        }
+    } else if (ts) {
+        chmin(ans, f(t, s));
+    } else {
+        chmin(ans, big2big(s, t));
+    }
+    return ans;
+}
+
+void solve() {
+    K = in_ll();
+    auto S = in_pll();
+    auto T = in_pll();
+    print(f(S, T));
 }

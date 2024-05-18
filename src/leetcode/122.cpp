@@ -214,63 +214,16 @@ int main() {
 
 DEFINE_MOD(MOD);
 
+class Solution {
+public:
+    int maxProfit(vector<int> &prices) {
+        int ans = 0;
+        for (int i = 1; i < prices.size(); i++) {
+            ans += max(0, prices[i] - prices[i - 1]);
+        }
+        return ans;
+    }
+};
+
 void solve() {
-    LL(N);
-    VLL(A, N);
-
-    map<ll, vll> m;
-    vll bf(N, -1);
-    rep(i, N) {
-        auto upper = m.upper_bound(A[i]);
-        auto itr = upper;
-        while (itr != m.begin()) {
-            itr--;
-            repi(j, itr->second) bf[j] = i;
-        }
-        m.erase(m.begin(), upper);
-        m[A[i]].pb(i);
-    }
-    m.clear();
-    vll bb(N, -1);
-    repd(i, N) {
-        auto upper = m.upper_bound(A[i]);
-        auto itr = upper;
-        while (itr != m.begin()) {
-            itr--;
-            repi(j, itr->second) bb[j] = i;
-        }
-        m.erase(m.begin(), upper);
-        m[A[i]].pb(i);
-    }
-
-    vll rmax(N), lmax(N);
-    ll max_v = -LINF;
-    rep(i, N) {
-        if (A[i] >= max_v) {
-            rmax[i] = i;
-            max_v = A[i];
-        } else {
-            rmax[i] = rmax[i - 1];
-        }
-    }
-    max_v = -LINF;
-    repd(i, N) {
-        if (A[i] >= max_v) {
-            lmax[i] = i;
-            max_v = A[i];
-        } else {
-            lmax[i] = lmax[i + 1];
-        }
-    }
-
-    ll ans = 0;
-    rep(i, 1, N - 1) {
-        ll l, r;
-        if (bb[i] != -1) l = bb[i];
-        else l = rmax[i - 1];
-        if (bf[i] != -1) r = bf[i];
-        else r = lmax[i + 1];
-        chmax(ans, r - l);
-    }
-    print(ans);
 }

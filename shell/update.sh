@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # workspaceFolder
 args=(
     "-std=gnu++20"

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # [d|r], workspaceFolder, file, outFileName
 if [ "$1" == "d" ]; then
     args=(

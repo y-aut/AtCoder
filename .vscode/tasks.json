@@ -102,12 +102,40 @@
                 "${input:exeFile2}"
             ],
             "problemMatcher": []
-        }
+        },
+        {
+            "label": "copy leetcode template",
+            "type": "shell",
+            "command": "cp",
+            "args": [
+                "${workspaceFolder}/tpl/leetcode.cpp",
+                "${file}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "make leetcode file",
+            "type": "shell",
+            "command": "cp",
+            "args": [
+                "${workspaceFolder}/tpl/leetcode.cpp",
+                "src/leetcode/${input:fileName}.cpp",
+                "&&",
+                "code",
+                "src/leetcode/${input:fileName}.cpp",
+            ],
+            "problemMatcher": []
+        },
     ],
     "inputs": [
         {
             "id": "contestNum",
             "description": "コンテスト番号",
+            "type": "promptString"
+        },
+        {
+            "id": "fileName",
+            "description": "ファイル名",
             "type": "promptString"
         },
         {

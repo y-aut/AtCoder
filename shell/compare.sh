@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # workspaceFolder, exe1, exe2
 while true; do
     /usr/bin/python3 $1/tools/geninput.py >$1/in.txt
