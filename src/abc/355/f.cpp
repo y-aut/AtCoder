@@ -214,72 +214,95 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-ll f(ll N, ll M, const vvll &A) {
-    auto acc = A;
-    rep(i, N) rep(j, 1, N) acc[i][j] += acc[i][j - 1];
-    rep(j, N) rep(i, 1, N) acc[i][j] += acc[i - 1][j];
-    vvll sums(N - M + 1, vll(N - M + 1));
-    rep(i, N - M + 1) rep(j, N - M + 1) {
-        sums[i][j] = acc[i + M - 1][j + M - 1];
-        if (i) sums[i][j] -= acc[i - 1][j + M - 1];
-        if (j) sums[i][j] -= acc[i + M - 1][j - 1];
-        if (i && j) sums[i][j] += acc[i - 1][j - 1];
+struct mydsu {
+public:
+    mydsu() : _n(0) {}
+    explicit mydsu(int n) : _n(n), parent_or_size(n, -1) {}
+    mydsu(const mydsu &src) : _n(src._n), parent_or_size(src.parent_or_size) {}
+
+    int merge(int a, int b) {
+        assert(0 <= a && a < _n);
+        assert(0 <= b && b < _n);
+        int x = leader(a), y = leader(b);
+        if (x == y) return x;
+        if (-parent_or_size[x] < -parent_or_size[y]) std::swap(x, y);
+        parent_or_size[x] += parent_or_size[y];
+        parent_or_size[y] = x;
+        return x;
     }
-    auto topleft = sums, bottomleft = sums;
-    vll right(N - M + 1);
-    vvll left(N - M + 1);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(topleft[i][j], topleft[i][j - 1]);
-    rep(j, N - M + 1) rep(i, 1, N - M + 1) chmax(topleft[i][j], topleft[i - 1][j]);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(bottomleft[i][j], bottomleft[i][j - 1]);
-    rep(j, N - M + 1) repd(i, N - M) chmax(bottomleft[i][j], bottomleft[i + 1][j]);
-    rep(i, N - M + 1) rep(j, N - M + 1) chmax(right[j], sums[i][j]);
-    rep(j1, N - M + 1) {
-        ll cur = 0;
-        rep(j2, j1, N - M + 1) {
-            chmax(cur, right[j2]);
-            left[j1].pb(cur);
+
+    bool same(int a, int b) {
+        assert(0 <= a && a < _n);
+        assert(0 <= b && b < _n);
+        return leader(a) == leader(b);
+    }
+
+    int leader(int a) {
+        assert(0 <= a && a < _n);
+        if (parent_or_size[a] < 0) return a;
+        return parent_or_size[a] = leader(parent_or_size[a]);
+    }
+
+    int size(int a) {
+        assert(0 <= a && a < _n);
+        return -parent_or_size[leader(a)];
+    }
+
+    std::vector<std::vector<int>> groups() {
+        std::vector<int> leader_buf(_n), group_size(_n);
+        for (int i = 0; i < _n; i++) {
+            leader_buf[i] = leader(i);
+            group_size[leader_buf[i]]++;
         }
+        std::vector<std::vector<int>> result(_n);
+        for (int i = 0; i < _n; i++) {
+            result[i].reserve(group_size[i]);
+        }
+        for (int i = 0; i < _n; i++) {
+            result[leader_buf[i]].push_back(i);
+        }
+        result.erase(
+            std::remove_if(result.begin(), result.end(),
+                           [&](const std::vector<int> &v) { return v.empty(); }),
+            result.end());
+        return result;
     }
-    repd(j, N - M) chmax(right[j], right[j + 1]);
 
-    ll ans = 0;
-    rep(x, M, N - M + 1) rep(y, M, N - M + 1) {
-        chmax(ans, topleft[y - M][x - M] + bottomleft[y][x - M] + right[x]);
-    }
-    rep(x1, M, N - M + 1) rep(x2, x1 + M, N - M + 1) {
-        chmax(ans, left[0][x1 - M] + left[x1][x2 - x1 - M] + right[x2]);
-    }
-    return ans;
-}
-
-vvll rotate(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[j][A.size() - i - 1];
-    }
-    return ans;
-}
-
-vvll reflect(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[i][A.size() - j - 1];
-    }
-    return ans;
-}
+private:
+    int _n;
+    // root node: -1 * component size
+    // otherwise: parent
+    std::vector<int> parent_or_size;
+};
 
 void solve() {
-    LL(N, M);
-    VVLL(A, N, N);
-    ll ans = 0;
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
+    LL(N, Q);
+    VVLL(edges, N - 1, 3);
+    repi(i, edges) i[0]--, i[1]--, i[2]--;
+    vector<mydsu> ufs({mydsu(N)});
+    vvpll wedges(10);
+    repi(i, edges) wedges[i[2]].eb(i[0], i[1]);
+    ll weights = N - 1;
+    rep(w, 10) {
+        auto uf = ufs.back();
+        repi(i, wedges[w]) {
+            uf.merge(i.first, i.second);
+            weights += w;
+        }
+        ufs.push_back(uf);
     }
-    A = reflect(A);
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
+
+    rep(q, Q) {
+        LL(u, v, w);
+        u--, v--, w--;
+        auto wg = 0;
+        repd(i, 10) {
+            if (!ufs[i].same(u, v)) BREAK(wg = i);
+        }
+        if (wg > w) {
+            rrep(i, w + 1, wg) ufs[i].merge(u, v);
+            weights -= wg - w;
+        }
+        print(weights);
     }
-    print(ans);
 }

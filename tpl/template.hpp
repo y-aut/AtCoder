@@ -8,7 +8,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;

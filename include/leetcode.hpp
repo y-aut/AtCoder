@@ -49,6 +49,7 @@ vs split_with_parenthesis(const string &s, char delim) {
 
 vi parse_vi(const string &s) {
     vi ans;
+    if (s.size() == 2) return ans;
     repi(i, split(s.substr(1, s.size() - 2), ',')) {
         ans.pb(stoi(i));
     }
@@ -57,8 +58,10 @@ vi parse_vi(const string &s) {
 
 vvi parse_vvi(const string &s) {
     vvi ans;
+    if (s.size() == 2) return ans;
     repi(i, split_with_parenthesis(s.substr(1, s.size() - 2), ',')) {
         ans.pb(vi());
+        if (i.size() == 2) continue;
         repi(j, split(i.substr(1, i.size() - 2), ',')) {
             ans.back().pb(stoi(j));
         }

@@ -212,74 +212,31 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
-
-ll f(ll N, ll M, const vvll &A) {
-    auto acc = A;
-    rep(i, N) rep(j, 1, N) acc[i][j] += acc[i][j - 1];
-    rep(j, N) rep(i, 1, N) acc[i][j] += acc[i - 1][j];
-    vvll sums(N - M + 1, vll(N - M + 1));
-    rep(i, N - M + 1) rep(j, N - M + 1) {
-        sums[i][j] = acc[i + M - 1][j + M - 1];
-        if (i) sums[i][j] -= acc[i - 1][j + M - 1];
-        if (j) sums[i][j] -= acc[i + M - 1][j - 1];
-        if (i && j) sums[i][j] += acc[i - 1][j - 1];
-    }
-    auto topleft = sums, bottomleft = sums;
-    vll right(N - M + 1);
-    vvll left(N - M + 1);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(topleft[i][j], topleft[i][j - 1]);
-    rep(j, N - M + 1) rep(i, 1, N - M + 1) chmax(topleft[i][j], topleft[i - 1][j]);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(bottomleft[i][j], bottomleft[i][j - 1]);
-    rep(j, N - M + 1) repd(i, N - M) chmax(bottomleft[i][j], bottomleft[i + 1][j]);
-    rep(i, N - M + 1) rep(j, N - M + 1) chmax(right[j], sums[i][j]);
-    rep(j1, N - M + 1) {
-        ll cur = 0;
-        rep(j2, j1, N - M + 1) {
-            chmax(cur, right[j2]);
-            left[j1].pb(cur);
-        }
-    }
-    repd(j, N - M) chmax(right[j], right[j + 1]);
-
-    ll ans = 0;
-    rep(x, M, N - M + 1) rep(y, M, N - M + 1) {
-        chmax(ans, topleft[y - M][x - M] + bottomleft[y][x - M] + right[x]);
-    }
-    rep(x1, M, N - M + 1) rep(x2, x1 + M, N - M + 1) {
-        chmax(ans, left[0][x1 - M] + left[x1][x2 - x1 - M] + right[x2]);
-    }
-    return ans;
-}
-
-vvll rotate(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[j][A.size() - i - 1];
-    }
-    return ans;
-}
-
-vvll reflect(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[i][A.size() - j - 1];
-    }
-    return ans;
-}
+DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    VVLL(A, N, N);
-    ll ans = 0;
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
+    LL(N);
+    VLL(A, N);
+
+    auto f = [&](auto rc, ll l, ll r) {
+        if (l + 1 == r) {
+            return vm{1, A[l]};
+        }
+        ll mid = (l + r) / 2;
+        return convolution(rc(rc, l, mid), rc(rc, mid, r));
+    };
+
+    mint total = 0;
+    repi(i, A) total += i;
+
+    auto fn = f(f, 0, N);
+    vm binom(N + 1);
+    binom[0] = 1;
+    rep(i, N) {
+        binom[i + 1] = binom[i] * (total - i) / (i + 1);
     }
-    A = reflect(A);
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
-    }
+
+    mint ans = 0;
+    rep(i, N + 1) ans += fn[i] / binom[i];
     print(ans);
 }

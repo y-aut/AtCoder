@@ -214,72 +214,46 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-ll f(ll N, ll M, const vvll &A) {
-    auto acc = A;
-    rep(i, N) rep(j, 1, N) acc[i][j] += acc[i][j - 1];
-    rep(j, N) rep(i, 1, N) acc[i][j] += acc[i - 1][j];
-    vvll sums(N - M + 1, vll(N - M + 1));
-    rep(i, N - M + 1) rep(j, N - M + 1) {
-        sums[i][j] = acc[i + M - 1][j + M - 1];
-        if (i) sums[i][j] -= acc[i - 1][j + M - 1];
-        if (j) sums[i][j] -= acc[i + M - 1][j - 1];
-        if (i && j) sums[i][j] += acc[i - 1][j - 1];
-    }
-    auto topleft = sums, bottomleft = sums;
-    vll right(N - M + 1);
-    vvll left(N - M + 1);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(topleft[i][j], topleft[i][j - 1]);
-    rep(j, N - M + 1) rep(i, 1, N - M + 1) chmax(topleft[i][j], topleft[i - 1][j]);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(bottomleft[i][j], bottomleft[i][j - 1]);
-    rep(j, N - M + 1) repd(i, N - M) chmax(bottomleft[i][j], bottomleft[i + 1][j]);
-    rep(i, N - M + 1) rep(j, N - M + 1) chmax(right[j], sums[i][j]);
-    rep(j1, N - M + 1) {
-        ll cur = 0;
-        rep(j2, j1, N - M + 1) {
-            chmax(cur, right[j2]);
-            left[j1].pb(cur);
+ll N;
+vpll AB;
+um<ll, vll> as, bs;
+
+vi mem;
+bool f(ll bits, bool turn) {
+    if (mem[bits] != -1) return mem[bits];
+    rep(i, N) {
+        if ((bits & (1 << i)) == 0) continue;
+        repi(j, as[AB[i].first]) {
+            if ((bits & (1 << j)) == 0) continue;
+            if (i == j) continue;
+            ll newb = bits ^ (1 << i) ^ (1 << j);
+            if (f(newb, !turn) == turn) {
+                return mem[bits] = turn;
+            }
+        }
+        repi(j, bs[AB[i].second]) {
+            if ((bits & (1 << j)) == 0) continue;
+            if (i == j) continue;
+            ll newb = bits ^ (1 << i) ^ (1 << j);
+            if (f(newb, !turn) == turn) {
+                return mem[bits] = turn;
+            }
         }
     }
-    repd(j, N - M) chmax(right[j], right[j + 1]);
-
-    ll ans = 0;
-    rep(x, M, N - M + 1) rep(y, M, N - M + 1) {
-        chmax(ans, topleft[y - M][x - M] + bottomleft[y][x - M] + right[x]);
-    }
-    rep(x1, M, N - M + 1) rep(x2, x1 + M, N - M + 1) {
-        chmax(ans, left[0][x1 - M] + left[x1][x2 - x1 - M] + right[x2]);
-    }
-    return ans;
-}
-
-vvll rotate(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[j][A.size() - i - 1];
-    }
-    return ans;
-}
-
-vvll reflect(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[i][A.size() - j - 1];
-    }
-    return ans;
+    return mem[bits] = !turn;
 }
 
 void solve() {
-    LL(N, M);
-    VVLL(A, N, N);
-    ll ans = 0;
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
+    N = in_ll();
+    AB = in_vpll(N);
+    rep(i, N) {
+        as[AB[i].first].pb(i);
+        bs[AB[i].second].pb(i);
     }
-    A = reflect(A);
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
+    mem.assign(1 << N, -1);
+    if (f((1 << N) - 1, true)) {
+        print("Takahashi");
+    } else {
+        print("Aoki");
     }
-    print(ans);
 }

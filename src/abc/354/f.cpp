@@ -214,72 +214,49 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-ll f(ll N, ll M, const vvll &A) {
-    auto acc = A;
-    rep(i, N) rep(j, 1, N) acc[i][j] += acc[i][j - 1];
-    rep(j, N) rep(i, 1, N) acc[i][j] += acc[i - 1][j];
-    vvll sums(N - M + 1, vll(N - M + 1));
-    rep(i, N - M + 1) rep(j, N - M + 1) {
-        sums[i][j] = acc[i + M - 1][j + M - 1];
-        if (i) sums[i][j] -= acc[i - 1][j + M - 1];
-        if (j) sums[i][j] -= acc[i + M - 1][j - 1];
-        if (i && j) sums[i][j] += acc[i - 1][j - 1];
-    }
-    auto topleft = sums, bottomleft = sums;
-    vll right(N - M + 1);
-    vvll left(N - M + 1);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(topleft[i][j], topleft[i][j - 1]);
-    rep(j, N - M + 1) rep(i, 1, N - M + 1) chmax(topleft[i][j], topleft[i - 1][j]);
-    rep(i, N - M + 1) rep(j, 1, N - M + 1) chmax(bottomleft[i][j], bottomleft[i][j - 1]);
-    rep(j, N - M + 1) repd(i, N - M) chmax(bottomleft[i][j], bottomleft[i + 1][j]);
-    rep(i, N - M + 1) rep(j, N - M + 1) chmax(right[j], sums[i][j]);
-    rep(j1, N - M + 1) {
-        ll cur = 0;
-        rep(j2, j1, N - M + 1) {
-            chmax(cur, right[j2]);
-            left[j1].pb(cur);
-        }
-    }
-    repd(j, N - M) chmax(right[j], right[j + 1]);
-
-    ll ans = 0;
-    rep(x, M, N - M + 1) rep(y, M, N - M + 1) {
-        chmax(ans, topleft[y - M][x - M] + bottomleft[y][x - M] + right[x]);
-    }
-    rep(x1, M, N - M + 1) rep(x2, x1 + M, N - M + 1) {
-        chmax(ans, left[0][x1 - M] + left[x1][x2 - x1 - M] + right[x2]);
-    }
-    return ans;
-}
-
-vvll rotate(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[j][A.size() - i - 1];
-    }
-    return ans;
-}
-
-vvll reflect(const vvll &A) {
-    vvll ans(A.size(), vll(A.size()));
-    rep(i, A.size()) rep(j, A.size()) {
-        ans[i][j] = A[i][A.size() - j - 1];
-    }
-    return ans;
-}
-
 void solve() {
-    LL(N, M);
-    VVLL(A, N, N);
-    ll ans = 0;
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
+    LL(T);
+    rep(t, T) {
+        LL(N);
+        VLL(A, N);
+        ll row = 0;
+        vll col_min;
+        vector<map<ll, ll>> col;
+        col.pb(map<ll, ll>());
+        col[0][0] = 0;
+        col_min.pb(A[0]);
+        rep(i, 1, N) {
+            if (A[i] > col_min.back()) {
+                col_min.pb(A[i]);
+                col.pb(map<ll, ll>());
+                col.back()[row] = i;
+            } else {
+                auto pos = lower_bound(all(col_min), A[i]) - col_min.begin();
+                col_min[pos] = A[i];
+                col[pos][++row] = i;
+            }
+        }
+        set<ll> ans;
+        repi(i, col.back()) ans.insert(i.second);
+        repd(i, 1, col.size()) {
+            auto last = col[i].end();
+            while (last != col[i].begin()) {
+                last = prev(last);
+                if (!ans.count(last->second)) continue;
+                auto next = (last == col[i].begin() || !ans.count(prev(last)->second)) ? -1 : prev(last)->first;
+                auto itr = col[i - 1].upper_bound(last->first);
+                while (itr != col[i - 1].begin()) {
+                    itr = prev(itr);
+                    if (itr->first <= next) break;
+                    if (A[itr->second] < A[last->second]) {
+                        ans.insert(itr->second);
+                    }
+                }
+            }
+        }
+        vll ans_v;
+        repi(i, ans) ans_v.pb(i + 1);
+        print(ans_v.size());
+        print(ans_v);
     }
-    A = reflect(A);
-    rep(i, 4) {
-        A = rotate(A);
-        chmax(ans, f(N, M, A));
-    }
-    print(ans);
 }
