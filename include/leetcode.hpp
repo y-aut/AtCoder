@@ -2,6 +2,9 @@
 #include "template.hpp"
 #endif
 
+#define LVI(a) auto a = in_lvi()
+#define LVVI(a) auto a = in_lvvi()
+
 pair<string, string> parenthesis{"({[", ")}]"};
 
 vs split(const string &s, char delim) {
@@ -67,4 +70,12 @@ vvi parse_vvi(const string &s) {
         }
     }
     return ans;
+}
+
+vi in_lvi() {
+    return parse_vi(in_str());
+}
+
+vvi in_lvvi() {
+    return parse_vvi(in_str());
 }
