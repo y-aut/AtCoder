@@ -13,7 +13,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
@@ -214,30 +216,22 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-ll calc(ll N, const vs &c, char ch, pll start, pll goal) {
-    vvll dist(N, vll(N, -1));
-    dist[start.first][start.second] = 0;
-    auto lambda = [&](const pll a, const pll b) {
-        return dist[a.first][a.second] > dist[b.first][b.second];
-    };
-    priority_queue<pll, vpll, decltype(lambda)> q(lambda);
-    q.push(start);
-    while (!q.empty()) {
-        auto v = q.top();
-        q.pop();
-        rep(i, 4) {
-            auto ny = v.first + DY[i], nx = v.second + DX[i];
-            if (!(0 <= ny && ny < N && 0 <= nx && nx < N)) continue;
-            if (dist[ny][nx] != -1) continue;
-            dist[ny][nx] = dist[v.first][v.second] + (c[v.first][v.second] != ch) + (c[ny][nx] != ch);
-            q.push({ny, nx});
-        }
+void f(ll l, ll r, ll a, ll b, vpll &ans) {
+    if (b <= l || r <= a) return;
+    if (a <= l && r <= b) {
+        ans.eb(l, r);
+        return;
     }
-    return dist[goal.first][goal.second] / 2;
+    f(l, (l + r) / 2, a, b, ans);
+    f((l + r) / 2, r, a, b, ans);
 }
 
 void solve() {
-    LL(N);
-    VS(c, N);
-    print(calc(N, c, 'R', {0, 0}, {N - 1, N - 1}) + calc(N, c, 'B', {0, N - 1}, {N - 1, 0}));
+    LL(L, R);
+    ll n = 1;
+    while (n < R) n <<= 1;
+    vpll ans;
+    f(0, n, L, R, ans);
+    print(ans.size());
+    print(ans);
 }

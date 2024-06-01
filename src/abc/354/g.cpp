@@ -13,7 +13,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
@@ -214,5 +216,34 @@ int main() {
 
 DEFINE_MOD(MOD);
 
+inline bool check(const string &s, const string &t) {
+    return s.find(t) != string::npos;
+}
+
 void solve() {
+    LL(N);
+    VS(S, N);
+    VLL(A, N);
+
+    um<string, ll> s;
+    rep(i, N) chmax(s[S[i]], A[i]);
+
+    N = s.size();
+    S.clear();
+    A.clear();
+    repi(i, s) S.pb(i.first), A.pb(i.second);
+
+    mf_graph<ll> graph(N * 2 + 2);
+    rep(i, N) rep(j, N) {
+        if (i == j) continue;
+        if (check(S[i], S[j])) {
+            graph.add_edge(i, N + j, INF);
+        }
+    }
+    rep(i, N) {
+        graph.add_edge(N * 2, i, A[i]);
+        graph.add_edge(N + i, N * 2 + 1, A[i]);
+    }
+    ll ans = accumulate(all(A), 0LL) - graph.flow(N * 2, N * 2 + 1);
+    print(ans);
 }

@@ -13,7 +13,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
@@ -214,30 +216,41 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-ll calc(ll N, const vs &c, char ch, pll start, pll goal) {
-    vvll dist(N, vll(N, -1));
-    dist[start.first][start.second] = 0;
-    auto lambda = [&](const pll a, const pll b) {
-        return dist[a.first][a.second] > dist[b.first][b.second];
-    };
-    priority_queue<pll, vpll, decltype(lambda)> q(lambda);
-    q.push(start);
-    while (!q.empty()) {
-        auto v = q.top();
-        q.pop();
-        rep(i, 4) {
-            auto ny = v.first + DY[i], nx = v.second + DX[i];
-            if (!(0 <= ny && ny < N && 0 <= nx && nx < N)) continue;
-            if (dist[ny][nx] != -1) continue;
-            dist[ny][nx] = dist[v.first][v.second] + (c[v.first][v.second] != ch) + (c[ny][nx] != ch);
-            q.push({ny, nx});
-        }
+pll f(const vll &A, ll c) {
+    ll N = A.size() + 1;
+    vpll dp;
+    if (A[0] - c >= 0) {
+        dp.eb(A[0] - c, 1);
+    } else {
+        dp.eb(0, 0);
     }
-    return dist[goal.first][goal.second] / 2;
+    rep(i, 1, N - 1) {
+        auto cur = dp.back();
+        pll pre{0, 0};
+        if (i >= 2) pre = dp[i - 2];
+        ll v = pre.first + A[i] + A[i - 1] - c;
+        if (v >= cur.first) {
+            cur.first = v;
+            cur.second = pre.second + 1;
+        }
+        dp.pb(cur);
+    }
+    return dp.back();
 }
 
 void solve() {
-    LL(N);
-    VS(c, N);
-    print(calc(N, c, 'R', {0, 0}, {N - 1, N - 1}) + calc(N, c, 'B', {0, N - 1}, {N - 1, 0}));
+    LL(N, R);
+    VLL(A, N - 1);
+    chmin(R, N - R);
+
+    // Alien DP
+    ll lower = -LINF, upper = LINF;
+    while (lower + 1 < upper) {
+        ll mid = (lower + upper) / 2;
+        ll k = f(A, mid).second;
+        if (k < R) upper = mid;
+        else lower = mid;
+    }
+    auto res = f(A, lower);
+    print(res.first + R * lower);
 }

@@ -13,7 +13,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
@@ -214,30 +216,47 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-ll calc(ll N, const vs &c, char ch, pll start, pll goal) {
-    vvll dist(N, vll(N, -1));
-    dist[start.first][start.second] = 0;
-    auto lambda = [&](const pll a, const pll b) {
-        return dist[a.first][a.second] > dist[b.first][b.second];
-    };
-    priority_queue<pll, vpll, decltype(lambda)> q(lambda);
-    q.push(start);
-    while (!q.empty()) {
-        auto v = q.top();
-        q.pop();
-        rep(i, 4) {
-            auto ny = v.first + DY[i], nx = v.second + DX[i];
-            if (!(0 <= ny && ny < N && 0 <= nx && nx < N)) continue;
-            if (dist[ny][nx] != -1) continue;
-            dist[ny][nx] = dist[v.first][v.second] + (c[v.first][v.second] != ch) + (c[ny][nx] != ch);
-            q.push({ny, nx});
-        }
+using mint1 = static_modint<MOD>;
+using mint2 = static_modint<MOD2>;
+
+struct HashPair {
+    size_t operator()(const pair<mint1, mint2> &p) const {
+        return (ull)p.first.val() << 32 | p.second.val();
     }
-    return dist[goal.first][goal.second] / 2;
-}
+};
 
 void solve() {
+    ll base = rand();
     LL(N);
-    VS(c, N);
-    print(calc(N, c, 'R', {0, 0}, {N - 1, N - 1}) + calc(N, c, 'B', {0, N - 1}, {N - 1, 0}));
+    STR(S);
+    ll ans = 0;
+    rrep(i, llceil(N, 2)) {
+        um<pair<mint1, mint2>, ll, HashPair> m;
+        mint1 hash1 = 0, fact1 = 1;
+        mint2 hash2 = 0, fact2 = 1;
+        repd(j, i) {
+            hash1 += S[j] * fact1;
+            fact1 *= base;
+            hash2 += S[j] * fact2;
+            fact2 *= base;
+        }
+        m[{hash1, hash2}] = 0;
+        rep(j, 1, N - i + 1) {
+            hash1 *= base;
+            hash1 += S[j + i - 1] - S[j - 1] * fact1;
+            hash2 *= base;
+            hash2 += S[j + i - 1] - S[j - 1] * fact2;
+            auto itr = m.find({hash1, hash2});
+            if (itr != m.end()) {
+                if (itr->second <= j - i) {
+                    ans = i;
+                    break;
+                }
+            } else {
+                m[{hash1, hash2}] = j;
+            }
+        }
+        if (ans < i) break;
+    }
+    print(ans);
 }

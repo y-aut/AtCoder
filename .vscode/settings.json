@@ -109,7 +109,8 @@
         "__verbose_abort": "cpp",
         "ios": "cpp",
         "locale": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "__memory": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"

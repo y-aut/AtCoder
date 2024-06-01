@@ -13,7 +13,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
@@ -212,32 +214,54 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
-
-ll calc(ll N, const vs &c, char ch, pll start, pll goal) {
-    vvll dist(N, vll(N, -1));
-    dist[start.first][start.second] = 0;
-    auto lambda = [&](const pll a, const pll b) {
-        return dist[a.first][a.second] > dist[b.first][b.second];
-    };
-    priority_queue<pll, vpll, decltype(lambda)> q(lambda);
-    q.push(start);
-    while (!q.empty()) {
-        auto v = q.top();
-        q.pop();
-        rep(i, 4) {
-            auto ny = v.first + DY[i], nx = v.second + DX[i];
-            if (!(0 <= ny && ny < N && 0 <= nx && nx < N)) continue;
-            if (dist[ny][nx] != -1) continue;
-            dist[ny][nx] = dist[v.first][v.second] + (c[v.first][v.second] != ch) + (c[ny][nx] != ch);
-            q.push({ny, nx});
-        }
-    }
-    return dist[goal.first][goal.second] / 2;
-}
+DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N);
-    VS(c, N);
-    print(calc(N, c, 'R', {0, 0}, {N - 1, N - 1}) + calc(N, c, 'B', {0, N - 1}, {N - 1, 0}));
+    LL(N, M);
+    VLL(A, N);
+    vll B;
+    repi(i, A) if (M % i == 0) B.pb(M / i);
+    N = B.size();
+    vll primes;
+    {
+        ll tmp = M;
+        if (tmp % 2 == 0) {
+            primes.pb(2);
+            while (tmp % 2 == 0) tmp >>= 1;
+        }
+        for (ll i = 3; i * i <= tmp && tmp > 1; i += 2) {
+            if (tmp % i == 0) {
+                primes.pb(i);
+                while (tmp % i == 0) tmp /= i;
+            }
+        }
+        if (tmp > 1) {
+            primes.pb(tmp);
+        }
+    }
+    vll cnt(1LL << primes.size());
+    repi(i, B) {
+        ll m = 0;
+        rep(j, primes.size()) {
+            if (i % primes[j]) m |= 1LL << j;
+        }
+        cnt[m]++;
+    }
+    for (ll j = 0, mask = 1; j < primes.size(); j++, mask <<= 1) {
+        rep(i, 1LL << primes.size()) {
+            if (i & mask) {
+                cnt[i] += cnt[i ^ mask];
+            }
+        }
+    }
+    vm h(1LL << primes.size());
+    rep(i, 1LL << primes.size()) h[i] = mint(2).pow(cnt[i]) - 1;
+    for (ll j = 0, mask = 1; j < primes.size(); j++, mask <<= 1) {
+        rep(i, 1LL << primes.size()) {
+            if (i & mask) {
+                h[i] -= h[i ^ mask];
+            }
+        }
+    }
+    print(h.back());
 }

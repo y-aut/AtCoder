@@ -44,6 +44,8 @@ else
         "-fconstexpr-loop-limit=2147483647"
         "-fconstexpr-ops-limit=2147483647"
         "-I$2/ac-library"
+        "-I$2/include"
+        "-I$2/tpl"
         "-o"
         "$2/$4"
         "$3"

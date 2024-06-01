@@ -13,7 +13,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
@@ -214,30 +216,40 @@ int main() {
 
 DEFINE_MOD(MOD);
 
-ll calc(ll N, const vs &c, char ch, pll start, pll goal) {
-    vvll dist(N, vll(N, -1));
-    dist[start.first][start.second] = 0;
-    auto lambda = [&](const pll a, const pll b) {
-        return dist[a.first][a.second] > dist[b.first][b.second];
-    };
-    priority_queue<pll, vpll, decltype(lambda)> q(lambda);
-    q.push(start);
-    while (!q.empty()) {
-        auto v = q.top();
-        q.pop();
-        rep(i, 4) {
-            auto ny = v.first + DY[i], nx = v.second + DX[i];
-            if (!(0 <= ny && ny < N && 0 <= nx && nx < N)) continue;
-            if (dist[ny][nx] != -1) continue;
-            dist[ny][nx] = dist[v.first][v.second] + (c[v.first][v.second] != ch) + (c[ny][nx] != ch);
-            q.push({ny, nx});
+bool dfs(const vvll &A, vvll &used, ll dif, ll turn) {
+    if (turn == 9) return dif > 0;
+    rep(i, 3) {
+        if (used[i][0] && used[i][0] == used[i][1] && used[i][1] == used[i][2]) {
+            return false;
+        }
+        if (used[0][i] && used[0][i] == used[1][i] && used[1][i] == used[2][i]) {
+            return false;
         }
     }
-    return dist[goal.first][goal.second] / 2;
+    if (used[0][0] && used[0][0] == used[1][1] && used[1][1] == used[2][2]) {
+        return false;
+    }
+    if (used[0][2] && used[0][2] == used[1][1] && used[1][1] == used[2][0]) {
+        return false;
+    }
+    rep(i, 3) rep(j, 3) {
+        if (used[i][j]) continue;
+        used[i][j] = turn % 2 == 0 ? 1 : -1;
+        if (!dfs(A, used, -dif - A[i][j], turn + 1)) {
+            used[i][j] = 0;
+            return true;
+        }
+        used[i][j] = false;
+    }
+    return false;
 }
 
 void solve() {
-    LL(N);
-    VS(c, N);
-    print(calc(N, c, 'R', {0, 0}, {N - 1, N - 1}) + calc(N, c, 'B', {0, N - 1}, {N - 1, 0}));
+    VVLL(A, 3, 3);
+    vvll used(3, vll(3));
+    if (dfs(A, used, 0, 0)) {
+        print("Takahashi");
+    } else {
+        print("Aoki");
+    }
 }

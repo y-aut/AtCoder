@@ -100,11 +100,13 @@ using umll = um<ll, ll>;
 #define REPD1(i, n) REPD2(i, 0, n)
 #define RREPD2(i, a, n) for (ll i = (ll)(n); i >= (ll)(a); i--)
 #define RREPD1(i, n) RREPD2(i, 1, n)
+#define REPI1(a, v) for (auto&& a : (v))
+#define REPI2(a, b, v) for (auto&& [a, b] : (v))
 #define rep(...) OVERLOAD3(__VA_ARGS__, REP2, REP1)(__VA_ARGS__)
 #define rrep(...) OVERLOAD3(__VA_ARGS__, RREP2, RREP1)(__VA_ARGS__)
 #define repd(...) OVERLOAD3(__VA_ARGS__, REPD2, REPD1)(__VA_ARGS__)
 #define rrepd(...) OVERLOAD3(__VA_ARGS__, RREPD2, RREPD1)(__VA_ARGS__)
-#define repi(a, v) for (auto&& a : (v))
+#define repi(...) OVERLOAD3(__VA_ARGS__, REPI2, REPI1)(__VA_ARGS__)
 
 /* control */
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
@@ -158,6 +160,13 @@ template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
+
+// hash
+template <typename T> struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
+template <> struct Hasher<pii> { ull operator()(const pii &v) const { return (ull)v.first << 32 | (ull)v.second; } };
+template <> struct Hasher<pll> { ull operator()(const pll &v) const { return (ull)v.first << 32 | (ull)v.second; } };
+template <typename S> using ush = us<S, Hasher<S>>;
+template <typename S, typename T> using umh = um<S, T, Hasher<S>>;
 
 // print
 template <typename T> inline void print(const T &v, string end = "\n") { cout << v << end; }
