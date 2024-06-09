@@ -25,6 +25,12 @@ template <typename T, typename S, typename U, typename V>
 inline void dprint(ll line, string name, const map<T, S, U, V> &v);
 template <typename T, typename S, typename U, typename V, typename W>
 inline void dprint(ll line, string name, const um<T, S, U, V, W> &v);
+template <class T>
+inline void dprint(ll line, string name, const fenwick_tree<T> &v, ll n);
+template <class S, auto op, auto e>
+inline void dprint(ll line, string name, const segtree<S, op, e> &v, ll n);
+template <class S, auto op, auto e, class F, auto mapping, auto composition, auto id>
+inline void dprint(ll line, string name, lazy_segtree<S, op, e, F, mapping, composition, id> &v, ll n);
 
 template <typename T>
 inline void dprint(ll line, string name, const T &v) {
@@ -67,6 +73,27 @@ template <typename T, typename S, typename U, typename V, typename W>
 inline void dprint(ll line, string name, const um<T, S, U, V, W> &v) {
     if (v.empty()) dprint(line, name, "empty");
     else repi(i, v) dprint(line, name + "[" + to_str(i.first) + "]", i.second);
+}
+
+template <class T>
+inline void dprint(ll line, string name, fenwick_tree<T> &v, ll n) {
+    vector<T> vc;
+    rep(i, n) vc.pb(v.sum(i, i + 1));
+    dprint(line, name, vc);
+}
+
+template <class S, auto op, auto e>
+inline void dprint(ll line, string name, const segtree<S, op, e> &v, ll n) {
+    vector<S> vc;
+    rep(i, n) vc.pb(v.get(i));
+    dprint(line, name, vc);
+}
+
+template <class S, auto op, auto e, class F, auto mapping, auto composition, auto id>
+inline void dprint(ll line, string name, lazy_segtree<S, op, e, F, mapping, composition, id> &v, ll n) {
+    vector<S> vc;
+    rep(i, n) vc.pb(v.get(i));
+    dprint(line, name, vc);
 }
 
 template <typename T, typename... Rest>

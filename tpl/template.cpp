@@ -17,7 +17,7 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
 
 void solve() {
 }
