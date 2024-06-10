@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -176,10 +181,10 @@ template <typename T, typename S> inline void print(const pair<T, S> &v, string 
     { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline void print(const T &begin, const T &end, string sep = " ")
-    { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
-template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
+template <typename T> inline void print(const vector<T> &v, string sep = " ")
+    { rep(i, v.size()) print(v[i], i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const set<T> &v, string sep = " ")
+    { repi(i, v) print(i, i != *prev(v.end()) ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
 
 #define YES print("YES")
@@ -205,3 +210,24 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+void solve() {
+    LL(N, M);
+    VM(a, N);
+    VM(b, M);
+    print(convolution(a, b));
+}

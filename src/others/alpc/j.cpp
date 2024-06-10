@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -56,9 +61,7 @@ using umll = um<ll, ll>;
     using mint = static_modint<v>;  \
     using vm = vector<mint>;        \
     using vvm = vector<vm>;         \
-    using pmm = pair<mint, mint>;   \
-    inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
-    inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
+    using pmm = pair<mint, mint>
 
 /* extract params */
 #define HEAD_NAME(x, ...) #x
@@ -85,7 +88,6 @@ using umll = um<ll, ll>;
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
 #define VMLL(a, b) auto a = in_vmll(b)
-#define VM(a, b) auto a = in_vm(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
 #define VS(a, b) auto a = in_vs(b)
@@ -93,7 +95,6 @@ using umll = um<ll, ll>;
 #define VPLL(a, b) auto a = in_vpll(b)
 #define VVI(a, h, w) auto a = in_vvi(h, w)
 #define VVLL(a, h, w) auto a = in_vvll(h, w)
-#define VVM(a, h, w) auto a = in_vvm(h, w)
 
 /* REP macro */
 #define REP2(i, a, n) for (ll i = (ll)(a); i < (ll)(n); i++)
@@ -133,10 +134,14 @@ inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); ret
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
-inline vpii in_vpii(int height) { vpii res; rep(i, height) res.pb(in_pii()); return res; }
-inline vpll in_vpll(int height) { vpll res; rep(i, height) res.pb(in_pll()); return res; }
-inline vvi in_vvi(int height, int width) { vvi res; rep(i, height) res.pb(in_vi(width)); return res; }
-inline vvll in_vvll(int height, int width) { vvll res; rep(i, height) res.pb(in_vll(width)); return res; }
+inline vpii in_vpii(int height)
+    { vpii res; rep(i, height) { pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp); } return res; }
+inline vpll in_vpll(int height)
+    { vpll res; rep(i, height) { pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp); } return res; }
+inline vvi in_vvi(int height, int width)
+    { vvi res; rep(i, height) { vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp); } return res; }
+inline vvll in_vvll(int height, int width)
+    { vvll res; rep(i, height) { vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp); } return res; }
 template <bool bidir> inline vvll in_edges(int N, int height)
     { vvll res(N, vll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
     res[a].pb(b); if (bidir) res[b].pb(a); } return res; }
@@ -176,10 +181,10 @@ template <typename T, typename S> inline void print(const pair<T, S> &v, string 
     { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline void print(const T &begin, const T &end, string sep = " ")
-    { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
-template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
+template <typename T> inline void print(const vector<T> &v, string sep = " ")
+    { rep(i, v.size()) print(v[i], i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const set<T> &v, string sep = " ")
+    { repi(i, v) print(i, i != *prev(v.end()) ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
 
 #define YES print("YES")
@@ -205,3 +210,40 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+ll op(ll a, ll b) { return max(a, b); }
+ll e() { return -LINF; }
+
+void solve() {
+    LL(N, Q);
+    VLL(A, N);
+    segtree<ll, op, e> tree(A);
+    rep(q, Q) {
+        LL(T, a, b);
+        a--;
+        if (T == 1) {
+            tree.set(a, b);
+        } else if (T == 2) {
+            print(tree.prod(a, b));
+        } else {
+            auto f = [&](ll x) -> bool {
+                return x < b;
+            };
+            print(tree.max_right(a, f) + 1);
+        }
+    }
+}
