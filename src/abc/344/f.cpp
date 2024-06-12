@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -100,13 +105,11 @@ using umll = um<ll, ll>;
 #define REPD1(i, n) REPD2(i, 0, n)
 #define RREPD2(i, a, n) for (ll i = (ll)(n); i >= (ll)(a); i--)
 #define RREPD1(i, n) RREPD2(i, 1, n)
-#define REPI1(a, v) for (auto&& a : (v))
-#define REPI2(a, b, v) for (auto&& [a, b] : (v))
 #define rep(...) OVERLOAD3(__VA_ARGS__, REP2, REP1)(__VA_ARGS__)
 #define rrep(...) OVERLOAD3(__VA_ARGS__, RREP2, RREP1)(__VA_ARGS__)
 #define repd(...) OVERLOAD3(__VA_ARGS__, REPD2, REPD1)(__VA_ARGS__)
 #define rrepd(...) OVERLOAD3(__VA_ARGS__, RREPD2, RREPD1)(__VA_ARGS__)
-#define repi(...) OVERLOAD3(__VA_ARGS__, REPI2, REPI1)(__VA_ARGS__)
+#define repi(a, v) for (auto&& a : (v))
 
 /* control */
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
@@ -161,13 +164,6 @@ inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 
-// hash
-template <typename T> struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
-template <> struct Hasher<pii> { ull operator()(const pii &v) const { return (ull)v.first << 32 | (ull)v.second; } };
-template <> struct Hasher<pll> { ull operator()(const pll &v) const { return (ull)v.first << 32 | (ull)v.second; } };
-template <typename S> using ush = us<S, Hasher<S>>;
-template <typename S, typename T> using umh = um<S, T, Hasher<S>>;
-
 // print
 template <typename T> inline void print(const T &v, string end = "\n") { cout << v << end; }
 template <int V> inline void print(const static_modint<V> &v, string end = "\n") { print(v.val(), end); }
@@ -176,10 +172,10 @@ template <typename T, typename S> inline void print(const pair<T, S> &v, string 
     { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline void print(const T &begin, const T &end, string sep = " ")
-    { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
-template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
+template <typename T> inline void print(const vector<T> &v, string sep = " ")
+    { rep(i, v.size()) print(v[i], i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const set<T> &v, string sep = " ")
+    { repi(i, v) print(i, i != *prev(v.end()) ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
 
 #define YES print("YES")
@@ -205,3 +201,66 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD);
+
+pll comp(const pll &a, const pll &b) {
+    if (a.first < b.first) return a;
+    if (a.first > b.first) return b;
+    return {a.first, max(a.second, b.second)};
+}
+
+void update(um<ll, pll> &m, const pll &p, ll key) {
+    if (!m.count(key)) m[key] = p;
+    else m[key] = comp(m[key], p);
+}
+
+void solve() {
+    LL(N);
+    VVLL(P, N, N);
+    VVLL(R, N, N - 1);
+    VVLL(D, N - 1, N);
+    vector<vector<um<ll, pll>>> dp(N, vector<um<ll, pll>>(N));
+    dp[0][0][P[0][0]] = {0, 0};
+    rep(i, N) rep(j, N) {
+        if (i != 0) {
+            repi(k, dp[i - 1][j]) {
+                auto newval = k.second;
+                newval.second -= D[i - 1][j];
+                if (newval.second < 0) {
+                    ll cnt = llceil(-newval.second, k.first);
+                    newval.first += cnt;
+                    newval.second += cnt * k.first;
+                }
+                update(dp[i][j], newval, max(P[i][j], k.first));
+            }
+        }
+        if (j != 0) {
+            repi(k, dp[i][j - 1]) {
+                auto newval = k.second;
+                newval.second -= R[i][j - 1];
+                if (newval.second < 0) {
+                    ll cnt = llceil(-newval.second, k.first);
+                    newval.first += cnt;
+                    newval.second += cnt * k.first;
+                }
+                update(dp[i][j], newval, max(P[i][j], k.first));
+            }
+        }
+    }
+    ll ans = LINF;
+    repi(i, dp[N - 1][N - 1]) chmin(ans, i.second.first);
+    print(ans + (N - 1) * 2);
+}

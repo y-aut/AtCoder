@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -205,3 +210,37 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+void solve() {
+    LL(N);
+    VLL(A, N);
+    LL(Q);
+    list<ll> l;
+    repi(i, A) l.push_back(i);
+    um<ll, list<ll>::iterator> m;
+    for (auto itr = l.begin(); itr != l.end(); itr++) m[*itr] = itr;
+    rep(q, Q) {
+        LL(op, x);
+        if (op == 1) {
+            LL(y);
+            m[y] = l.insert(next(m[x]), y);
+        } else {
+            l.erase(m[x]);
+        }
+    }
+    print(all(l));
+}
