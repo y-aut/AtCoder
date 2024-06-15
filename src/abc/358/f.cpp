@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -176,8 +181,7 @@ template <typename T, typename S> inline void print(const pair<T, S> &v, string 
     { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline typename enable_if<is_base_of<forward_iterator_tag,
-    typename iterator_traits<T>::iterator_category>::value>::type print(const T &begin, const T &end, string sep = " ")
+template <typename T> inline void print(const T &begin, const T &end, string sep = " ")
     { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
 template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
@@ -206,3 +210,103 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+void solve() {
+    LL(N, M, K);
+    if (K < N) EXIT(No);
+    ll rest = K - N;
+    if (rest % 2 == 1) EXIT(No);
+    vpll route{{0, M - 1}};
+    for (ll i = 0; i < N - 3; i += 2) {
+        ll width = min(rest / 2 + 1, M);
+        rest -= (width - 1) * 2;
+        rrep(j, width * 2) {
+            if (j == width || j == width * 2) {
+                route.eb(route.back().first + 1, route.back().second);
+            } else if (j < width) {
+                route.eb(route.back().first, route.back().second - 1);
+            } else {
+                route.eb(route.back().first, route.back().second + 1);
+            }
+        }
+    }
+    if (N % 2 == 0) {
+        ll width = rest / 2 + 1;
+        assert(width <= M);
+        rrep(j, width * 2 - 1) {
+            if (j == width) {
+                route.eb(route.back().first + 1, route.back().second);
+            } else if (j < width) {
+                route.eb(route.back().first, route.back().second - 1);
+            } else {
+                route.eb(route.back().first, route.back().second + 1);
+            }
+        }
+    } else {
+        if (rest <= (M - 1) * 2) {
+            ll width = rest / 2 + 1;
+            assert(width <= M);
+            rrep(j, width * 2) {
+                if (j == width || j == width * 2) {
+                    route.eb(route.back().first + 1, route.back().second);
+                } else if (j < width) {
+                    route.eb(route.back().first, route.back().second - 1);
+                } else {
+                    route.eb(route.back().first, route.back().second + 1);
+                }
+            }
+        } else {
+            ll width = M;
+            rest -= (width - 1) * 2;
+            rrep(j, width + 1) {
+                if (j == width || j == width + 1) {
+                    route.eb(route.back().first + 1, route.back().second);
+                } else {
+                    route.eb(route.back().first, route.back().second - 1);
+                }
+            }
+            while (true) {
+                if (rest == 0) {
+                    while (route.back().first != N - 1 || route.back().second != M - 1) {
+                        route.eb(route.back().first, route.back().second + 1);
+                    }
+                    break;
+                }
+                rest -= 2;
+                route.eb(route.back().first, route.back().second + 1);
+                route.eb(route.back().first - 1, route.back().second);
+                route.eb(route.back().first, route.back().second + 1);
+                route.eb(route.back().first + 1, route.back().second);
+            }
+        }
+    }
+    Yes;
+    vs ans(N * 2 + 1, string(M * 2 + 1, '+'));
+    ans[0][M * 2 - 1] = 'S';
+    ans[N * 2][M * 2 - 1] = 'G';
+    rep(i, N) rep(j, M) ans[i * 2 + 1][j * 2 + 1] = 'o';
+    rep(i, N) rep(j, M - 1) ans[i * 2 + 1][j * 2 + 2] = '|';
+    rep(i, N - 1) rep(j, M) ans[i * 2 + 2][j * 2 + 1] = '-';
+    rep(i, route.size() - 1) {
+        if (route[i].first == route[i + 1].first) {
+            ans[route[i].first * 2 + 1][min(route[i].second, route[i + 1].second) * 2 + 2] = '.';
+        } else {
+            ans[min(route[i].first, route[i + 1].first) * 2 + 2][route[i].second * 2 + 1] = '.';
+        }
+    }
+    repi(i, ans) print(i);
+}

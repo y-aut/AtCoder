@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -176,8 +181,7 @@ template <typename T, typename S> inline void print(const pair<T, S> &v, string 
     { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline typename enable_if<is_base_of<forward_iterator_tag,
-    typename iterator_traits<T>::iterator_category>::value>::type print(const T &begin, const T &end, string sep = " ")
+template <typename T> inline void print(const T &begin, const T &end, string sep = " ")
     { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
 template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
@@ -206,3 +210,78 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+#pragma region "二項係数"
+
+class Binomial {
+    const ll mod = 0;
+    vll fact, fact_inv, inv;
+
+public:
+    Binomial(const ll size, const ll _mod) : mod(_mod), fact(size + 5), fact_inv(size + 5), inv(size + 5) {
+        fact[0] = fact[1] = 1;
+        fact_inv[0] = fact_inv[1] = 1;
+        inv[1] = 1;
+
+        for (ll i = 2; i < size + 5; i++) {
+            fact[i] = fact[i - 1] * i % mod;
+            inv[i] = mod - inv[mod % i] * (mod / i) % mod;
+            fact_inv[i] = fact_inv[i - 1] * inv[i] % mod;
+        }
+    }
+
+    /// nCk % mod を求める
+    ll nCk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[k] * fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nPk % mod を求める
+    ll nPk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nHk % mod を求める
+    ll nHk(const ll n, const ll k) const {
+        if (n == 0 && k == 0)
+            return 1;
+        return nCk(n + k - 1, k);
+    }
+};
+
+#pragma endregion
+
+void solve() {
+    LL(K);
+    VLL(C, 26);
+    vm dp(K + 1);
+    dp[0] = 1;
+    Binomial binom(K + 1, MOD2);
+    rep(i, 26) {
+        vm nxt(K + 1);
+        rep(c, C[i] + 1) {
+            rep(j, K + 1 - c) {
+                nxt[j + c] += dp[j] * binom.nHk(j + 1, c);
+            }
+        }
+        dp = move(nxt);
+    }
+    print(accumulate(all(dp), mint(0)) - 1);
+}

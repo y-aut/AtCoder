@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -176,8 +181,7 @@ template <typename T, typename S> inline void print(const pair<T, S> &v, string 
     { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline typename enable_if<is_base_of<forward_iterator_tag,
-    typename iterator_traits<T>::iterator_category>::value>::type print(const T &begin, const T &end, string sep = " ")
+template <typename T> inline void print(const T &begin, const T &end, string sep = " ")
     { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
 template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
 template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
@@ -206,3 +210,98 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+using dat1 = pair<double, ll>;
+dat1 op(dat1 a, const dat1 &b) {
+    a.first += b.first;
+    a.second += b.second;
+    return a;
+}
+dat1 e() { return {0, 1}; }
+dat1 mp(double f, dat1 x) {
+    x.first += f * x.second;
+    return x;
+}
+double comp(double f, double g) { return f + g; }
+double id() { return 0; }
+
+struct dat2 {
+    double pp;
+    double win;
+    double cont;
+    ll size;
+
+    friend ostream &operator<<(ostream &os, const dat2 &x) {
+        os << x.pp << "," << x.win << "," << x.cont << "," << x.size;
+        return os;
+    }
+};
+dat2 op2(dat2 a, const dat2 &b) {
+    a.pp += b.pp;
+    a.win += b.win;
+    a.cont += b.cont;
+    a.size += b.size;
+    return a;
+}
+dat2 e2() { return {0, 0, 0, 1}; }
+dat2 mp2(double f, dat2 x) {
+    x.pp += f * x.size;
+    x.win += f * x.cont;
+    return x;
+}
+
+void solve() {
+    LL(N, L, D);
+    lazy_segtree<pair<double, ll>, op, e, double, mp, comp, id> pd(N + 2);
+    pd.set(0, {1, 1});
+    rep(i, L) {
+        if (i + D <= N) {
+            pd.apply(i + 1, i + D + 1, pd.get(i).first / D);
+        } else {
+            pd.apply(i + 1, N + 1, pd.get(i).first / D);
+            pd.apply(N + 1, pd.get(i).first * (D - N + i) / D);
+        }
+        pd.set(i, {0, 1});
+    }
+    debug(pd, N + 2);
+    vector<dat2> init;
+    vd acc{pd.get(N + 1).first};
+    rep(i, N) {
+        acc.pb(acc.back() + pd.get(i).first);
+    }
+    acc.pb(0);
+    rep(i, N + 2) {
+        init.eb(i == 0, i == 0 ? acc[0] : 0, acc[i], 1);
+    }
+    lazy_segtree<dat2, op2, e2, double, mp2, comp, id> pp(init);
+    double ans = pp.all_prod().win;
+    debug(pp, N + 2);
+    rep(i, N) {
+        auto item = pp.get(i);
+        if (i + D <= N) {
+            pp.apply(i + 1, i + D + 1, item.pp / D);
+        } else {
+            pp.apply(i + 1, N + 1, item.pp / D);
+            pp.apply(N + 1, item.pp * (D - N + i) / D);
+        }
+        item.pp = item.win = 0;
+        pp.set(i, item);
+        chmax(ans, pp.all_prod().win);
+        debug(pp, N + 2);
+    }
+    print(ans);
+}
