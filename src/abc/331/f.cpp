@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -216,3 +221,83 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+using mint = static_modint<MOD2>;
+using mint2 = static_modint<MOD>;
+
+CSLL BASE = 100000;
+vector<mint> base_pow;
+vector<mint2> base_pow2;
+
+struct dat {
+    mint v;
+    mint rev;
+    ll size;
+    bool same() { return v == rev; }
+    OSTREAM(dat, v, rev, size);
+};
+dat op(dat a, dat b) {
+    a.v = b.v + a.v * base_pow[b.size];
+    a.rev += b.rev * base_pow[a.size];
+    a.size += b.size;
+    return a;
+}
+dat e() { return {0, 0, 0}; }
+
+struct dat2 {
+    mint2 v;
+    mint2 rev;
+    ll size;
+    bool same() { return v == rev; }
+    OSTREAM(dat2, v, rev, size);
+};
+dat2 op2(dat2 a, dat2 b) {
+    a.v = b.v + a.v * base_pow2[b.size];
+    a.rev += b.rev * base_pow2[a.size];
+    a.size += b.size;
+    return a;
+}
+dat2 e2() { return {0, 0, 0}; }
+
+void solve() {
+    LL(N, Q);
+    STR(S);
+    base_pow.pb(1);
+    base_pow2.pb(1);
+    rep(i, N) {
+        base_pow.pb(base_pow.back() * BASE);
+        base_pow2.pb(base_pow2.back() * BASE);
+    }
+    vector<dat> init;
+    repi(c, S) init.eb(c, c, 1);
+    vector<dat2> init2;
+    repi(c, S) init2.eb(c, c, 1);
+    segtree<dat, op, e> tree(init);
+    segtree<dat2, op2, e2> tree2(init2);
+    rep(q, Q) {
+        debug(tree, init.size());
+        debug(tree.prod(0, 5));
+        LL(op, a);
+        a--;
+        if (op == 1) {
+            CHR(c);
+            tree.set(a, {c, c, 1});
+            tree2.set(a, {c, c, 1});
+        } else {
+            LL(b);
+            YesNo(tree.prod(a, b).same() && tree2.prod(a, b).same());
+        }
+    }
+}
