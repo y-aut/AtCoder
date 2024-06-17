@@ -17,6 +17,8 @@ template <typename T>
 inline void dprint(ll line, string name, const T &v);
 template <typename T>
 inline void dprint(ll line, string name, const vector<T> &v);
+template <typename T, size_t N>
+inline void dprint(ll line, string name, const array<T, N> &v);
 template <typename T, typename S, typename U>
 inline void dprint(ll line, string name, const set<T, S, U> &v);
 template <typename T, typename S, typename U, typename V>
@@ -43,6 +45,12 @@ template <typename T>
 inline void dprint(ll line, string name, const vector<T> &v) {
     if (v.empty()) dprint(line, name, "empty");
     else rep(i, v.size()) dprint(line, name + "[" + to_str(i) + "]", v[i]);
+}
+
+template <typename T, size_t N>
+inline void dprint(ll line, string name, const array<T, N> &v) {
+    if (v.empty()) dprint(line, name, "empty");
+    else rep(i, N) dprint(line, name + "[" + to_str(i) + "]", v[i]);
 }
 
 template <typename T, typename S, typename U>
