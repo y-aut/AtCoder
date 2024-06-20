@@ -236,10 +236,10 @@ int main() {
 
 #pragma region "ローリングハッシュ"
 
-CSLL MOD_SIZE = 4;
-const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673};
-const ull HASH_MOD[] = {1944897763, 1925898167, 1912776091, 1935497281};
-vector<ull> HASH_BASE_POW[] = {{1}, {1}, {1}, {1}};
+CSLL MOD_SIZE = 6;
+const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673, 981914693, 1375179334};
+const ull HASH_MOD[] = {1944897763, 1925898167, 1912776091, 1935497281, 1939942439, 1902550399};
+vector<ull> HASH_BASE_POW[] = {{1}, {1}, {1}, {1}, {1}, {1}};
 
 ull get_hash_base_pow(ll index, ull n) {
     assert(0 <= index && index < MOD_SIZE);
@@ -249,19 +249,25 @@ ull get_hash_base_pow(ll index, ull n) {
     return HASH_BASE_POW[index][n];
 }
 
-template <int mod_num = 2>
+template <int mod_num = 4>
 struct RollingHash {
     ll size;
     array<ull, mod_num> hash = {};
 
     RollingHash() : size(0) {}
-    RollingHash(const string s) : size(s.size()) {
-        rep(i, size) rep(j, mod_num) {
-            hash[j] += get_hash_base_pow(j, size - i - 1) * s[i];
-            hash[j] %= HASH_MOD[j];
+    template <typename T>
+    RollingHash(T first, T last) : size(distance(first, last)) {
+        ll i = 0;
+        for (T itr = first; itr != last; itr++, i++) {
+            rep(j, mod_num) {
+                hash[j] += get_hash_base_pow(j, size - i - 1) * (*itr);
+                hash[j] %= HASH_MOD[j];
+            }
         }
     }
-    RollingHash(char c) : size(1) { rep(i, mod_num) hash[i] = c; }
+    RollingHash(const string &s) : RollingHash(all(s)) {}
+    RollingHash(const vll &v) : RollingHash(all(v)) {}
+    RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
     RollingHash(const RollingHash &src) : size(src.size), hash(src.hash) {}
     RollingHash(RollingHash &&src) : size(src.size), hash(move(src.hash)) {}
 
@@ -302,6 +308,13 @@ struct RollingHash {
         }
         size += v.size;
         return *this;
+    }
+    friend ostream &operator<<(ostream &os, const RollingHash &v) {
+        os << "{ size=" << v.size << ", hash=[";
+        rep(i, mod_num) {
+            os << v.hash[i] << (i == mod_num - 1 ? "] }" : ", ");
+        }
+        return os;
     }
 };
 

@@ -21,13 +21,19 @@ struct RollingHash {
     array<ull, mod_num> hash = {};
 
     RollingHash() : size(0) {}
-    RollingHash(const string s) : size(s.size()) {
-        rep(i, size) rep(j, mod_num) {
-            hash[j] += get_hash_base_pow(j, size - i - 1) * s[i];
-            hash[j] %= HASH_MOD[j];
+    template <typename T>
+    RollingHash(T first, T last) : size(distance(first, last)) {
+        ll i = 0;
+        for (T itr = first; itr != last; itr++, i++) {
+            rep(j, mod_num) {
+                hash[j] += get_hash_base_pow(j, size - i - 1) * (*itr);
+                hash[j] %= HASH_MOD[j];
+            }
         }
     }
-    RollingHash(char c) : size(1) { rep(i, mod_num) hash[i] = c; }
+    RollingHash(const string &s) : RollingHash(all(s)) {}
+    RollingHash(const vll &v) : RollingHash(all(v)) {}
+    RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
     RollingHash(const RollingHash &src) : size(src.size), hash(src.hash) {}
     RollingHash(RollingHash &&src) : size(src.size), hash(move(src.hash)) {}
 
@@ -69,6 +75,13 @@ struct RollingHash {
         size += v.size;
         return *this;
     }
+    friend ostream &operator<<(ostream &os, const RollingHash &v) {
+        os << "{ size=" << v.size << ", hash=[";
+        rep(i, mod_num) {
+            os << v.hash[i] << (i == mod_num - 1 ? "] }" : ", ");
+        }
+        return os;
+    }
 };
 
 template <int n>
@@ -81,6 +94,31 @@ bool operator!=(const RollingHash<n> &a, const RollingHash<n> &b) { return !(a =
 template <int n>
 RollingHash<n> operator+(const RollingHash<n> &a, const RollingHash<n> &b) {
     return RollingHash(a) += b;
+}
+
+template <int n>
+struct Hasher<RollingHash<n>> {
+    ull operator()(const RollingHash<n> &v) const { return v.hash.front(); }
+};
+
+#pragma endregion
+
+#pragma region "Manacher"
+
+// 回分半径を取得する．ex) "abaaababa" -> [1,2,1,4,1,2,3,2,1]
+template <typename RandomAccessIterator>
+vll get_manacher(const RandomAccessIterator first, const RandomAccessIterator last) {
+    ll i = 0, j = 0, size = distance(first, last);
+    vll ans(size);
+    while (i < size) {
+        while (i - j >= 0 && i + j < size && *(first + i - j) == *(first + i + j)) j++;
+        ans[i] = j;
+        ll k = 1;
+        while (i - k >= 0 && k + ans[i - k] < j) ans[i + k] = ans[i - k], k++;
+        i += k;
+        j -= k;
+    }
+    return ans;
 }
 
 #pragma endregion

@@ -61,7 +61,9 @@ using umll = um<ll, ll>;
     using mint = static_modint<v>;  \
     using vm = vector<mint>;        \
     using vvm = vector<vm>;         \
-    using pmm = pair<mint, mint>
+    using pmm = pair<mint, mint>;   \
+    inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
+    inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
 
 /* extract params */
 #define HEAD_NAME(x, ...) #x
@@ -88,6 +90,7 @@ using umll = um<ll, ll>;
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
 #define VMLL(a, b) auto a = in_vmll(b)
+#define VM(a, b) auto a = in_vm(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
 #define VS(a, b) auto a = in_vs(b)
@@ -95,6 +98,7 @@ using umll = um<ll, ll>;
 #define VPLL(a, b) auto a = in_vpll(b)
 #define VVI(a, h, w) auto a = in_vvi(h, w)
 #define VVLL(a, h, w) auto a = in_vvll(h, w)
+#define VVM(a, h, w) auto a = in_vvm(h, w)
 
 /* REP macro */
 #define REP2(i, a, n) for (ll i = (ll)(a); i < (ll)(n); i++)
@@ -105,11 +109,13 @@ using umll = um<ll, ll>;
 #define REPD1(i, n) REPD2(i, 0, n)
 #define RREPD2(i, a, n) for (ll i = (ll)(n); i >= (ll)(a); i--)
 #define RREPD1(i, n) RREPD2(i, 1, n)
+#define REPI1(a, v) for (auto&& a : (v))
+#define REPI2(a, b, v) for (auto&& [a, b] : (v))
 #define rep(...) OVERLOAD3(__VA_ARGS__, REP2, REP1)(__VA_ARGS__)
 #define rrep(...) OVERLOAD3(__VA_ARGS__, RREP2, RREP1)(__VA_ARGS__)
 #define repd(...) OVERLOAD3(__VA_ARGS__, REPD2, REPD1)(__VA_ARGS__)
 #define rrepd(...) OVERLOAD3(__VA_ARGS__, RREPD2, RREPD1)(__VA_ARGS__)
-#define repi(a, v) for (auto&& a : (v))
+#define repi(...) OVERLOAD3(__VA_ARGS__, REPI2, REPI1)(__VA_ARGS__)
 
 /* control */
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
@@ -132,14 +138,10 @@ inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); ret
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
-inline vpii in_vpii(int height)
-    { vpii res; rep(i, height) { pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp); } return res; }
-inline vpll in_vpll(int height)
-    { vpll res; rep(i, height) { pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp); } return res; }
-inline vvi in_vvi(int height, int width)
-    { vvi res; rep(i, height) { vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp); } return res; }
-inline vvll in_vvll(int height, int width)
-    { vvll res; rep(i, height) { vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp); } return res; }
+inline vpii in_vpii(int height) { vpii res; rep(i, height) res.pb(in_pii()); return res; }
+inline vpll in_vpll(int height) { vpll res; rep(i, height) res.pb(in_pll()); return res; }
+inline vvi in_vvi(int height, int width) { vvi res; rep(i, height) res.pb(in_vi(width)); return res; }
+inline vvll in_vvll(int height, int width) { vvll res; rep(i, height) res.pb(in_vll(width)); return res; }
 template <bool bidir> inline vvll in_edges(int N, int height)
     { vvll res(N, vll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
     res[a].pb(b); if (bidir) res[b].pb(a); } return res; }
@@ -164,19 +166,37 @@ inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 
+// hash
+template <typename T> struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
+template <> struct Hasher<pii> { ull operator()(const pii &v) const { return (ull)v.first << 32 | (ull)v.second; } };
+template <> struct Hasher<pll> { ull operator()(const pll &v) const { return (ull)v.first << 32 | (ull)v.second; } };
+template <typename S> using ush = us<S, Hasher<S>>;
+template <typename S, typename T> using umh = um<S, T, Hasher<S>>;
+
+// ostream
+#define OSTREAM(class, ...) \
+    void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
+    friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
+template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
+ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
+template <typename T, typename S> ostream &operator<<(ostream &os, const pair<T, S> &v)
+    { os << v.first << " " << v.second; return os; }
+
 // print
 template <typename T> inline void print(const T &v, string end = "\n") { cout << v << end; }
-template <int V> inline void print(const static_modint<V> &v, string end = "\n") { print(v.val(), end); }
-inline void print(const modint &v, string end = "\n") { print(v.val(), end); }
-template <typename T, typename S> inline void print(const pair<T, S> &v, string end = "\n")
-    { cout << v.first << " " << v.second << end; }
 template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline void print(const vector<T> &v, string sep = " ")
-    { rep(i, v.size()) print(v[i], i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) print(i, i != *prev(v.end()) ? sep : ""); cout << '\n'; }
+template <typename T> inline typename enable_if<is_base_of<forward_iterator_tag,
+    typename iterator_traits<T>::iterator_category>::value>::type print(const T &begin, const T &end, string sep = " ")
+    { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
+template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
+template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
 template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
+void print_all_inner(ostream&) {}
+template <typename First, typename... Rest> void print_all_inner(ostream& os, const First &f, const Rest &...r)
+    { os << ' ' << f; print_all_inner(os, r...); }
+template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
+    { os << f; print_all_inner(os, r...); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -214,7 +234,79 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
+
+#pragma region "Manacher"
+
+// 回分半径を取得する．ex) "abaaababa" -> [1,2,1,4,1,2,3,2,1]
+template <typename RandomAccessIterator>
+vll get_manacher(const RandomAccessIterator first, const RandomAccessIterator last) {
+    ll i = 0, j = 0, size = distance(first, last);
+    vll ans(size);
+    while (i < size) {
+        while (i - j >= 0 && i + j < size && *(first + i - j) == *(first + i + j)) j++;
+        ans[i] = j;
+        ll k = 1;
+        while (i - k >= 0 && k + ans[i - k] < j) ans[i + k] = ans[i - k], k++;
+        i += k;
+        j -= k;
+    }
+    return ans;
+}
+
+#pragma endregion
 
 void solve() {
+    LL(N);
+    VLL(A, N);
+    dsu uf(N);
+    {
+        ll i = 0, j = 0;
+        while (i < N) {
+            while (j < A[i] + 1) {
+                uf.merge(i - j, i + j);
+                j++;
+            }
+            ll k = 1;
+            while (i - k >= 0 && k + A[i - k] + 1 < j) k++;
+            i += k;
+            j -= k;
+        }
+    }
+    debug(uf.groups());
+    umll leader_num;
+    rep(i, N) {
+        if (leader_num.count(uf.leader(i))) continue;
+        leader_num[uf.leader(i)] = leader_num.size();
+    }
+    vector<usll> ng(leader_num.size());
+    rep(i, N) {
+        if (i - A[i] == 0 || i + A[i] == N - 1) continue;
+        debug(i);
+        if (uf.leader(i - A[i] - 1) == uf.leader(i + A[i] + 1)) EXIT(No);
+        ll u = leader_num[uf.leader(i - A[i] - 1)], v = leader_num[uf.leader(i + A[i] + 1)];
+        ng[max(u, v)].insert(min(u, v));
+    }
+    debug(leader_num);
+    debug(ng);
+    vll res;
+    repi(i, ng) {
+        ll now = 1;
+        vll ary;
+        repi(j, i) ary.pb(res[j]);
+        sort(all(ary));
+        repi(j, ary) {
+            if (now != j) break;
+            now++;
+        }
+        res.pb(now);
+    }
+    vll ans;
+    rep(i, N) ans.pb(res[leader_num[uf.leader(i)]]);
+    auto R = get_manacher(all(ans));
+    repi(i, R) i--;
+    debug(R);
+    if (R != A) EXIT(No);
+    Yes;
+    print(ans);
 }

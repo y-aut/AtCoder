@@ -255,13 +255,19 @@ struct RollingHash {
     array<ull, mod_num> hash = {};
 
     RollingHash() : size(0) {}
-    RollingHash(const string s) : size(s.size()) {
-        rep(i, size) rep(j, mod_num) {
-            hash[j] += get_hash_base_pow(j, size - i - 1) * s[i];
-            hash[j] %= HASH_MOD[j];
+    template <typename T>
+    RollingHash(T first, T last) : size(distance(first, last)) {
+        ll i = 0;
+        for (T itr = first; itr != last; itr++, i++) {
+            rep(j, mod_num) {
+                hash[j] += get_hash_base_pow(j, size - i - 1) * (*itr);
+                hash[j] %= HASH_MOD[j];
+            }
         }
     }
-    RollingHash(char c) : size(1) { rep(i, mod_num) hash[i] = c; }
+    RollingHash(const string &s) : RollingHash(all(s)) {}
+    RollingHash(const vll &v) : RollingHash(all(v)) {}
+    RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
     RollingHash(const RollingHash &src) : size(src.size), hash(src.hash) {}
     RollingHash(RollingHash &&src) : size(src.size), hash(move(src.hash)) {}
 
@@ -303,6 +309,13 @@ struct RollingHash {
         size += v.size;
         return *this;
     }
+    friend ostream &operator<<(ostream &os, const RollingHash &v) {
+        os << "{ size=" << v.size << ", hash=[";
+        rep(i, mod_num) {
+            os << v.hash[i] << (i == mod_num - 1 ? "] }" : ", ");
+        }
+        return os;
+    }
 };
 
 template <int n>
@@ -317,14 +330,14 @@ RollingHash<n> operator+(const RollingHash<n> &a, const RollingHash<n> &b) {
     return RollingHash(a) += b;
 }
 
+template <int mod_num>
+struct Hasher<RollingHash<mod_num>> {
+    ull operator()(const RollingHash<mod_num> &hash) const { return hash.hash.front(); }
+};
+
 #pragma endregion
 
 using RH = RollingHash<4>;
-
-template <>
-struct Hasher<RH> {
-    ull operator()(const RH &hash) const { return hash.hash.front(); }
-};
 
 void solve() {
     LL(N);
