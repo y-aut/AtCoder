@@ -481,6 +481,19 @@ public:
         get_euler_tour_impl(ans, root);
         return ans;
     }
+
+    // 重心の一つを取得する
+    ll get_centroid() const {
+        ll v = get_root();
+        while (true) {
+            ll max_size = 0, max_c = 0;
+            repi(c, get_children(v)) {
+                if (chmax(max_size, get_partial_size(c))) max_c = c;
+            }
+            if (max_size <= get_size() / 2) return v;
+            v = max_c;
+        }
+    }
 };
 
 #pragma endregion
@@ -546,6 +559,59 @@ public:
     ll get_dist(ll v1, ll v2) const {
         auto l = get_lca(v1, v2);
         return depth[v1] + depth[v2] - 2 * depth[l];
+    }
+};
+
+#pragma endregion
+
+#pragma region "重心分解"
+
+struct CentroidDecomposition {
+private:
+    const vvll &edges;
+    vb dead;
+
+    void set_partial_size(umll &ans, ll root, ll par = -1) const {
+        ans[root] = 1;
+        repi(i, edges[root]) {
+            if (i == par || dead[i]) continue;
+            set_partial_size(ans, i, root);
+            ans[root] += ans[i];
+        }
+    }
+
+    ll get_centroid(ll root, ll par = -1) const {
+        umll size;
+        set_partial_size(size, root, par);
+        ll v = root;
+        while (true) {
+            ll max_size = 0, max_i = 0;
+            repi(i, edges[v]) {
+                if (i == par || dead[i]) continue;
+                if (chmax(max_size, size[i])) max_i = i;
+            }
+            if (max_size <= size[root] / 2) return v;
+            par = v;
+            v = max_i;
+        }
+        return v;
+    }
+
+    void perform_impl(const function<void(ll root, const vb &dead)> f, ll root, ll par = -1) {
+        auto centroid = get_centroid(root, par);
+        dead[centroid] = true;
+        repi(i, edges[centroid]) if (i != par && !dead[i]) perform_impl(f, i, centroid);
+        dead[centroid] = false;
+        f(centroid, dead);
+    }
+
+public:
+    CentroidDecomposition(const vvll &_edges) : edges(_edges), dead(_edges.size()) {}
+
+    // root を根とする部分木に対して，根をまたぐ処理 f を再帰的に適用する．dead にある頂点は存在しないものとして扱う必要がある
+    // 部分木のサイズを N として f の計算量が O(N) のとき，全体の計算量は O(N logN) となる
+    void perform(const function<void(ll root, const vb &dead)> f) {
+        perform_impl(f, 0);
     }
 };
 
