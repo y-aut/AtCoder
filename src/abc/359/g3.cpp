@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -237,3 +242,163 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+#pragma region "Tree"
+
+class Tree {
+protected:
+    const ll size;
+    const vvll &edges;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(0, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(ll v, ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                             parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    const vll &get_depth() const { return depth; }
+    ll get_depth(ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    const vvll &get_edges() const { return edges; }
+    const vll &get_edges(ll v) const { return edges[v]; }
+    const vll &get_parent() const { return parents; }
+    ll get_parent(ll v) const { return parents[v]; }
+    const vvll &get_children() const { return children; }
+    const vll &get_children(ll v) const { return children[v]; }
+    const vll &get_partial_size() const { return partial_size; }
+    ll get_partial_size(ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+};
+
+#pragma endregion
+
+void solve() {
+    LL(N);
+    auto edges = in_edges<true>(N, N - 1);
+    Tree tree(edges);
+    VLL(A, N);
+    repi(i, A) i--;
+    vector<um<ll, pll>> nodes(N);
+    ll ans = 0;
+    auto f = [&](auto rc, ll v) -> void {
+        repi(i, tree.get_children(v)) {
+            rc(rc, i);
+            ans += nodes[i][A[v]].second - nodes[i][A[v]].first * tree.get_depth(v);
+            if (nodes[v].size() < nodes[i].size()) swap(nodes[v], nodes[i]);
+            repi(a, b, nodes[i]) {
+                ans += nodes[v][a].first * (b.second - tree.get_depth(v) * b.first);
+                ans += b.first * (nodes[v][a].second - tree.get_depth(v) * nodes[v][a].first);
+                nodes[v][a] += b;
+            }
+        }
+        nodes[v][A[v]] += {1, tree.get_depth(v)};
+    };
+    f(f, 0);
+    print(ans);
+}

@@ -34,8 +34,6 @@ struct RollingHash {
     RollingHash(const string &s) : RollingHash(all(s)) {}
     RollingHash(const vll &v) : RollingHash(all(v)) {}
     RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
-    RollingHash(const RollingHash &src) : size(src.size), hash(src.hash) {}
-    RollingHash(RollingHash &&src) : size(src.size), hash(move(src.hash)) {}
 
     void pop_front(char c) {
         rep(i, mod_num) {
@@ -54,18 +52,6 @@ struct RollingHash {
         size++;
     }
 
-    RollingHash &operator=(const RollingHash &v) & {
-        size = v.size;
-        hash = v.hash;
-        return *this;
-    }
-    RollingHash &operator=(RollingHash &&v) & noexcept {
-        if (this != &v) {
-            size = v.size;
-            hash = move(v.hash);
-        }
-        return *this;
-    }
     RollingHash &operator+=(const RollingHash &v) {
         rep(i, mod_num) {
             hash[i] *= get_hash_base_pow(i, v.size);

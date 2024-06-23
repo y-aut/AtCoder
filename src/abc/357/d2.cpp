@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -63,13 +68,6 @@ using umll = um<ll, ll>;
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
-
-/* templates */
-#define TPL_T template <typename T>
-#define TPL_TS template <typename T, typename S>
-#define TPL_TSU template <typename T, typename S, typename U>
-#define TPL_TSUV template <typename T, typename S, typename U, typename V>
-#define TPL_TSUVW template <typename T, typename S, typename U, typename V, typename W>
 
 /* define short */
 #define CSI constexpr static int
@@ -163,32 +161,17 @@ inline mll to_mll(ll v) { return mll(to_string(v)); }
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
 template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
 
-// operator
-TPL_TS pair<T, S> operator-(const pair<T, S> &v) { return { -v.first, -v.second }; }
-TPL_TS pair<T, S> &operator+=(pair<T, S> &a, const pair<T, S> &b) { a.first += b.first; a.second += b.second; return a; }
-TPL_TS pair<T, S> &operator-=(pair<T, S> &a, const pair<T, S> &b) { return a += -b; }
-TPL_TSU pair<T, S> &operator*=(pair<T, S> &a, const U &b) { a.first *= b; a.second *= b; return a; }
-TPL_TSU pair<T, S> &operator/=(pair<T, S> &a, const U &b) { a.first /= b; a.second /= b; return a; }
-TPL_TS pair<T, S> &operator+=(pair<T, S> &&a, const pair<T, S> &b) { return a += b; }
-TPL_TS pair<T, S> &operator-=(pair<T, S> &&a, const pair<T, S> &b) { return a -= b; }
-TPL_TSU pair<T, S> &operator*=(pair<T, S> &&a, const U &b) { return a *= b; }
-TPL_TSU pair<T, S> &operator/=(pair<T, S> &&a, const U &b) { return a /= b; }
-TPL_TS pair<T, S> operator+(const pair<T, S> &a, const pair<T, S> &b) { return pair<T, S>(a) += b; }
-TPL_TS pair<T, S> operator-(const pair<T, S> &a, const pair<T, S> &b) { return pair<T, S>(a) -= b; }
-TPL_TSU pair<T, S> operator*(const pair<T, S> &a, const U &b) { return pair<T, S>(a) *= b; }
-TPL_TSU pair<T, S> operator/(const pair<T, S> &a, const U &b) { return pair<T, S>(a) /= b; }
-
 // math
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 
 // hash
-TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
+template <typename T> struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
 template <> struct Hasher<pii> { ull operator()(const pii &v) const { return (ull)v.first << 32 | (ull)v.second; } };
 template <> struct Hasher<pll> { ull operator()(const pll &v) const { return (ull)v.first << 32 | (ull)v.second; } };
-TPL_T using ush = us<T, Hasher<T>>;
-TPL_TS using umh = um<T, S, Hasher<T>>;
+template <typename S> using ush = us<S, Hasher<S>>;
+template <typename S, typename T> using umh = um<S, T, Hasher<S>>;
 
 // ostream
 #define OSTREAM(class, ...) \
@@ -196,18 +179,19 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
 template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
 ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
-TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
+template <typename T, typename S> ostream &operator<<(ostream &os, const pair<T, S> &v)
+    { os << v.first << " " << v.second; return os; }
 
 // print
-TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }
-TPL_TS inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
-TPL_TS inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-TPL_T inline typename enable_if<is_base_of<forward_iterator_tag,
+template <typename T> inline void print(const T &v, string end = "\n") { cout << v << end; }
+template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
+template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
+template <typename T> inline typename enable_if<is_base_of<forward_iterator_tag,
     typename iterator_traits<T>::iterator_category>::value>::type print(const T &begin, const T &end, string sep = " ")
     { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
-TPL_T inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
-TPL_T inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
-TPL_T inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
+template <typename T> inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
+template <typename T> inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
+template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
 void print_all_inner(ostream&) {}
 template <typename First, typename... Rest> void print_all_inner(ostream& os, const First &f, const Rest &...r)
     { os << ' ' << f; print_all_inner(os, r...); }
@@ -237,3 +221,137 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+#pragma region "正方行列"
+
+/**
+ * @brief Square-Matrix(正方行列)
+ */
+template <class T, size_t N>
+struct SquareMatrix {
+    array<array<T, N>, N> A;
+
+    SquareMatrix() : A{{}} {}
+
+    size_t size() const { return N; }
+
+    inline const array<T, N> &operator[](int k) const {
+        return (A.at(k));
+    }
+
+    inline array<T, N> &operator[](int k) {
+        return (A.at(k));
+    }
+
+    static SquareMatrix add_identity() {
+        return SquareMatrix();
+    }
+
+    static SquareMatrix mul_identity() {
+        SquareMatrix mat;
+        for (size_t i = 0; i < N; i++) mat[i][i] = 1;
+        return mat;
+    }
+
+    SquareMatrix &operator+=(const SquareMatrix &B) {
+        for (size_t i = 0; i < N; i++) {
+            for (size_t j = 0; j < N; j++) {
+                (*this)[i][j] += B[i][j];
+            }
+        }
+        return *this;
+    }
+
+    SquareMatrix &operator-=(const SquareMatrix &B) {
+        for (size_t i = 0; i < N; i++) {
+            for (size_t j = 0; j < N; j++) {
+                (*this)[i][j] -= B[i][j];
+            }
+        }
+        return *this;
+    }
+
+    SquareMatrix &operator*=(const SquareMatrix &B) {
+        array<array<T, N>, N> C;
+        for (size_t i = 0; i < N; i++) {
+            for (size_t j = 0; j < N; j++) {
+                for (size_t k = 0; k < N; k++) {
+                    C[i][j] = (C[i][j] + (*this)[i][k] * B[k][j]);
+                }
+            }
+        }
+        A.swap(C);
+        return (*this);
+    }
+
+    SquareMatrix &operator^=(uint64_t k) {
+        SquareMatrix B = SquareMatrix::mul_identity();
+        while (k > 0) {
+            if (k & 1) B *= *this;
+            *this *= *this;
+            k >>= 1LL;
+        }
+        A.swap(B.A);
+        return *this;
+    }
+
+    SquareMatrix operator+(const SquareMatrix &B) const {
+        return SquareMatrix(*this) += B;
+    }
+
+    SquareMatrix operator-(const SquareMatrix &B) const {
+        return SquareMatrix(*this) -= B;
+    }
+
+    SquareMatrix operator*(const SquareMatrix &B) const {
+        return SquareMatrix(*this) *= B;
+    }
+
+    SquareMatrix operator^(uint64_t k) const {
+        return SquareMatrix(*this) ^= k;
+    }
+
+    SquareMatrix pow(uint64_t n) const {
+        SquareMatrix a = *this, res = mul_identity();
+        for (; n; a = a * a, n >>= 1)
+            if (n & 1) res = res * a;
+        return res;
+    }
+
+    friend ostream &operator<<(ostream &os, SquareMatrix &p) {
+        for (int i = 0; i < N; i++) {
+            os << "[";
+            for (int j = 0; j < N; j++) {
+                os << p[i][j] << (j + 1 == N ? "]\n" : ",");
+            }
+        }
+        return os;
+    }
+};
+
+#pragma endregion
+
+void solve() {
+    LL(N);
+    ll d = to_string(N).size();
+    SquareMatrix<mint, 2> m;
+    m[0][0] = mint(10).pow(d);
+    m[0][1] = N;
+    m[1][0] = 0;
+    m[1][1] = 1;
+    print(m.pow(N)[0][1]);
+}

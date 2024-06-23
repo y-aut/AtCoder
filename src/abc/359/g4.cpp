@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -237,3 +242,294 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+#pragma region "Tree"
+
+class Tree {
+protected:
+    const ll size;
+    const vvll &edges;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(0, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(ll v, ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                             parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    const vll &get_depth() const { return depth; }
+    ll get_depth(ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    const vvll &get_edges() const { return edges; }
+    const vll &get_edges(ll v) const { return edges[v]; }
+    const vll &get_parent() const { return parents; }
+    ll get_parent(ll v) const { return parents[v]; }
+    const vvll &get_children() const { return children; }
+    const vll &get_children(ll v) const { return children[v]; }
+    const vll &get_partial_size() const { return partial_size; }
+    ll get_partial_size(ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+
+    // 重心の一つを取得する
+    ll get_centroid() const {
+        ll v = get_root();
+        while (true) {
+            ll max_size = 0, max_c = 0;
+            repi(c, get_children(v)) {
+                if (chmax(max_size, get_partial_size(c))) max_c = c;
+            }
+            if (max_size <= get_size() / 2) return v;
+            v = max_c;
+        }
+    }
+};
+
+#pragma endregion
+
+#pragma region "LCADoubling"
+
+// 木の LCA をダブリングを用いて計算する
+class LCADoubling : public Tree {
+    // doubling[i][j]: j から 2^i 個頂点を遡った祖先
+    vvll doubling;
+
+    // 最上位ビットの下から数えた位置を取得
+    static int msb_pos(const ull x) {
+        return x == 0 ? -1 : (sizeof(ull)) * 8 - __builtin_clzll(x) - 1;
+    }
+
+    void set_doubling() {
+        int d_size = msb_pos(height) + 1;
+        rep(i, d_size) doubling.pb(vll(size));
+        rep(i, size) doubling[0][i] = parents[i];
+        rep(i, d_size - 1) {
+            rep(j, size) {
+                doubling[i + 1][j] = doubling[i][doubling[i][j]];
+            }
+        }
+    }
+
+public:
+    LCADoubling(const vvll &_edges, ll _root = 0) : Tree(_edges, _root) {
+        set_doubling();
+    }
+
+    // v の d 個上の祖先を取得する
+    ll level_ancestor(ll v, ll d) const {
+        repd(i, doubling.size()) {
+            if (1 << i <= d) {
+                d -= 1 << i;
+                v = doubling[i][v];
+            }
+        }
+        return v;
+    }
+
+    ll get_lca(ll v1, ll v2) const {
+        // v1, v2 の深さを揃える
+        if (depth[v1] > depth[v2]) {
+            v1 = level_ancestor(v1, depth[v1] - depth[v2]);
+        } else if (depth[v1] < depth[v2]) {
+            v2 = level_ancestor(v2, depth[v2] - depth[v1]);
+        }
+
+        if (v1 == v2)
+            return v1;
+        repd(i, doubling.size()) {
+            if (doubling[i][v1] != doubling[i][v2]) {
+                v1 = doubling[i][v1];
+                v2 = doubling[i][v2];
+            }
+        }
+        return parents[v1];
+    }
+
+    ll get_dist(ll v1, ll v2) const {
+        auto l = get_lca(v1, v2);
+        return depth[v1] + depth[v2] - 2 * depth[l];
+    }
+};
+
+#pragma endregion
+
+#pragma region "Auxiliary Tree"
+
+class AuxiliaryTree : public LCADoubling {
+private:
+    // 各節点に対して，行きがけ順での番号を格納したもの
+    vll preorder_map;
+    // 各節点に対して，Euler Tour における最初の出現位置，最後の出現位置のペア
+    vpll et_map;
+
+    void set_maps() {
+        auto preorder = get_preorder();
+        preorder_map.resize(size);
+        rep(i, preorder.size()) preorder_map[preorder[i]] = i;
+        auto et = get_euler_tour();
+        et_map.resize(size, {-1, -1});
+        rep(i, et.size()) {
+            if (et_map[et[i]].first == -1) et_map[et[i]].first = i;
+            et_map[et[i]].second = i;
+        }
+    }
+
+public:
+    AuxiliaryTree(const vvll &_edges, ll _root = 0) : LCADoubling(_edges, _root) {
+        set_maps();
+    }
+
+    /// @brief Auxiliary Tree を取得する
+    /// @param nodes 頂点集合．Auxiliary Tree に登場する頂点を行きがけ順に並べたものに更新される
+    /// @return Auxiliary Tree の各頂点の親
+    umll get_auxiliary_tree(vll &nodes) const {
+        sort(all(nodes), [&](ll a, ll b) { return preorder_map.at(a) < preorder_map.at(b); });
+        ll m = nodes.size();
+        rep(i, m - 1) nodes.pb(get_lca(nodes[i], nodes[i + 1]));
+        sort(all(nodes), [&](ll a, ll b) { return preorder_map.at(a) < preorder_map.at(b); });
+        nodes.erase(unique(all(nodes)), nodes.end());
+        umll ans;
+        stack<ll> s;
+        s.push(nodes[0]);
+        rep(i, 1, nodes.size()) {
+            while (et_map[s.top()].second < et_map[nodes[i]].first) s.pop();
+            ans[nodes[i]] = s.top();
+            s.push(nodes[i]);
+        }
+        return ans;
+    }
+};
+
+#pragma endregion
+
+void solve() {
+    LL(N);
+    auto edges = in_edges<true>(N, N - 1);
+    AuxiliaryTree tree(edges);
+    VLL(A, N);
+    um<ll, vll> cnodes;
+    rep(i, N) cnodes[A[i]].pb(i);
+    ll ans = 0;
+    auto f = [&](auto rc, ll c, ll ccnt, ll v, um<ll, vll> &children) -> ll {
+        ll ret = 0;
+        repi(i, children[v]) {
+            auto res = rc(rc, c, ccnt, i, children);
+            ans += res * (ccnt - res) * (tree.get_depth(i) - tree.get_depth(v));
+            ret += res;
+        }
+        if (A[v] == c) ret++;
+        return ret;
+    };
+    repi(c, nodes, cnodes) {
+        ll ccnt = nodes.size();
+        auto pars = tree.get_auxiliary_tree(nodes);
+        um<ll, vll> children;
+        repi(v, p, pars) children[p].pb(v);
+        f(f, c, ccnt, nodes.front(), children);
+    }
+    print(ans);
+}
