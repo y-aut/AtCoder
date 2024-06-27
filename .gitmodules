@@ -2,5 +2,5 @@
 	path = ac-library
 	url = https://github.com/atcoder/ac-library.git
 [submodule "library"]
-	path = library
+	path = library/ei1333
 	url = https://github.com/ei1333/library.git
