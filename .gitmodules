@@ -1,6 +1,9 @@
 [submodule "ac-library"]
 	path = ac-library
 	url = https://github.com/atcoder/ac-library.git
-[submodule "library"]
+[submodule "library/ei1333"]
 	path = library/ei1333
 	url = https://github.com/ei1333/library.git
+[submodule "noshi91"]
+	path = library/noshi91
+	url = git@github.com:noshi91/Library.git
