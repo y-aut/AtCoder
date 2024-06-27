@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -86,11 +91,9 @@ using umll = um<ll, ll>;
 #define INT(...) VAR(int, __VA_ARGS__)
 #define LL(...) VAR(ll, __VA_ARGS__)
 #define MLL(...) VAR(mll, __VA_ARGS__)
-#define DBL(...) VAR(double, __VA_ARGS__)
 #define CHR(...) VAR(char, __VA_ARGS__)
 #define STR(...) VAR(string, __VA_ARGS__)
-#define PII(...) VAR(pii, __VA_ARGS__)
-#define PLL(...) VAR(pll, __VA_ARGS__)
+#define DBL(...) VAR(double, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
 #define VMLL(a, b) auto a = in_vmll(b)
@@ -126,19 +129,16 @@ using umll = um<ll, ll>;
 #define BREAK(...) ({ __VA_ARGS__; break; })
 #define CONTINUE(...) ({ __VA_ARGS__; continue; })
 
-// istream
-TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.second; return is; }
-
 /* func */
 // input
 inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
 inline mll in_mll() { mll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
+inline pii in_pii() { pii x; cin >> x.first >> x.second; return x; }
+inline pll in_pll() { pll x; cin >> x.first >> x.second; return x; }
 inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
-inline pii in_pii() { pii x; cin >> x; return x; }
-inline pll in_pll() { pll x; cin >> x; return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
 inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
@@ -242,3 +242,52 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+void solve() {
+    LL(N, M);
+    VPLL(uv, M);
+    VLL(W, N);
+    VLL(A, N);
+
+    vvll edges(N);
+    repi(u, v, uv) {
+        u--, v--;
+        if (W[u] < W[v]) edges[v].pb(u);
+        if (W[v] < W[u]) edges[u].pb(v);
+    }
+
+    vll score(N, -1);
+    auto dfs = [&](auto rc, ll v) -> void {
+        repi(i, edges[v]) {
+            if (score[i] != -1) continue;
+            rc(rc, i);
+        }
+        vll dp(W[v], -1);
+        dp[0] = 0;
+        repi(i, edges[v]) {
+            repd(j, W[v] - W[i]) {
+                chmax(dp[j + W[i]], dp[j] + score[i]);
+            }
+        }
+        score[v] = *max_element(all(dp)) + 1;
+    };
+    rep(i, N) if (score[i] == -1) dfs(dfs, i);
+    debug(score);
+    ll ans = 0;
+    rep(i, N) ans += A[i] * score[i];
+    print(ans);
+}

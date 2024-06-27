@@ -13,7 +13,9 @@ using namespace atcoder;
 // clang-format off
 
 #ifndef DEBUG
+#ifdef __x86_64__
 #pragma GCC target("avx")
+#endif
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
@@ -59,11 +61,20 @@ using umll = um<ll, ll>;
     using mint = static_modint<v>;  \
     using vm = vector<mint>;        \
     using vvm = vector<vm>;         \
-    using pmm = pair<mint, mint>
+    using pmm = pair<mint, mint>;   \
+    inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
+    inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
 
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
+
+/* templates */
+#define TPL_T template <typename T>
+#define TPL_TS template <typename T, typename S>
+#define TPL_TSU template <typename T, typename S, typename U>
+#define TPL_TSUV template <typename T, typename S, typename U, typename V>
+#define TPL_TSUVW template <typename T, typename S, typename U, typename V, typename W>
 
 /* define short */
 #define CSI constexpr static int
@@ -80,12 +91,15 @@ using umll = um<ll, ll>;
 #define INT(...) VAR(int, __VA_ARGS__)
 #define LL(...) VAR(ll, __VA_ARGS__)
 #define MLL(...) VAR(mll, __VA_ARGS__)
+#define DBL(...) VAR(double, __VA_ARGS__)
 #define CHR(...) VAR(char, __VA_ARGS__)
 #define STR(...) VAR(string, __VA_ARGS__)
-#define DBL(...) VAR(double, __VA_ARGS__)
+#define PII(...) VAR(pii, __VA_ARGS__)
+#define PLL(...) VAR(pll, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
 #define VMLL(a, b) auto a = in_vmll(b)
+#define VM(a, b) auto a = in_vm(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
 #define VS(a, b) auto a = in_vs(b)
@@ -93,6 +107,7 @@ using umll = um<ll, ll>;
 #define VPLL(a, b) auto a = in_vpll(b)
 #define VVI(a, h, w) auto a = in_vvi(h, w)
 #define VVLL(a, h, w) auto a = in_vvll(h, w)
+#define VVM(a, h, w) auto a = in_vvm(h, w)
 
 /* REP macro */
 #define REP2(i, a, n) for (ll i = (ll)(a); i < (ll)(n); i++)
@@ -103,16 +118,21 @@ using umll = um<ll, ll>;
 #define REPD1(i, n) REPD2(i, 0, n)
 #define RREPD2(i, a, n) for (ll i = (ll)(n); i >= (ll)(a); i--)
 #define RREPD1(i, n) RREPD2(i, 1, n)
+#define REPI1(a, v) for (auto&& a : (v))
+#define REPI2(a, b, v) for (auto&& [a, b] : (v))
 #define rep(...) OVERLOAD3(__VA_ARGS__, REP2, REP1)(__VA_ARGS__)
 #define rrep(...) OVERLOAD3(__VA_ARGS__, RREP2, RREP1)(__VA_ARGS__)
 #define repd(...) OVERLOAD3(__VA_ARGS__, REPD2, REPD1)(__VA_ARGS__)
 #define rrepd(...) OVERLOAD3(__VA_ARGS__, RREPD2, RREPD1)(__VA_ARGS__)
-#define repi(a, v) for (auto&& a : (v))
+#define repi(...) OVERLOAD3(__VA_ARGS__, REPI2, REPI1)(__VA_ARGS__)
 
 /* control */
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
 #define BREAK(...) ({ __VA_ARGS__; break; })
 #define CONTINUE(...) ({ __VA_ARGS__; continue; })
+
+// istream
+TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.second; return is; }
 
 /* func */
 // input
@@ -120,24 +140,20 @@ inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
 inline mll in_mll() { mll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
-inline pii in_pii() { pii x; cin >> x.first >> x.second; return x; }
-inline pll in_pll() { pll x; cin >> x.first >> x.second; return x; }
 inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
+inline pii in_pii() { pii x; cin >> x; return x; }
+inline pll in_pll() { pll x; cin >> x; return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
 inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
-inline vpii in_vpii(int height)
-    { vpii res; rep(i, height) { pii tmp; tmp.first = in_int(); tmp.second = in_int(); res.pb(tmp); } return res; }
-inline vpll in_vpll(int height)
-    { vpll res; rep(i, height) { pll tmp; tmp.first = in_ll(); tmp.second = in_ll(); res.pb(tmp); } return res; }
-inline vvi in_vvi(int height, int width)
-    { vvi res; rep(i, height) { vi tmp; rep(j, width) tmp.pb(in_int()); res.pb(tmp); } return res; }
-inline vvll in_vvll(int height, int width)
-    { vvll res; rep(i, height) { vll tmp; rep(j, width) tmp.pb(in_ll()); res.pb(tmp); } return res; }
+inline vpii in_vpii(int height) { vpii res; rep(i, height) res.pb(in_pii()); return res; }
+inline vpll in_vpll(int height) { vpll res; rep(i, height) res.pb(in_pll()); return res; }
+inline vvi in_vvi(int height, int width) { vvi res; rep(i, height) res.pb(in_vi(width)); return res; }
+inline vvll in_vvll(int height, int width) { vvll res; rep(i, height) res.pb(in_vll(width)); return res; }
 template <bool bidir> inline vvll in_edges(int N, int height)
     { vvll res(N, vll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
     res[a].pb(b); if (bidir) res[b].pb(a); } return res; }
@@ -157,24 +173,56 @@ inline mll to_mll(ll v) { return mll(to_string(v)); }
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
 template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
 
+// operator
+TPL_TS pair<T, S> operator-(const pair<T, S> &v) { return { -v.first, -v.second }; }
+TPL_TS pair<T, S> &operator+=(pair<T, S> &a, const pair<T, S> &b) { a.first += b.first; a.second += b.second; return a; }
+TPL_TS pair<T, S> &operator-=(pair<T, S> &a, const pair<T, S> &b) { return a += -b; }
+TPL_TSU pair<T, S> &operator*=(pair<T, S> &a, const U &b) { a.first *= b; a.second *= b; return a; }
+TPL_TSU pair<T, S> &operator/=(pair<T, S> &a, const U &b) { a.first /= b; a.second /= b; return a; }
+TPL_TS pair<T, S> &operator+=(pair<T, S> &&a, const pair<T, S> &b) { return a += b; }
+TPL_TS pair<T, S> &operator-=(pair<T, S> &&a, const pair<T, S> &b) { return a -= b; }
+TPL_TSU pair<T, S> &operator*=(pair<T, S> &&a, const U &b) { return a *= b; }
+TPL_TSU pair<T, S> &operator/=(pair<T, S> &&a, const U &b) { return a /= b; }
+TPL_TS pair<T, S> operator+(const pair<T, S> &a, const pair<T, S> &b) { return pair<T, S>(a) += b; }
+TPL_TS pair<T, S> operator-(const pair<T, S> &a, const pair<T, S> &b) { return pair<T, S>(a) -= b; }
+TPL_TSU pair<T, S> operator*(const pair<T, S> &a, const U &b) { return pair<T, S>(a) *= b; }
+TPL_TSU pair<T, S> operator/(const pair<T, S> &a, const U &b) { return pair<T, S>(a) /= b; }
+
 // math
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 
+// hash
+TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
+template <> struct Hasher<pii> { ull operator()(const pii &v) const { return (ull)v.first << 32 | (ull)v.second; } };
+template <> struct Hasher<pll> { ull operator()(const pll &v) const { return (ull)v.first << 32 | (ull)v.second; } };
+TPL_T using ush = us<T, Hasher<T>>;
+TPL_TS using umh = um<T, S, Hasher<T>>;
+
+// ostream
+#define OSTREAM(class, ...) \
+    void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
+    friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
+template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
+ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
+TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
+
 // print
-template <typename T> inline void print(const T &v, string end = "\n") { cout << v << end; }
-template <int V> inline void print(const static_modint<V> &v, string end = "\n") { print(v.val(), end); }
-inline void print(const modint &v, string end = "\n") { print(v.val(), end); }
-template <typename T, typename S> inline void print(const pair<T, S> &v, string end = "\n")
-    { cout << v.first << " " << v.second << end; }
-template <typename T, typename S> inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
-template <typename T, typename S> inline void print(const map<T, S> &v) { repi(i, v) print(i); }
-template <typename T> inline void print(const vector<T> &v, string sep = " ")
-    { rep(i, v.size()) print(v[i], i != (ll)v.size() - 1 ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const set<T> &v, string sep = " ")
-    { repi(i, v) print(i, i != *prev(v.end()) ? sep : ""); cout << '\n'; }
-template <typename T> inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
+TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }
+TPL_TS inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
+TPL_TS inline void print(const map<T, S> &v) { repi(i, v) print(i); }
+TPL_T inline typename enable_if<is_base_of<forward_iterator_tag,
+    typename iterator_traits<T>::iterator_category>::value>::type print(const T &begin, const T &end, string sep = " ")
+    { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
+TPL_T inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
+TPL_T inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
+TPL_T inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
+void print_all_inner(ostream&) {}
+template <typename First, typename... Rest> void print_all_inner(ostream& os, const First &f, const Rest &...r)
+    { os << ' ' << f; print_all_inner(os, r...); }
+template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
+    { os << f; print_all_inner(os, r...); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -212,7 +260,102 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD);
+DEFINE_MOD(MOD2);
+
+using i32 = std::int32_t;
+using i64 = std::int64_t;
+using u32 = std::uint32_t;
+using u64 = std::uint64_t;
+using isize = std::ptrdiff_t;
+using usize = std::size_t;
+
+template <class Select>
+std::vector<usize> smawk(const usize row_size, const usize col_size,
+                         const Select &select) {
+    using vec_zu = std::vector<usize>;
+
+    const std::function<vec_zu(const vec_zu &, const vec_zu &)> solve =
+        [&](const vec_zu &row, const vec_zu &col) -> vec_zu {
+        const usize n = row.size();
+        if (n == 0)
+            return {};
+        vec_zu c2;
+        for (const usize i : col) {
+            while (!c2.empty() && select(row[c2.size() - 1], c2.back(), i))
+                c2.pop_back();
+            if (c2.size() < n)
+                c2.push_back(i);
+        }
+        vec_zu r2;
+        for (usize i = 1; i < n; i += 2)
+            r2.push_back(row[i]);
+        const vec_zu a2 = solve(r2, c2);
+        vec_zu ans(n);
+        for (usize i = 0; i != a2.size(); i += 1)
+            ans[i * 2 + 1] = a2[i];
+        usize j = 0;
+        for (usize i = 0; i < n; i += 2) {
+            ans[i] = c2[j];
+            const usize end = i + 1 == n ? c2.back() : ans[i + 1];
+            while (c2[j] != end) {
+                j += 1;
+                if (select(row[i], ans[i], c2[j]))
+                    ans[i] = c2[j];
+            }
+        }
+        return ans;
+    };
+    vec_zu row(row_size);
+    std::iota(row.begin(), row.end(), 0);
+    vec_zu col(col_size);
+    std::iota(col.begin(), col.end(), 0);
+    return solve(row, col);
+}
+
+template <class T>
+std::vector<T> concave_max_plus_convolution(const std::vector<T> &a,
+                                            const std::vector<T> &b) {
+    const usize n = a.size();
+    const usize m = b.size();
+    const auto get = [&](const usize i, const usize j) {
+        return a[j] + b[i - j];
+    };
+    const auto select = [&](const usize i, const usize j, const usize k) {
+        if (i < k)
+            return false;
+        if (i - j >= m)
+            return true;
+        return get(i, j) <= get(i, k);
+    };
+    const std::vector<usize> amax = smawk(n + m - 1, n, select);
+    std::vector<T> c(n + m - 1);
+    for (usize i = 0; i != n + m - 1; i += 1)
+        c[i] = get(i, amax[i]);
+    return c;
+}
 
 void solve() {
+    LL(N);
+    VPLL(AB, N);
+    sort(all(AB), [](pll a, pll b) { return a.second < b.second; });
+    auto g = [&](ll l, ll r) -> vll {
+        vll A, ans{0};
+        rep(i, l, r) A.pb(AB[i].first);
+        sort(all(A), greater<ll>());
+        rep(i, A.size()) ans.pb(ans.back() + A[i]);
+        return ans;
+    };
+    auto f = [&](auto rc, ll l, ll r) -> vll {
+        if (l == r) return vll{-LINF};
+        if (l + 1 == r) return vll{-LINF, AB[l].first - AB[l].second};
+        ll mid = (l + r) / 2;
+        auto lv = g(l, mid), rv = rc(rc, mid, r);
+        auto ans = concave_max_plus_convolution(rv, lv);
+        auto lonly = rc(rc, l, mid);
+        rep(i, lonly.size()) chmax(ans[i], lonly[i]);
+        return ans;
+    };
+    vll ans = f(f, 0, N);
+    assert(ans.size() == N + 1);
+    rep(i, 1, ans.size()) print(ans[i]);
 }
