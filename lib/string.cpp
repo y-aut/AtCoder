@@ -5,6 +5,7 @@
 CSLL MOD_SIZE = 6;
 const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673, 981914693, 1375179334};
 const ull HASH_MOD[] = {1944897763, 1925898167, 1912776091, 1935497281, 1939942439, 1902550399};
+const ull HASH_BASE_INV[] = {1566673050, 1386797350, 1701798092, 1107754978, 1908540348, 638154975};
 vector<ull> HASH_BASE_POW[] = {{1}, {1}, {1}, {1}, {1}, {1}};
 
 ull get_hash_base_pow(ll index, ull n) {
@@ -43,13 +44,30 @@ struct RollingHash {
         size--;
     }
 
+    void pop_back(char c) {
+        rep(i, mod_num) {
+            hash[i] += HASH_MOD[i] - c;
+            hash[i] *= HASH_BASE_INV[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size--;
+    }
+
+    void push_front(char c) {
+        size++;
+        rep(i, mod_num) {
+            hash[i] += get_hash_base_pow(i, size - 1) * c;
+            hash[i] %= HASH_MOD[i];
+        }
+    }
+
     void push_back(char c) {
+        size++;
         rep(i, mod_num) {
             hash[i] *= HASH_BASE[i];
             hash[i] += c;
             hash[i] %= HASH_MOD[i];
         }
-        size++;
     }
 
     RollingHash &operator+=(const RollingHash &v) {
