@@ -1,3 +1,8 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #define TEMPLATE_H
 #include <atcoder/all>
 #include <bits/stdc++.h>
@@ -16,13 +21,6 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-/* templates */
-#define TPL_T template <typename T>
-#define TPL_TS template <typename T, typename S>
-#define TPL_TSU template <typename T, typename S, typename U>
-#define TPL_TSUV template <typename T, typename S, typename U, typename V>
-#define TPL_TSUVW template <typename T, typename S, typename U, typename V, typename W>
-
 /* alias */
 // type
 #define us unordered_set
@@ -35,24 +33,21 @@ using md = mpf_class;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 // vector
-TPL_T using v = vector<T>;
-TPL_T using vv = v<v<T>>;
-TPL_T using vvv = v<vv<T>>;
-using vi = v<int>;
-using vll = v<ll>;
-using vmll = v<mll>;
-using vd = v<double>;
-using vmd = v<md>;
-using vb = v<bool>;
-using vc = v<char>;
-using vs = v<string>;
-using vpii = v<pii>;
-using vpll = v<pll>;
-using vvi = v<vi>;
-using vvll = v<vll>;
-using vvb = v<vb>;
-using vvpii = v<vpii>;
-using vvpll = v<vpll>;
+using vi = vector<int>;
+using vll = vector<ll>;
+using vmll = vector<mll>;
+using vd = vector<double>;
+using vmd = vector<md>;
+using vb = vector<bool>;
+using vc = vector<char>;
+using vs = vector<string>;
+using vpii = vector<pii>;
+using vpll = vector<pll>;
+using vvi = vector<vi>;
+using vvll = vector<vll>;
+using vvb = vector<vb>;
+using vvpii = vector<vpii>;
+using vvpll = vector<vpll>;
 // unordered set
 using usi = us<int>;
 using usll = us<ll>;
@@ -62,10 +57,10 @@ using umi = um<int, int>;
 using umll = um<ll, ll>;
 
 /* mint */
-#define DEFINE_MOD(m)               \
-    using mint = static_modint<m>;  \
-    using vm = v<mint>;             \
-    using vvm = v<vm>;              \
+#define DEFINE_MOD(v)               \
+    using mint = static_modint<v>;  \
+    using vm = vector<mint>;        \
+    using vvm = vector<vm>;         \
     using pmm = pair<mint, mint>;   \
     inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
     inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
@@ -73,6 +68,13 @@ using umll = um<ll, ll>;
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
+
+/* templates */
+#define TPL_T template <typename T>
+#define TPL_TS template <typename T, typename S>
+#define TPL_TSU template <typename T, typename S, typename U>
+#define TPL_TSUV template <typename T, typename S, typename U, typename V>
+#define TPL_TSUVW template <typename T, typename S, typename U, typename V, typename W>
 
 /* define short */
 #define CSI constexpr static int
@@ -155,8 +157,8 @@ inline vvll in_vvll(int height, int width) { vvll res; rep(i, height) res.pb(in_
 template <bool bidir> inline vvll in_edges(int N, int height)
     { vvll res(N, vll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
     res[a].pb(b); if (bidir) res[b].pb(a); } return res; }
-template <bool bidir> inline v<usll> in_edges_us(int N, int height)
-    { v<usll> res(N, usll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
+template <bool bidir> inline vector<usll> in_edges_us(int N, int height)
+    { vector<usll> res(N, usll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
     res[a].insert(b); if (bidir) res[b].insert(a); } return res; }
 template <bool bidir> inline vvpll in_wedges(int N, int height)
     { vvpll res(N, vpll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1; ll w = in_ll();
@@ -208,14 +210,14 @@ TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << 
 
 // print
 TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }
-TPL_TS inline void print(const v<pair<T, S>> &v) { repi(i, v) print(i); }
+TPL_TS inline void print(const vector<pair<T, S>> &v) { repi(i, v) print(i); }
 TPL_TS inline void print(const map<T, S> &v) { repi(i, v) print(i); }
 TPL_T inline typename enable_if<is_base_of<forward_iterator_tag,
     typename iterator_traits<T>::iterator_category>::value>::type print(const T &begin, const T &end, string sep = " ")
     { for (auto i = begin; i != end; i++) print(*i, i != prev(end) ? sep : ""); cout << '\n'; }
-TPL_T inline void print(const v<T> &v, string sep = " ") { print(all(v), sep); }
+TPL_T inline void print(const vector<T> &v, string sep = " ") { print(all(v), sep); }
 TPL_T inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
-TPL_T inline void print(const vv<T> &v) { repi(i, v) print(i); }
+TPL_T inline void print(const vector<vector<T>> &v) { repi(i, v) print(i); }
 void print_all_inner(ostream&) {}
 template <typename First, typename... Rest> void print_all_inner(ostream& os, const First &f, const Rest &...r)
     { os << ' ' << f; print_all_inner(os, r...); }
@@ -245,3 +247,36 @@ CSD PI = 3.141592653589793;
 CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD);
+
+void solve() {
+    LL(N);
+    STR(S);
+    vll c;
+    ll last = 0;
+    rep(i, N - 1) {
+        if (S[i] == S[i + 1]) {
+            c.pb(i - last + 1);
+            last = i + 1;
+        }
+    }
+    c.pb(N - last);
+    mint ans = 1;
+    repi(i, c) {
+        ans *= ((i - 1) / 2) + 1;
+    }
+    print(ans);
+}

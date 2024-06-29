@@ -36,7 +36,7 @@ struct RollingHash {
     RollingHash(const vll &v) : RollingHash(all(v)) {}
     RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
 
-    void pop_front(char c) {
+    void pop_front(ll c) {
         rep(i, mod_num) {
             hash[i] += HASH_MOD[i] - get_hash_base_pow(i, size - 1) * c % HASH_MOD[i];
             hash[i] %= HASH_MOD[i];
@@ -44,7 +44,7 @@ struct RollingHash {
         size--;
     }
 
-    void pop_back(char c) {
+    void pop_back(ll c) {
         rep(i, mod_num) {
             hash[i] += HASH_MOD[i] - c;
             hash[i] *= HASH_BASE_INV[i];
@@ -53,7 +53,7 @@ struct RollingHash {
         size--;
     }
 
-    void push_front(char c) {
+    void push_front(ll c) {
         size++;
         rep(i, mod_num) {
             hash[i] += get_hash_base_pow(i, size - 1) * c;
@@ -61,7 +61,7 @@ struct RollingHash {
         }
     }
 
-    void push_back(char c) {
+    void push_back(ll c) {
         size++;
         rep(i, mod_num) {
             hash[i] *= HASH_BASE[i];

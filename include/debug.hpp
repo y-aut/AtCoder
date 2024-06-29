@@ -16,7 +16,7 @@ inline string to_str(const pair<T, S> &v) { return to_str(v.first) + "," + to_st
 TPL_T
 inline void dprint(ll line, string name, const T &v);
 TPL_T
-inline void dprint(ll line, string name, const vector<T> &v);
+inline void dprint(ll line, string name, const v<T> &v);
 template <typename T, size_t N>
 inline void dprint(ll line, string name, const array<T, N> &v);
 TPL_TSU
@@ -42,7 +42,7 @@ inline void dprint(ll line, string name, const T &v) {
 }
 
 TPL_T
-inline void dprint(ll line, string name, const vector<T> &v) {
+inline void dprint(ll line, string name, const v<T> &v) {
     if (v.empty()) dprint(line, name, "empty");
     else rep(i, v.size()) dprint(line, name + "[" + to_str(i) + "]", v[i]);
 }
@@ -85,21 +85,21 @@ inline void dprint(ll line, string name, const um<T, S, U, V, W> &v) {
 
 TPL_T
 inline void dprint(ll line, string name, fenwick_tree<T> &v, ll n) {
-    vector<T> vc;
+    v<T> vc;
     rep(i, n) vc.pb(v.sum(i, i + 1));
     dprint(line, name, vc);
 }
 
 template <class S, auto op, auto e>
 inline void dprint(ll line, string name, const segtree<S, op, e> &v, ll n) {
-    vector<S> vc;
+    v<S> vc;
     rep(i, n) vc.pb(v.get(i));
     dprint(line, name, vc);
 }
 
 template <class S, auto op, auto e, class F, auto mapping, auto composition, auto id>
 inline void dprint(ll line, string name, lazy_segtree<S, op, e, F, mapping, composition, id> &v, ll n) {
-    vector<S> vc;
+    v<S> vc;
     rep(i, n) vc.pb(v.get(i));
     dprint(line, name, vc);
 }
