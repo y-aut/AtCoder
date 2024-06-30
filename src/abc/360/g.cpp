@@ -265,45 +265,43 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "最長増加部分列"
+
+// 各 i に対して，A[0:i] の LIS を求める
+vpll get_lis(const vll &A) {
+    vpll ans;
+    vll tmp;
+    repi(a, A) {
+        auto cnt = lower_bound(all(tmp), a) - tmp.begin();
+        if (cnt == tmp.size()) {
+            tmp.pb(a);
+        } else {
+            tmp[cnt] = a;
+        }
+        ans.eb(tmp.back(), tmp.size());
+    }
+    return ans;
+}
+
+#pragma endregion
+
 void solve() {
-    LL(N, M);
-    auto del = in_edges_us<true>(N, M);
-    vll dist(N, -1);
-    dist[0] = 0;
-    usll unvis;
-    rep(i, 1, N) unvis.insert(i);
-    queue<ll> q;
-    q.push(0);
-    while (!q.empty()) {
-        ll v = q.front();
-        q.pop();
-        usll added;
-        repi(i, unvis) {
-            if (!del[v].count(i)) {
-                added.insert(i);
-                q.push(i);
-                dist[i] = dist[v] + 1;
-            }
-        }
-        repi(i, added) unvis.erase(i);
+    LL(N);
+    VLL(A, N);
+    if (N == 1) {
+        print(1);
+        return;
     }
-    debug(dist);
-    if (dist[N - 1] == -1) EXIT(print(-1));
-    ll dmax = *max_element(all(dist));
-    vvll dsm(dmax + 1);
-    rep(i, N) if (dist[i] != -1) dsm[dist[i]].pb(i);
-    v<um<ll, vll>> delm(N);
-    rep(i, N) repi(j, del[i]) if (dist[j] != -1) delm[i][dist[j]].pb(j);
-    vm cnt(N);
-    cnt[0] = 1;
-    rep(d, dmax) {
-        mint sum = 0;
-        repi(i, dsm[d]) sum += cnt[i];
-        repi(i, dsm[d + 1]) {
-            mint tmp = sum;
-            repi(j, delm[i][d]) tmp -= cnt[j];
-            cnt[i] = tmp;
-        }
+    auto fw = get_lis(A);
+    auto B = A;
+    repi(i, B) i = -i;
+    reverse(all(B));
+    auto bw = get_lis(B);
+    reverse(all(bw));
+    repi(i, bw) i.first = -i.first;
+    ll ans = max(fw[N - 2].second + 1, bw[1].second + 1);
+    rep(i, 1, N - 1) {
+        if (fw[i - 1].first + 1 < bw[i + 1].first) chmax(ans, fw[i - 1].second + bw[i + 1].second + 1);
     }
-    print(cnt[N - 1]);
+    print(ans);
 }

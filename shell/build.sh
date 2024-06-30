@@ -58,7 +58,8 @@ fi
 if [ "$(uname)" == 'Darwin' ]; then
     export CPATH="/opt/homebrew/include/:$CPATH"
     export LIBRARY_PATH="/opt/homebrew/lib:$LIBRARY_PATH"
-    /opt/homebrew/bin/g++-12 ${args[@]}
+    unbuffer /opt/homebrew/bin/g++-12 ${args[@]} 2>&1 | tee build.ans
+    exit ${PIPESTATUS[0]}
 else
     /usr/bin/g++-12 ${args[@]}
 fi

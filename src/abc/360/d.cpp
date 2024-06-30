@@ -266,44 +266,21 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    auto del = in_edges_us<true>(N, M);
-    vll dist(N, -1);
-    dist[0] = 0;
-    usll unvis;
-    rep(i, 1, N) unvis.insert(i);
-    queue<ll> q;
-    q.push(0);
-    while (!q.empty()) {
-        ll v = q.front();
-        q.pop();
-        usll added;
-        repi(i, unvis) {
-            if (!del[v].count(i)) {
-                added.insert(i);
-                q.push(i);
-                dist[i] = dist[v] + 1;
-            }
-        }
-        repi(i, added) unvis.erase(i);
-    }
-    debug(dist);
-    if (dist[N - 1] == -1) EXIT(print(-1));
-    ll dmax = *max_element(all(dist));
-    vvll dsm(dmax + 1);
-    rep(i, N) if (dist[i] != -1) dsm[dist[i]].pb(i);
-    v<um<ll, vll>> delm(N);
-    rep(i, N) repi(j, del[i]) if (dist[j] != -1) delm[i][dist[j]].pb(j);
-    vm cnt(N);
-    cnt[0] = 1;
-    rep(d, dmax) {
-        mint sum = 0;
-        repi(i, dsm[d]) sum += cnt[i];
-        repi(i, dsm[d + 1]) {
-            mint tmp = sum;
-            repi(j, delm[i][d]) tmp -= cnt[j];
-            cnt[i] = tmp;
+    LL(N, T);
+    STR(S);
+    VLL(X, N);
+    v<pair<ll, char>> t;
+    rep(i, N) t.eb(X[i], S[i]);
+    sort(all(t));
+    queue<ll> zero;
+    ll ans = 0;
+    rep(i, N) {
+        if (t[i].second == '1') {
+            zero.push(i);
+        } else {
+            while (!zero.empty() && t[zero.front()].first + T * 2 < t[i].first) zero.pop();
+            ans += zero.size();
         }
     }
-    print(cnt[N - 1]);
+    print(ans);
 }

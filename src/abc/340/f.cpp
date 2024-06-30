@@ -265,45 +265,37 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+// 返り値: a と b の最大公約数
+// ax + by = gcd(a, b) を満たす (x, y) が格納される
+long long extGCD(long long a, long long b, long long &x, long long &y) {
+    if (b == 0) {
+        x = 1;
+        y = 0;
+        return a;
+    }
+    long long d = extGCD(b, a % b, y, x);
+    y -= a / b * x;
+    return d;
+}
+
 void solve() {
-    LL(N, M);
-    auto del = in_edges_us<true>(N, M);
-    vll dist(N, -1);
-    dist[0] = 0;
-    usll unvis;
-    rep(i, 1, N) unvis.insert(i);
-    queue<ll> q;
-    q.push(0);
-    while (!q.empty()) {
-        ll v = q.front();
-        q.pop();
-        usll added;
-        repi(i, unvis) {
-            if (!del[v].count(i)) {
-                added.insert(i);
-                q.push(i);
-                dist[i] = dist[v] + 1;
-            }
-        }
-        repi(i, added) unvis.erase(i);
+    LL(X, Y);
+    bool sx = X >= 0, sy = Y >= 0;
+    X = abs(X);
+    Y = abs(Y);
+    ll a, b;
+    ll g = extGCD(X, Y, a, b);
+    assert(g > 0);
+    if (g > 2) {
+        print(-1);
+        return;
     }
-    debug(dist);
-    if (dist[N - 1] == -1) EXIT(print(-1));
-    ll dmax = *max_element(all(dist));
-    vvll dsm(dmax + 1);
-    rep(i, N) if (dist[i] != -1) dsm[dist[i]].pb(i);
-    v<um<ll, vll>> delm(N);
-    rep(i, N) repi(j, del[i]) if (dist[j] != -1) delm[i][dist[j]].pb(j);
-    vm cnt(N);
-    cnt[0] = 1;
-    rep(d, dmax) {
-        mint sum = 0;
-        repi(i, dsm[d]) sum += cnt[i];
-        repi(i, dsm[d + 1]) {
-            mint tmp = sum;
-            repi(j, delm[i][d]) tmp -= cnt[j];
-            cnt[i] = tmp;
-        }
+    if (g == 1) {
+        a *= 2;
+        b *= 2;
     }
-    print(cnt[N - 1]);
+    b *= -1;
+    if (!sx) a *= -1;
+    if (!sy) b *= -1;
+    print(pll{b, a});
 }

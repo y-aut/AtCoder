@@ -18,12 +18,12 @@
             }
         },
         {
-            "label": "debug build with output name",
+            "label": "release build with output name",
             "type": "shell",
             "command": "bash",
             "args": [
                 "${workspaceFolder}/shell/build.sh",
-                "d",
+                "r",
                 "${workspaceFolder}",
                 "${file}",
                 "${input:outFileName}"

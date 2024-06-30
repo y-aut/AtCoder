@@ -266,44 +266,42 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    auto del = in_edges_us<true>(N, M);
-    vll dist(N, -1);
-    dist[0] = 0;
-    usll unvis;
-    rep(i, 1, N) unvis.insert(i);
-    queue<ll> q;
-    q.push(0);
-    while (!q.empty()) {
-        ll v = q.front();
-        q.pop();
-        usll added;
-        repi(i, unvis) {
-            if (!del[v].count(i)) {
-                added.insert(i);
-                q.push(i);
-                dist[i] = dist[v] + 1;
+    LL(N);
+    VLL(A, N);
+    LL(Q);
+    vpll sorted(N);
+    rep(i, N) sorted[i] = {A[i], i};
+    sort(all(sorted));
+
+    ll width = max(1LL, (ll)sqrt(N));
+    map<ll, vll> memo;
+    for (ll i = 0; i < N; i += width) {
+        ll num = sorted[i].first;
+        if (memo.count(num)) continue;
+        vll tmp(N + 1);
+        rep(j, N) tmp[j + 1] = tmp[j] + (A[j] <= num ? A[j] : 0);
+        memo[num] = tmp;
+    }
+
+    ll B = 0;
+    rep(q, Q) {
+        LL(al, be, ga);
+        ll L = al ^ B, R = be ^ B, X = ga ^ B;
+        L--;
+        auto itr = memo.upper_bound(X);
+        ll sum = 0;
+        if (itr != memo.begin()) {
+            itr--;
+            sum = itr->second[R] - itr->second[L];
+        }
+        ll pos = upper_bound(all(sorted), pll{itr->first, LINF}) - sorted.begin();
+        while (pos < N && sorted[pos].first <= X) {
+            if (L <= sorted[pos].second && sorted[pos].second < R) {
+                sum += sorted[pos].first;
             }
+            pos++;
         }
-        repi(i, added) unvis.erase(i);
+        print(sum);
+        B = sum;
     }
-    debug(dist);
-    if (dist[N - 1] == -1) EXIT(print(-1));
-    ll dmax = *max_element(all(dist));
-    vvll dsm(dmax + 1);
-    rep(i, N) if (dist[i] != -1) dsm[dist[i]].pb(i);
-    v<um<ll, vll>> delm(N);
-    rep(i, N) repi(j, del[i]) if (dist[j] != -1) delm[i][dist[j]].pb(j);
-    vm cnt(N);
-    cnt[0] = 1;
-    rep(d, dmax) {
-        mint sum = 0;
-        repi(i, dsm[d]) sum += cnt[i];
-        repi(i, dsm[d + 1]) {
-            mint tmp = sum;
-            repi(j, delm[i][d]) tmp -= cnt[j];
-            cnt[i] = tmp;
-        }
-    }
-    print(cnt[N - 1]);
 }

@@ -265,45 +265,88 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-void solve() {
-    LL(N, M);
-    auto del = in_edges_us<true>(N, M);
-    vll dist(N, -1);
-    dist[0] = 0;
-    usll unvis;
-    rep(i, 1, N) unvis.insert(i);
-    queue<ll> q;
-    q.push(0);
-    while (!q.empty()) {
-        ll v = q.front();
-        q.pop();
-        usll added;
-        repi(i, unvis) {
-            if (!del[v].count(i)) {
-                added.insert(i);
-                q.push(i);
-                dist[i] = dist[v] + 1;
+struct Node {
+    vll sorted;
+    vll acc;
+
+    Node() {}
+    Node(const vll &_sorted) : sorted(_sorted), acc(_sorted.size() + 1) {
+        rep(i, sorted.size()) acc[i + 1] = acc[i] + sorted[i];
+    }
+};
+
+template <auto op, auto e, auto appl>
+class MergeSortTree {
+    ll _n;
+    v<Node> nodes;
+
+    void init(ll i, vll &v) {
+        if (v.size() > 1) {
+            vll lv, rv;
+            lv.reserve(v.size() / 2);
+            rv.reserve(v.size() / 2);
+            rep(i, v.size() / 2) lv.pb(v[i]);
+            rep(i, v.size() / 2, v.size()) rv.pb(v[i]);
+            init(i * 2, lv);
+            init(i * 2 + 1, rv);
+            ll lp = 0, rp = 0;
+            while (lp < (ll)lv.size() && rp < (ll)rv.size()) {
+                if (lv[lp] <= rv[rp]) {
+                    v[lp + rp] = lv[lp], lp++;
+                } else {
+                    v[lp + rp] = rv[rp], rp++;
+                }
             }
+            while (lp < (ll)lv.size()) v[lp + rp] = lv[lp], lp++;
+            while (rp < (ll)rv.size()) v[lp + rp] = rv[rp], rp++;
         }
-        repi(i, added) unvis.erase(i);
+        nodes[i] = Node(v);
     }
-    debug(dist);
-    if (dist[N - 1] == -1) EXIT(print(-1));
-    ll dmax = *max_element(all(dist));
-    vvll dsm(dmax + 1);
-    rep(i, N) if (dist[i] != -1) dsm[dist[i]].pb(i);
-    v<um<ll, vll>> delm(N);
-    rep(i, N) repi(j, del[i]) if (dist[j] != -1) delm[i][dist[j]].pb(j);
-    vm cnt(N);
-    cnt[0] = 1;
-    rep(d, dmax) {
-        mint sum = 0;
-        repi(i, dsm[d]) sum += cnt[i];
-        repi(i, dsm[d + 1]) {
-            mint tmp = sum;
-            repi(j, delm[i][d]) tmp -= cnt[j];
-            cnt[i] = tmp;
+
+public:
+    MergeSortTree(const vll &v) {
+        _n = 1;
+        while (_n < (ll)v.size()) _n <<= 1;
+        nodes.resize(_n * 2);
+        auto ary = v;
+        ary.resize(_n, LINF);
+        init(1, ary);
+    }
+
+    template <typename... Params>
+    auto query(ll l, ll r, Params... x) {
+        l += _n;
+        r += _n;
+        auto sl = e(), sr = e();
+        while (l < r) {
+            if (l & 1) sl = op(sl, appl(nodes[l++], x...));
+            if (r & 1) sr = op(appl(nodes[--r], x...), sr);
+            l >>= 1;
+            r >>= 1;
         }
+        return op(sl, sr);
     }
-    print(cnt[N - 1]);
+};
+
+ll op(ll a, ll b) { return a + b; }
+ll e() { return 0; }
+ll appl(const Node &node, ll x) {
+    return node.acc[upper_bound(all(node.sorted), x) - node.sorted.begin()];
+}
+
+void solve() {
+    LL(N);
+    VLL(A, N);
+    LL(Q);
+    MergeSortTree<op, e, appl> tree(A);
+
+    ll B = 0;
+    rep(q, Q) {
+        LL(al, be, ga);
+        ll L = al ^ B, R = be ^ B, X = ga ^ B;
+        L--;
+        assert(0 <= L && L < R && R <= N);
+        B = tree.query(L, R, X);
+        print(B);
+    }
 }

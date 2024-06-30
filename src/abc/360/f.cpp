@@ -265,45 +265,60 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+pll op(pll a, pll b) { return a.first < b.first ? b : a; }
+pll e() { return {-LINF, 0}; }
+pll mp(ll f, pll x) { return {f + x.first, x.second}; }
+ll comp(ll f, ll g) { return f + g; }
+ll id() { return 0; }
+
 void solve() {
-    LL(N, M);
-    auto del = in_edges_us<true>(N, M);
-    vll dist(N, -1);
-    dist[0] = 0;
-    usll unvis;
-    rep(i, 1, N) unvis.insert(i);
-    queue<ll> q;
-    q.push(0);
-    while (!q.empty()) {
-        ll v = q.front();
-        q.pop();
-        usll added;
-        repi(i, unvis) {
-            if (!del[v].count(i)) {
-                added.insert(i);
-                q.push(i);
-                dist[i] = dist[v] + 1;
-            }
-        }
-        repi(i, added) unvis.erase(i);
+    LL(N);
+    VPLL(LR, N);
+    set<ll> xs;
+    repi(l, r, LR) {
+        xs.insert(l), xs.insert(l - 1), xs.insert(l + 1);
+        xs.insert(r), xs.insert(r - 1), xs.insert(r + 1);
     }
-    debug(dist);
-    if (dist[N - 1] == -1) EXIT(print(-1));
-    ll dmax = *max_element(all(dist));
-    vvll dsm(dmax + 1);
-    rep(i, N) if (dist[i] != -1) dsm[dist[i]].pb(i);
-    v<um<ll, vll>> delm(N);
-    rep(i, N) repi(j, del[i]) if (dist[j] != -1) delm[i][dist[j]].pb(j);
-    vm cnt(N);
-    cnt[0] = 1;
-    rep(d, dmax) {
-        mint sum = 0;
-        repi(i, dsm[d]) sum += cnt[i];
-        repi(i, dsm[d + 1]) {
-            mint tmp = sum;
-            repi(j, delm[i][d]) tmp -= cnt[j];
-            cnt[i] = tmp;
+    xs.insert(0);
+    if (xs.count(-1)) xs.erase(-1);
+    if (xs.count((ll)1e9 + 1)) xs.erase((ll)1e9 + 1);
+    vll xv;
+    repi(i, xs) xv.pb(i);
+    umll xm;
+    rep(i, xv.size()) xm[xv[i]] = i;
+    repi(l, r, LR) l = xm[l], r = xm[r];
+    ll W = xv.size();
+
+    vvll lpos(W), rpos(W);
+    rep(i, N) {
+        lpos[LR[i].first].pb(i);
+        rpos[LR[i].second].pb(i);
+    }
+
+    vpll init(W);
+    rep(i, W) init[i].second = i;
+    lazy_segtree<pll, op, e, ll, mp, comp, id> tree(init);
+    repi(l, r, LR) {
+        if (l == 0) continue;
+        tree.apply(l + 1, r, 1);
+    }
+    ll ans_m = 0;
+    pll ans = {0, 1};
+    rep(i, W - 1) {
+        auto m = tree.all_prod();
+        if (m.first > ans_m) {
+            ans_m = m.first;
+            ans = {i, m.second};
+        }
+        repi(j, lpos[i]) {
+            tree.apply(LR[j].second + 1, W, 1);
+        }
+        repi(j, lpos[i + 1]) {
+            tree.apply(LR[j].first + 1, LR[j].second, -1);
+        }
+        repi(j, rpos[i + 1]) {
+            tree.apply(LR[j].second + 1, W, -1);
         }
     }
-    print(cnt[N - 1]);
+    print(pll{xv[ans.first], xv[ans.second]});
 }

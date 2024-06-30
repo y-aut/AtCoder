@@ -1,5 +1,6 @@
 in
 out
+build.ans
 src/test
 src/test.*
 src/work
