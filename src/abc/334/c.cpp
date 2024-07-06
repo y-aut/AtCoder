@@ -195,8 +195,6 @@ TPL_TSU pair<T, S> operator/(const pair<T, S> &a, const U &b) { return pair<T, S
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
-TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
-double abs(const pll &p) { return sqrt(abs2(p)); }
 
 // hash
 TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
@@ -240,7 +238,6 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #include "debug.hpp"
 #else
 #define debug(...) (void)0
-#define debugs(...) (void)0
 #endif
 
 /* constants */
@@ -268,59 +265,30 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-mint f(const string &S, ll start, ll stop) {
-    mint ans = 0;
-    ll size = 0;
-    pmm p{0, 1};
-    repd(i, start, stop) {
-        if (S[i] == '*') {
-            p = {0, p.first * p.second};
-            size = 0;
-        } else {
-            mint n = S[i] - '0';
-            p.first += mint(10).pow(size) * n;
-            ans += p.first * p.second;
-            size++;
-        }
-    }
-    return ans;
-}
-
 void solve() {
-    STR(S);
-    ll last_plus = -1, last_mul = -1;
-    mint cur_num = 0, cur_mem = 0, cur_mem_prev = 1, num_cnt_plus = 0;
-    mint plus = 0, plus_mul = 0, mul = 0;
-    mint ans = 0;
-    rep(i, S.size()) {
-        if (S[i] == '+') {
-            plus += cur_mem * num_cnt_plus;
-            plus += f(S, last_plus + 1, i);
-            plus_mul = mul = 0;
-            rep(j, last_plus + 1, i) num_cnt_plus += (S[j] != '+' && S[j] != '*');
-            last_plus = last_mul = i;
-            cur_num = cur_mem = 0;
-            cur_mem_prev = 1;
-        } else if (S[i] == '*') {
-            plus_mul *= cur_num;
-            plus_mul += f(S, last_mul + 1, i);
-            mul = 0;
-            last_mul = i;
-            cur_num = 0;
-            cur_mem_prev = cur_mem;
-            cur_mem = 0;
-        } else {
-            mint n = S[i] - '0';
-            ans += plus;
-            ans += plus_mul * (cur_num * 10 + n);
-            cur_mem += cur_mem_prev * (cur_num * 9 + n);
-            ans += cur_mem * num_cnt_plus;
-            mul = mul * 10 + n * (i - last_mul);
-            ans += mul;
-            cur_num = cur_num * 10 + n;
-        }
-        debugs(i, last_plus, last_mul, cur_num, plus, plus_mul, mul, ans);
-        debugs(num_cnt_plus, cur_mem);
+    LL(N, K);
+    VLL(A, K);
+    repi(i, A) i--;
+    usll As;
+    repi(i, A) As.insert(i);
+    vll r;
+    rep(i, N) {
+        r.pb(i);
+        if (!As.count(i)) r.pb(i);
     }
-    print(ans);
+    vll fw{0}, bw{0};
+    ll rest = N * 2 - K;
+    rep(i, rest) {
+        if (i % 2 == 0) fw.pb(fw.back());
+        else fw.pb(fw.back() + abs(r[i - 1] - r[i]));
+        if (i % 2 == 0) bw.pb(bw.back());
+        else bw.pb(bw.back() + abs(r[rest - i - 1] - r[rest - i]));
+    }
+    if (rest % 2 == 0) {
+        print(fw.back());
+    } else {
+        ll ans = LINF;
+        for (ll i = 0; i <= rest; i += 2) chmin(ans, fw[i] + bw[rest - i]);
+        print(ans);
+    }
 }

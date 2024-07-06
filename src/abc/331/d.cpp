@@ -268,59 +268,24 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-mint f(const string &S, ll start, ll stop) {
-    mint ans = 0;
-    ll size = 0;
-    pmm p{0, 1};
-    repd(i, start, stop) {
-        if (S[i] == '*') {
-            p = {0, p.first * p.second};
-            size = 0;
-        } else {
-            mint n = S[i] - '0';
-            p.first += mint(10).pow(size) * n;
-            ans += p.first * p.second;
-            size++;
-        }
-    }
-    return ans;
-}
-
 void solve() {
-    STR(S);
-    ll last_plus = -1, last_mul = -1;
-    mint cur_num = 0, cur_mem = 0, cur_mem_prev = 1, num_cnt_plus = 0;
-    mint plus = 0, plus_mul = 0, mul = 0;
-    mint ans = 0;
-    rep(i, S.size()) {
-        if (S[i] == '+') {
-            plus += cur_mem * num_cnt_plus;
-            plus += f(S, last_plus + 1, i);
-            plus_mul = mul = 0;
-            rep(j, last_plus + 1, i) num_cnt_plus += (S[j] != '+' && S[j] != '*');
-            last_plus = last_mul = i;
-            cur_num = cur_mem = 0;
-            cur_mem_prev = 1;
-        } else if (S[i] == '*') {
-            plus_mul *= cur_num;
-            plus_mul += f(S, last_mul + 1, i);
-            mul = 0;
-            last_mul = i;
-            cur_num = 0;
-            cur_mem_prev = cur_mem;
-            cur_mem = 0;
-        } else {
-            mint n = S[i] - '0';
-            ans += plus;
-            ans += plus_mul * (cur_num * 10 + n);
-            cur_mem += cur_mem_prev * (cur_num * 9 + n);
-            ans += cur_mem * num_cnt_plus;
-            mul = mul * 10 + n * (i - last_mul);
-            ans += mul;
-            cur_num = cur_num * 10 + n;
-        }
-        debugs(i, last_plus, last_mul, cur_num, plus, plus_mul, mul, ans);
-        debugs(num_cnt_plus, cur_mem);
+    LL(N, Q);
+    VS(P, N);
+    vvll acc(N + 1, vll(N + 1));
+    rep(i, N) rep(j, N) acc[i + 1][j + 1] = (P[i][j] == 'B');
+    rep(i, N) rep(j, N) acc[i + 1][j + 1] += acc[i + 1][j];
+    rep(i, N) rep(j, N) acc[i + 1][j + 1] += acc[i][j + 1];
+    auto calc = [&](ll i, ll j) -> ll {
+        ll res = 0;
+        res += acc[N][N] * (i / N) * (j / N);
+        res += acc[N][j % N] * (i / N);
+        res += acc[i % N][N] * (j / N);
+        res += acc[i % N][j % N];
+        return res;
+    };
+    rep(q, Q) {
+        LL(A, B, C, D);
+        C++, D++;
+        print(calc(C, D) - calc(A, D) - calc(C, B) + calc(A, B));
     }
-    print(ans);
 }

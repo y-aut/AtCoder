@@ -195,8 +195,6 @@ TPL_TSU pair<T, S> operator/(const pair<T, S> &a, const U &b) { return pair<T, S
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
-TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
-double abs(const pll &p) { return sqrt(abs2(p)); }
 
 // hash
 TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
@@ -240,7 +238,6 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #include "debug.hpp"
 #else
 #define debug(...) (void)0
-#define debugs(...) (void)0
 #endif
 
 /* constants */
@@ -268,59 +265,176 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-mint f(const string &S, ll start, ll stop) {
-    mint ans = 0;
-    ll size = 0;
-    pmm p{0, 1};
-    repd(i, start, stop) {
-        if (S[i] == '*') {
-            p = {0, p.first * p.second};
-            size = 0;
-        } else {
-            mint n = S[i] - '0';
-            p.first += mint(10).pow(size) * n;
-            ans += p.first * p.second;
-            size++;
+#pragma region "Tree"
+
+class Tree {
+protected:
+    const ll size;
+    const vvll &edges;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(root, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(ll v, ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
         }
     }
-    return ans;
-}
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                             parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    const vll &get_depth() const { return depth; }
+    ll get_depth(ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    const vvll &get_edges() const { return edges; }
+    const vll &get_edges(ll v) const { return edges[v]; }
+    const vll &get_parent() const { return parents; }
+    ll get_parent(ll v) const { return parents[v]; }
+    const vvll &get_children() const { return children; }
+    const vll &get_children(ll v) const { return children[v]; }
+    const vll &get_partial_size() const { return partial_size; }
+    ll get_partial_size(ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+
+    // 重心の一つを取得する
+    ll get_centroid() const {
+        ll v = get_root();
+        while (true) {
+            ll max_size = 0, max_c = 0;
+            repi(c, get_children(v)) {
+                if (chmax(max_size, get_partial_size(c))) max_c = c;
+            }
+            if (max_size <= get_size() / 2) return v;
+            v = max_c;
+        }
+    }
+};
+
+#pragma endregion
 
 void solve() {
-    STR(S);
-    ll last_plus = -1, last_mul = -1;
-    mint cur_num = 0, cur_mem = 0, cur_mem_prev = 1, num_cnt_plus = 0;
-    mint plus = 0, plus_mul = 0, mul = 0;
-    mint ans = 0;
-    rep(i, S.size()) {
-        if (S[i] == '+') {
-            plus += cur_mem * num_cnt_plus;
-            plus += f(S, last_plus + 1, i);
-            plus_mul = mul = 0;
-            rep(j, last_plus + 1, i) num_cnt_plus += (S[j] != '+' && S[j] != '*');
-            last_plus = last_mul = i;
-            cur_num = cur_mem = 0;
-            cur_mem_prev = 1;
-        } else if (S[i] == '*') {
-            plus_mul *= cur_num;
-            plus_mul += f(S, last_mul + 1, i);
-            mul = 0;
-            last_mul = i;
-            cur_num = 0;
-            cur_mem_prev = cur_mem;
-            cur_mem = 0;
-        } else {
-            mint n = S[i] - '0';
-            ans += plus;
-            ans += plus_mul * (cur_num * 10 + n);
-            cur_mem += cur_mem_prev * (cur_num * 9 + n);
-            ans += cur_mem * num_cnt_plus;
-            mul = mul * 10 + n * (i - last_mul);
-            ans += mul;
-            cur_num = cur_num * 10 + n;
-        }
-        debugs(i, last_plus, last_mul, cur_num, plus, plus_mul, mul, ans);
-        debugs(num_cnt_plus, cur_mem);
+    LL(N);
+    auto edges = in_edges<true>(N, N - 1);
+    Tree tree(edges);
+    auto et = tree.get_euler_tour();
+    vpll etadd(N, {-1, -1});
+    rep(i, et.size()) {
+        if (etadd[et[i]].first == -1) etadd[et[i]].first = i;
+        etadd[et[i]].second = i;
     }
-    print(ans);
+    fenwick_tree<ll> ft(N);
+    vpll memo(N);
+    vll vis(N, -1);
+    vll ans(N + 1);
+    ll last = 0, vis_cnt = 0;
+    rep(i, et.size()) {
+        auto v = et[i];
+        if (i == etadd[v].first) {
+            memo[v] = {ft.sum(0, v), ft.sum(0, tree.get_parent(v))};
+        }
+        if (vis[v] == -1) {
+            ft.add(v, 1);
+            vis[v] = vis_cnt++;
+            last = v;
+        }
+        if (i == etadd[v].second) {
+            auto [c1, c2] = pll{ft.sum(0, v), ft.sum(0, tree.get_parent(v))} - memo[v];
+            ans[vis[v]] += v - c1;
+            ans[vis[last] + 1] -= v - c1;
+            ans[0] += c2;
+            ans[vis[v]] -= c2;
+            ans[vis[last] + 1] += c2;
+        }
+    }
+    rep(i, 1, N) ans[i] += ans[i - 1];
+    vll res(N);
+    rep(i, N) res[i] = ans[vis[i]];
+    print(res);
 }

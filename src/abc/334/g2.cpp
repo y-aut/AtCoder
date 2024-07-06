@@ -195,8 +195,6 @@ TPL_TSU pair<T, S> operator/(const pair<T, S> &a, const U &b) { return pair<T, S
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
-TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
-double abs(const pll &p) { return sqrt(abs2(p)); }
 
 // hash
 TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
@@ -240,7 +238,6 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #include "debug.hpp"
 #else
 #define debug(...) (void)0
-#define debugs(...) (void)0
 #endif
 
 /* constants */
@@ -268,59 +265,199 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-mint f(const string &S, ll start, ll stop) {
-    mint ans = 0;
-    ll size = 0;
-    pmm p{0, 1};
-    repd(i, start, stop) {
-        if (S[i] == '*') {
-            p = {0, p.first * p.second};
-            size = 0;
-        } else {
-            mint n = S[i] - '0';
-            p.first += mint(10).pow(size) * n;
-            ans += p.first * p.second;
-            size++;
+/**
+ * @brief Graph Template(グラフテンプレート)
+ */
+template <typename T = int>
+struct Edge {
+    int from, to;
+    T cost;
+    int idx;
+
+    Edge() = default;
+
+    Edge(int from, int to, T cost = 1, int idx = -1) : from(from), to(to), cost(cost), idx(idx) {}
+
+    operator int() const { return to; }
+};
+
+template <typename T = int>
+struct Graph {
+    vector<vector<Edge<T>>> g;
+    int es;
+
+    Graph() = default;
+
+    explicit Graph(int n) : g(n), es(0) {}
+
+    size_t size() const {
+        return g.size();
+    }
+
+    void add_directed_edge(int from, int to, T cost = 1) {
+        g[from].emplace_back(from, to, cost, es++);
+    }
+
+    void add_edge(int from, int to, T cost = 1) {
+        g[from].emplace_back(from, to, cost, es);
+        g[to].emplace_back(to, from, cost, es++);
+    }
+
+    void read(int M, int padding = -1, bool weighted = false, bool directed = false) {
+        for (int i = 0; i < M; i++) {
+            int a, b;
+            cin >> a >> b;
+            a += padding;
+            b += padding;
+            T c = T(1);
+            if (weighted) cin >> c;
+            if (directed) add_directed_edge(a, b, c);
+            else add_edge(a, b, c);
         }
     }
-    return ans;
-}
+
+    inline vector<Edge<T>> &operator[](const int &k) {
+        return g[k];
+    }
+
+    inline const vector<Edge<T>> &operator[](const int &k) const {
+        return g[k];
+    }
+};
+
+template <typename T = int>
+using Edges = vector<Edge<T>>;
+/**
+ * @brief Low Link(橋/関節点)
+ * @see http://kagamiz.hatenablog.com/entry/2013/10/05/005213
+ *
+ */
+template <typename T = int>
+struct LowLink : Graph<T> {
+public:
+    using Graph<T>::Graph;
+    vector<int> ord, low, articulation;
+    vector<Edge<T>> bridge;
+    using Graph<T>::g;
+
+    virtual void build() {
+        used.assign(g.size(), 0);
+        ord.assign(g.size(), 0);
+        low.assign(g.size(), 0);
+        int k = 0;
+        for (int i = 0; i < (int)g.size(); i++) {
+            if (!used[i]) k = dfs(i, k, -1);
+        }
+    }
+
+    explicit LowLink(const Graph<T> &g) : Graph<T>(g) {}
+
+private:
+    vector<int> used;
+
+    int dfs(int idx, int k, int par) {
+        used[idx] = true;
+        ord[idx] = k++;
+        low[idx] = ord[idx];
+        bool is_articulation = false, beet = false;
+        int cnt = 0;
+        for (auto &to : g[idx]) {
+            if (to == par && !exchange(beet, true)) {
+                continue;
+            }
+            if (!used[to]) {
+                ++cnt;
+                k = dfs(to, k, idx);
+                low[idx] = min(low[idx], low[to]);
+                is_articulation |= par >= 0 && low[to] >= ord[idx];
+                if (ord[idx] < low[to]) bridge.emplace_back(to);
+            } else {
+                low[idx] = min(low[idx], ord[to]);
+            }
+        }
+        is_articulation |= par == -1 && cnt > 1;
+        if (is_articulation) articulation.push_back(idx);
+        return k;
+    }
+};
+
+template <typename T = int>
+struct BiConnectedComponents : LowLink<T> {
+public:
+    using LowLink<T>::LowLink;
+    using LowLink<T>::g;
+    using LowLink<T>::ord;
+    using LowLink<T>::low;
+
+    vector<vector<Edge<T>>> bc;
+
+    void build() override {
+        LowLink<T>::build();
+        used.assign(g.size(), 0);
+        for (int i = 0; i < (int)used.size(); i++) {
+            if (!used[i]) dfs(i, -1);
+        }
+    }
+
+    explicit BiConnectedComponents(const Graph<T> &g) : Graph<T>(g) {}
+
+private:
+    vector<int> used;
+    vector<Edge<T>> tmp;
+
+    void dfs(int idx, int par) {
+        used[idx] = true;
+        bool beet = false;
+        for (auto &to : g[idx]) {
+            if (to == par && !exchange(beet, true)) continue;
+            if (!used[to] || ord[to] < ord[idx]) {
+                tmp.emplace_back(to);
+            }
+            if (!used[to]) {
+                dfs(to, idx);
+                if (low[to] >= ord[idx]) {
+                    bc.emplace_back();
+                    for (;;) {
+                        auto e = tmp.back();
+                        bc.back().emplace_back(e);
+                        tmp.pop_back();
+                        if (e.idx == to.idx) break;
+                    }
+                }
+            }
+        }
+    }
+};
 
 void solve() {
-    STR(S);
-    ll last_plus = -1, last_mul = -1;
-    mint cur_num = 0, cur_mem = 0, cur_mem_prev = 1, num_cnt_plus = 0;
-    mint plus = 0, plus_mul = 0, mul = 0;
-    mint ans = 0;
-    rep(i, S.size()) {
-        if (S[i] == '+') {
-            plus += cur_mem * num_cnt_plus;
-            plus += f(S, last_plus + 1, i);
-            plus_mul = mul = 0;
-            rep(j, last_plus + 1, i) num_cnt_plus += (S[j] != '+' && S[j] != '*');
-            last_plus = last_mul = i;
-            cur_num = cur_mem = 0;
-            cur_mem_prev = 1;
-        } else if (S[i] == '*') {
-            plus_mul *= cur_num;
-            plus_mul += f(S, last_mul + 1, i);
-            mul = 0;
-            last_mul = i;
-            cur_num = 0;
-            cur_mem_prev = cur_mem;
-            cur_mem = 0;
-        } else {
-            mint n = S[i] - '0';
-            ans += plus;
-            ans += plus_mul * (cur_num * 10 + n);
-            cur_mem += cur_mem_prev * (cur_num * 9 + n);
-            ans += cur_mem * num_cnt_plus;
-            mul = mul * 10 + n * (i - last_mul);
-            ans += mul;
-            cur_num = cur_num * 10 + n;
-        }
-        debugs(i, last_plus, last_mul, cur_num, plus, plus_mul, mul, ans);
-        debugs(num_cnt_plus, cur_mem);
+    LL(H, W);
+    VS(S, H);
+    vvll ind(H, vll(W));
+    ll cur = 0;
+    rep(i, H) rep(j, W) {
+        if (S[i][j] == '#') ind[i][j] = cur++;
     }
-    print(ans);
+    mint ans = 0, cnt = 0;
+    BiConnectedComponents<ll> graph(cur);
+    dsu uf(cur);
+    rep(i, H) rep(j, W - 1) {
+        if (S[i][j] == '#' && S[i][j + 1] == '#') graph.add_edge(ind[i][j], ind[i][j + 1]), uf.merge(ind[i][j], ind[i][j + 1]);
+    }
+    rep(i, H - 1) rep(j, W) {
+        if (S[i][j] == '#' && S[i + 1][j] == '#') graph.add_edge(ind[i][j], ind[i + 1][j]), uf.merge(ind[i][j], ind[i + 1][j]);
+    }
+    ll ini = uf.groups().size();
+    graph.build();
+    v<usll> bccnt(cur);
+    rep(i, graph.bc.size()) {
+        repi(e, graph.bc[i]) bccnt[e.from].insert(i), bccnt[e.to].insert(i);
+    }
+    rep(i, H) rep(j, W) {
+        if (S[i][j] == '#') {
+            cnt++;
+            ans += ini + bccnt[ind[i][j]].size() - 1;
+            debug(ans);
+        }
+    }
+    print(ans / cnt);
 }

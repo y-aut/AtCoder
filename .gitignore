@@ -7,6 +7,8 @@ src/work
 tools/geninput.*
 tpl/template.hpp.gch
 tpl/template
+.vscode/.zcompdump
+.vscode/.zsh_history
 /*.exe
 .DS_Store
 *.dSYM

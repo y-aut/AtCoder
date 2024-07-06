@@ -190,6 +190,8 @@ TPL_TSU pair<T, S> operator/(const pair<T, S> &a, const U &b) { return pair<T, S
 inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
+TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
+double abs(const pll &p) { return sqrt(abs2(p)); }
 
 // hash
 TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
@@ -233,6 +235,7 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #include "debug.hpp"
 #else
 #define debug(...) (void)0
+#define debugs(...) (void)0
 #endif
 
 /* constants */

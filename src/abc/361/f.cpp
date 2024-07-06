@@ -268,59 +268,33 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-mint f(const string &S, ll start, ll stop) {
-    mint ans = 0;
-    ll size = 0;
-    pmm p{0, 1};
-    repd(i, start, stop) {
-        if (S[i] == '*') {
-            p = {0, p.first * p.second};
-            size = 0;
-        } else {
-            mint n = S[i] - '0';
-            p.first += mint(10).pow(size) * n;
-            ans += p.first * p.second;
-            size++;
-        }
-    }
-    return ans;
+bool is_square(ll x) {
+    ll sq = (ll)sqrt(x);
+    rep(i, -2, 3) if ((sq + i) * (sq + i) == x) return true;
+    return false;
 }
 
 void solve() {
-    STR(S);
-    ll last_plus = -1, last_mul = -1;
-    mint cur_num = 0, cur_mem = 0, cur_mem_prev = 1, num_cnt_plus = 0;
-    mint plus = 0, plus_mul = 0, mul = 0;
-    mint ans = 0;
-    rep(i, S.size()) {
-        if (S[i] == '+') {
-            plus += cur_mem * num_cnt_plus;
-            plus += f(S, last_plus + 1, i);
-            plus_mul = mul = 0;
-            rep(j, last_plus + 1, i) num_cnt_plus += (S[j] != '+' && S[j] != '*');
-            last_plus = last_mul = i;
-            cur_num = cur_mem = 0;
-            cur_mem_prev = 1;
-        } else if (S[i] == '*') {
-            plus_mul *= cur_num;
-            plus_mul += f(S, last_mul + 1, i);
-            mul = 0;
-            last_mul = i;
-            cur_num = 0;
-            cur_mem_prev = cur_mem;
-            cur_mem = 0;
-        } else {
-            mint n = S[i] - '0';
-            ans += plus;
-            ans += plus_mul * (cur_num * 10 + n);
-            cur_mem += cur_mem_prev * (cur_num * 9 + n);
-            ans += cur_mem * num_cnt_plus;
-            mul = mul * 10 + n * (i - last_mul);
-            ans += mul;
-            cur_num = cur_num * 10 + n;
+    LL(N);
+    ll ans = 0;
+    ll sq = max(0LL, (ll)sqrt(N) - 5);
+    while (sq * sq <= N) sq++;
+    sq--;
+    ans += sq;
+    usll s;
+    umll mem;
+    for (ll b = 3; b <= 61; b += 2) {
+        rep(i, 2, LINF) {
+            if (is_square(i)) continue;
+            if (b != 3) {
+                if (!mem.count(i) || mem[i] > N / i / i) break;
+            }
+            ll p = powll(i, b);
+            if (p > N) break;
+            mem[i] = p;
+            s.insert(p);
         }
-        debugs(i, last_plus, last_mul, cur_num, plus, plus_mul, mul, ans);
-        debugs(num_cnt_plus, cur_mem);
     }
+    ans += s.size();
     print(ans);
 }

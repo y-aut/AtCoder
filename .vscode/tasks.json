@@ -159,13 +159,13 @@
         {
             "id": "exeFile1",
             "description": "比較対象の実行ファイル (1)",
-            "default": "debug.exe",
+            "default": "d",
             "type": "promptString"
         },
         {
             "id": "exeFile2",
             "description": "比較対象の実行ファイル (2)",
-            "default": "model.exe",
+            "default": "m",
             "type": "promptString"
         }
     ]

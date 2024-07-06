@@ -115,5 +115,17 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"
     },
-    "python.formatting.provider": "none"
+    "python.formatting.provider": "none",
+    "terminal.integrated.profiles.osx": {
+        "zsh": {
+            "path": "zsh",
+            "args": [
+                "-l"
+            ],
+            "env": {
+                "ZDOTDIR": "${workspaceFolder}/.vscode"
+            }
+        }
+    },
+    "terminal.integrated.defaultProfile.osx": "zsh"
 }

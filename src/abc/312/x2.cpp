@@ -240,7 +240,6 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #include "debug.hpp"
 #else
 #define debug(...) (void)0
-#define debugs(...) (void)0
 #endif
 
 /* constants */
@@ -268,59 +267,144 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-mint f(const string &S, ll start, ll stop) {
-    mint ans = 0;
-    ll size = 0;
-    pmm p{0, 1};
-    repd(i, start, stop) {
-        if (S[i] == '*') {
-            p = {0, p.first * p.second};
-            size = 0;
-        } else {
-            mint n = S[i] - '0';
-            p.first += mint(10).pow(size) * n;
-            ans += p.first * p.second;
-            size++;
+#pragma region "ローリングハッシュ"
+
+CSLL MOD_SIZE = 6;
+const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673, 981914693, 1375179334};
+const ull HASH_MOD[] = {1944897763, 1925898167, 1912776091, 1935497281, 1939942439, 1902550399};
+const ull HASH_BASE_INV[] = {1566673050, 1386797350, 1701798092, 1107754978, 1908540348, 638154975};
+vector<ull> HASH_BASE_POW[] = {{1}, {1}, {1}, {1}, {1}, {1}};
+
+ull get_hash_base_pow(ll index, ull n) {
+    assert(0 <= index && index < MOD_SIZE);
+    while (HASH_BASE_POW[index].size() <= n) {
+        HASH_BASE_POW[index].pb(HASH_BASE_POW[index].back() * HASH_BASE[index] % HASH_MOD[index]);
+    }
+    return HASH_BASE_POW[index][n];
+}
+
+template <int mod_num = 4>
+struct RollingHash {
+    ll size;
+    array<ull, mod_num> hash = {};
+
+    RollingHash() : size(0) {}
+    template <typename T>
+    RollingHash(T first, T last) : size(distance(first, last)) {
+        ll i = 0;
+        for (T itr = first; itr != last; itr++, i++) {
+            rep(j, mod_num) {
+                hash[j] += get_hash_base_pow(j, size - i - 1) * (*itr);
+                hash[j] %= HASH_MOD[j];
+            }
         }
+    }
+    RollingHash(const string &s) : RollingHash(all(s)) {}
+    RollingHash(const vll &v) : RollingHash(all(v)) {}
+    RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
+
+    void pop_front(ll c) {
+        rep(i, mod_num) {
+            hash[i] += HASH_MOD[i] - get_hash_base_pow(i, size - 1) * c % HASH_MOD[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size--;
+    }
+
+    void pop_back(ll c) {
+        rep(i, mod_num) {
+            hash[i] += HASH_MOD[i] - c;
+            hash[i] *= HASH_BASE_INV[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size--;
+    }
+
+    void push_front(ll c) {
+        size++;
+        rep(i, mod_num) {
+            hash[i] += get_hash_base_pow(i, size - 1) * c;
+            hash[i] %= HASH_MOD[i];
+        }
+    }
+
+    void push_back(ll c) {
+        size++;
+        rep(i, mod_num) {
+            hash[i] *= HASH_BASE[i];
+            hash[i] += c;
+            hash[i] %= HASH_MOD[i];
+        }
+    }
+
+    RollingHash &operator+=(const RollingHash &v) {
+        rep(i, mod_num) {
+            hash[i] *= get_hash_base_pow(i, v.size);
+            hash[i] += v.hash[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size += v.size;
+        return *this;
+    }
+    friend ostream &operator<<(ostream &os, const RollingHash &v) {
+        os << "{ size=" << v.size << ", hash=[";
+        rep(i, mod_num) {
+            os << v.hash[i] << (i == mod_num - 1 ? "] }" : ", ");
+        }
+        return os;
+    }
+};
+
+template <int n>
+bool operator==(const RollingHash<n> &a, const RollingHash<n> &b) {
+    rep(i, n) if (a.hash[i] != b.hash[i]) return false;
+    return a.size == b.size;
+}
+template <int n>
+bool operator!=(const RollingHash<n> &a, const RollingHash<n> &b) { return !(a == b); }
+template <int n>
+RollingHash<n> operator+(const RollingHash<n> &a, const RollingHash<n> &b) {
+    return RollingHash(a) += b;
+}
+
+template <int n>
+struct Hasher<RollingHash<n>> {
+    ull operator()(const RollingHash<n> &v) const { return v.hash.front(); }
+};
+
+#pragma endregion
+
+using RH = RollingHash<4>;
+
+RH f(const RH &h, ll n, ll k) {
+    auto ans = h;
+    ans.size *= k;
+    rep(i, h.hash.size()) {
+        modint::set_mod(HASH_MOD[i]);
+        ans.hash[i] *= ((modint(HASH_BASE[i]).pow(k * n) - 1) / (modint(HASH_BASE[i]).pow(n) - 1)).val();
+        ans.hash[i] %= HASH_MOD[i];
     }
     return ans;
 }
 
 void solve() {
-    STR(S);
-    ll last_plus = -1, last_mul = -1;
-    mint cur_num = 0, cur_mem = 0, cur_mem_prev = 1, num_cnt_plus = 0;
-    mint plus = 0, plus_mul = 0, mul = 0;
-    mint ans = 0;
-    rep(i, S.size()) {
-        if (S[i] == '+') {
-            plus += cur_mem * num_cnt_plus;
-            plus += f(S, last_plus + 1, i);
-            plus_mul = mul = 0;
-            rep(j, last_plus + 1, i) num_cnt_plus += (S[j] != '+' && S[j] != '*');
-            last_plus = last_mul = i;
-            cur_num = cur_mem = 0;
-            cur_mem_prev = 1;
-        } else if (S[i] == '*') {
-            plus_mul *= cur_num;
-            plus_mul += f(S, last_mul + 1, i);
-            mul = 0;
-            last_mul = i;
-            cur_num = 0;
-            cur_mem_prev = cur_mem;
-            cur_mem = 0;
-        } else {
-            mint n = S[i] - '0';
-            ans += plus;
-            ans += plus_mul * (cur_num * 10 + n);
-            cur_mem += cur_mem_prev * (cur_num * 9 + n);
-            ans += cur_mem * num_cnt_plus;
-            mul = mul * 10 + n * (i - last_mul);
-            ans += mul;
-            cur_num = cur_num * 10 + n;
+    LL(N);
+    VS(S, N);
+    ush<RH> hs;
+    vll ans;
+    umh<RH, ll> memo;
+    repi(s, S) {
+        auto h = RH(s);
+        ll cur = memo[h];
+        rep(k, cur + 1, LINF) {
+            auto fh = f(h, s.size(), k);
+            if (!hs.count(fh)) {
+                hs.insert(fh);
+                memo[h] = k;
+                ans.pb(k);
+                break;
+            }
         }
-        debugs(i, last_plus, last_mul, cur_num, plus, plus_mul, mul, ans);
-        debugs(num_cnt_plus, cur_mem);
     }
     print(ans);
 }
