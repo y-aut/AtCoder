@@ -413,6 +413,23 @@ public:
 
 #pragma endregion
 
+ll add(ll a, ll b) {
+    return min(a + b, LINF);
+}
+
+ll mul(ll a, ll b) {
+    if ((double)a * b > 1e10) return LINF;
+    else return a * b;
+}
+
+struct dat {
+    ll strength = 0;
+    ll meds = 0;
+    priority_queue<ll, vll, function<bool(ll, ll)>> enes;
+
+    OSTREAM(dat, strength, meds, enes.size());
+};
+
 void solve() {
     LL(N);
     vvll edges(N);
@@ -429,45 +446,45 @@ void solve() {
     }
     Tree tree(edges);
 
-    auto beat = [&](auto rc, ll reached, ll init_s, ll &s, ll v, priority_queue<ll, vll, function<bool(ll, ll)>> &todo) -> void {
-        if (med_ind[v] != -1 && (reached >> med_ind[v] & 1) == 0) return;
-        if (ene_ind[v] != -1) {
-            if (ene[ene_ind[v]][1] > s) {
-                todo.push(ene_ind[v]);
-                return;
-            }
-            if (ene[ene_ind[v]][1] > init_s) s += ene[ene_ind[v]][2];
+    auto search = [&](ll v, ll &meds, priority_queue<ll, vll, function<bool(ll, ll)>> &enes) -> void {
+        repi(i, tree.get_children(v)) {
+            if (ene_ind[i] != -1) enes.push(ene_ind[i]);
+            else meds |= 1LL << med_ind[i];
         }
-        repi(i, tree.get_children(v)) rc(rc, reached, init_s, s, i, todo);
     };
-    auto beat_all = [&](ll reached, ll init_s, ll s, ll v) -> ll {
-        priority_queue<ll, vll, function<bool(ll, ll)>> todo(
+    auto beat = [&](ll &strength, ll &meds, priority_queue<ll, vll, function<bool(ll, ll)>> &enes) -> void {
+        while (!enes.empty() && ene[enes.top()][1] <= strength) {
+            auto t = enes.top();
+            enes.pop();
+            strength = add(strength, ene[t][2]);
+            search(ene[t][0], meds, enes);
+        }
+    };
+    v<dat> dp(1LL << med.size());
+    {
+        ll meds = 0;
+        priority_queue<ll, vll, function<bool(ll, ll)>> enes(
             [&](ll a, ll b) { return ene[a][1] > ene[b][1]; });
-        beat(beat, reached, init_s, s, v, todo);
-        while (!todo.empty()) {
-            ll last_s = s;
-            auto e = todo.top();
-            todo.pop();
-            beat(beat, reached, init_s, s, e, todo);
-            if (last_s == s) break;
+
+        ll strength = 1;
+        search(0, meds, enes);
+        beat(strength, meds, enes);
+        dp[0] = dat{strength, meds, enes};
+    }
+    rep(i, 1, 1LL << med.size()) {
+        rep(j, med.size()) if (i >> j & 1) {
+            auto d = dp[i ^ 1LL << j];
+            if (!(d.meds >> j & 1)) continue;
+            d.strength = mul(d.strength, med[j][1]);
+            search(med[j][0], d.meds, d.enes);
+            beat(d.strength, d.meds, d.enes);
+            if (d.strength > dp[i].strength) dp[i] = move(d);
         }
-    };
-    auto reachable_med = [&](auto rc, ll reached, ll v, ll s, vll &ret) -> void {
-        if (med_ind[v] != -1 && (reached >> med_ind[v] & 1) == 0) {
-            ret.pb(med_ind[v]);
-            return;
-        }
-        if (ene_ind[v] != -1 && ene[ene_ind[v]][1] > s) return;
-        repi(i, tree.get_children(v)) rc(rc, reached, i, s, ret);
-    };
-    vector dp(1LL << med.size(), 0LL);
-    dp[0] = beat_all(0, 0, 1, 0);
-    rep(i, 1LL << med.size()) {
-        vll reachable;
-        reachable_med(reachable_med, i, 0, dp[i], reachable);
-        repi(j, reachable) {
-            ll s = dp[i] * med[j][1];
-            beat_all()
-        }
+    }
+    debug(dp);
+    if (dp.back().enes.empty() && dp.back().meds == (1LL << med.size()) - 1) {
+        Yes;
+    } else {
+        No;
     }
 }

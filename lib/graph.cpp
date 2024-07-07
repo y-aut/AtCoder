@@ -369,7 +369,7 @@ vll topological_sort(const vvll &edges) {
 class Tree {
 protected:
     const ll size;
-    const vvll &edges;
+    vvll edges;
     const ll root;
     vll depth;
     ll height; // max(depth) + 1
@@ -493,6 +493,14 @@ public:
             if (max_size <= get_size() / 2) return v;
             v = max_c;
         }
+    }
+
+    // 木の直径と，それを実現する頂点の組を返す
+    ll get_diameter(pll &nodes) const {
+        nodes.first = max_element(all(depth)) - depth.begin();
+        Tree tree(edges, nodes.first);
+        nodes.second = max_element(all(tree.depth)) - tree.depth.begin();
+        return tree.depth[nodes.second];
     }
 };
 
@@ -749,8 +757,6 @@ private:
 
 #pragma region "WTree"
 
-// Tree の edges は実体に変更する
-
 class WTree : public Tree {
 protected:
     const vvpll &wedges;
@@ -758,7 +764,7 @@ protected:
 
 private:
     void set_wdepth() {
-        set_wdepth_impl(0, 0);
+        set_wdepth_impl(root, 0);
     }
 
     void set_wdepth_impl(ll v, ll c) {
@@ -785,6 +791,14 @@ public:
     ll get_wdepth(ll v) const { return wdepth[v]; }
     const vvpll &get_wedges() const { return wedges; }
     const vpll &get_wedges(ll v) const { return wedges[v]; }
+
+    // 木の直径と，それを実現する頂点の組を返す
+    ll get_wdiameter(pll &nodes) const {
+        nodes.first = max_element(all(wdepth)) - wdepth.begin();
+        WTree tree(wedges, nodes.first);
+        nodes.second = max_element(all(tree.wdepth)) - tree.wdepth.begin();
+        return tree.wdepth[nodes.second];
+    }
 };
 
 #pragma endregion

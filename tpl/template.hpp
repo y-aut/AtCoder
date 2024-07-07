@@ -152,14 +152,14 @@ inline vpii in_vpii(int height) { vpii res; rep(i, height) res.pb(in_pii()); ret
 inline vpll in_vpll(int height) { vpll res; rep(i, height) res.pb(in_pll()); return res; }
 inline vvi in_vvi(int height, int width) { vvi res; rep(i, height) res.pb(in_vi(width)); return res; }
 inline vvll in_vvll(int height, int width) { vvll res; rep(i, height) res.pb(in_vll(width)); return res; }
-template <bool bidir> inline vvll in_edges(int N, int height)
-    { vvll res(N, vll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
+template <bool bidir> inline vvll in_edges(int N, int height, ll base = 1)
+    { vvll res(N, vll()); rep(i, height) { ll a = in_ll() - base; ll b = in_ll() - base;
     res[a].pb(b); if (bidir) res[b].pb(a); } return res; }
-template <bool bidir> inline v<usll> in_edges_us(int N, int height)
-    { v<usll> res(N, usll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1;
+template <bool bidir> inline v<usll> in_edges_us(int N, int height, ll base = 1)
+    { v<usll> res(N, usll()); rep(i, height) { ll a = in_ll() - base; ll b = in_ll() - base;
     res[a].insert(b); if (bidir) res[b].insert(a); } return res; }
-template <bool bidir> inline vvpll in_wedges(int N, int height)
-    { vvpll res(N, vpll()); rep(i, height) { ll a = in_ll() - 1; ll b = in_ll() - 1; ll w = in_ll();
+template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
+    { vvpll res(N, vpll()); rep(i, height) { ll a = in_ll() - base; ll b = in_ll() - base; ll w = in_ll();
     res[a].eb(b, w); if (bidir) res[b].eb(a, w); } return res; }
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
