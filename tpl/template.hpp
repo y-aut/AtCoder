@@ -167,6 +167,7 @@ template <typename First, typename... Rest> inline void IN(First &first, Rest &.
 
 // conversion
 inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
