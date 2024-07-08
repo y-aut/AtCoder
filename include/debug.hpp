@@ -1,8 +1,6 @@
 #pragma once
 
-#ifndef TEMPLATE_H
 #include "template.hpp"
-#endif
 
 #define OVERLOAD9(_1, _2, _3, _4, _5, _6, _7, _8, x, ...) x
 

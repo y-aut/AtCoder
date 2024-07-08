@@ -6,6 +6,7 @@ src/test.*
 src/work
 tools/geninput.*
 tpl/template.hpp.gch
+tpl/template.hpp.pch
 tpl/template
 .vscode/.zcompdump
 .vscode/.zsh_history
