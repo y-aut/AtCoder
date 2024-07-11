@@ -12,6 +12,10 @@
                 "${file}",
                 "debug.exe"
             ],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -28,6 +32,10 @@
                 "${file}",
                 "${input:outFileName}"
             ],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            },
             "group": {
                 "kind": "build"
             }
@@ -43,6 +51,10 @@
                 "${file}",
                 "release.exe"
             ],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            },
             "group": {
                 "kind": "build"
             }
@@ -55,6 +67,9 @@
                 "${workspaceFolder}/tpl/template",
                 "${file}"
             ],
+            "presentation": {
+                "reveal": "silent",
+            },
             "problemMatcher": []
         },
         {
@@ -65,6 +80,9 @@
                 "${workspaceFolder}/shell/update.sh",
                 "${workspaceFolder}"
             ],
+            "presentation": {
+                "reveal": "silent",
+            },
             "problemMatcher": []
         },
         {
@@ -86,8 +104,19 @@
             "args": [
                 "${workspaceFolder}/shell/makefiles.sh",
                 "${workspaceFolder}",
-                "${input:directoryName}",
+                "src/${input:contestType}/${input:contestNum}",
                 "'${input:fileNames}'"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "make file from url",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "${workspaceFolder}/shell/makefile.sh",
+                "${workspaceFolder}",
+                "${input:url}"
             ],
             "problemMatcher": []
         },
@@ -104,6 +133,18 @@
             "problemMatcher": []
         },
         {
+            "label": "check outputs",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "${workspaceFolder}/shell/check.sh",
+                "${workspaceFolder}",
+                "${input:exeFile1}",
+                "${input:exeFile2}"
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "copy leetcode template",
             "type": "shell",
             "command": "cp",
@@ -111,6 +152,9 @@
                 "${workspaceFolder}/tpl/leetcode.cpp",
                 "${file}"
             ],
+            "presentation": {
+                "reveal": "silent",
+            },
             "problemMatcher": []
         },
         {
@@ -128,6 +172,17 @@
         },
     ],
     "inputs": [
+        {
+            "id": "contestType",
+            "description": "コンテストの種類",
+            "type": "pickString",
+            "options": [
+                "arc",
+                "agc",
+                "abc"
+            ],
+            "default": "arc"
+        },
         {
             "id": "contestNum",
             "description": "コンテスト番号",
@@ -148,6 +203,11 @@
             "id": "fileNames",
             "description": "作成するファイル名（拡張子なし，スペース区切り）",
             "default": "a b c d e f",
+            "type": "promptString"
+        },
+        {
+            "id": "url",
+            "description": "問題 URL / ID",
             "type": "promptString"
         },
         {

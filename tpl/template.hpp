@@ -243,7 +243,7 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 1152921500000000000LL;
+CSLL LINF = (ll)4.1e18;
 CSI INF = 1000000006;
 CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;

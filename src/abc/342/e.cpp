@@ -248,7 +248,7 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 3152921500000000000LL;
+CSLL LINF = 1152921500000000000LL;
 CSI INF = 1000000006;
 CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;
@@ -271,48 +271,42 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+ll pred(ll t, ll l, ll d, ll k, ll c) {
+    if (t >= l + (k - 1) * d + c) return l + (k - 1) * d;
+    if (t < l + c) return -LINF;
+    return (t - c - l) / d * d + l;
+}
+
 void solve() {
-    LL(N);
-    VLL(X, N);
-    VLL(L, N);
-    ll ans = 0;
-    ll head = -LINF;
-    set<ll> ld, rd;
-    rep(i, N) rd.emplace_hint(rd.end(), X[i] - head);
-    while (ld.size() < N) {
-        ll nxt = X[ld.size()] - head;
-        repi(i, ld) {
-            auto itr = rd.upper_bound(i);
-            if (itr != rd.end()) {
-                chmin(nxt, (*itr - i + 1) / 2);
-            }
-        }
-        ll mn = head, mx = head + nxt - 1;
-        auto litr = ld.begin(), ritr = rd.begin();
-        ll lpos = 0, rpos = 0;
-        while (lpos < ld.size() && rpos < rd.size()) {
-            if (*litr < *ritr) {
-                chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]);
-                lpos++, litr++;
-            } else {
-                chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]);
-                rpos++, ritr++;
-            }
-        }
-        while (lpos < ld.size()) chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]), lpos++, litr++;
-        while (rpos < rd.size()) chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]), rpos++, ritr++;
-        ans += max(0LL, mx - mn + 1);
-        head += nxt;
-        ld.clear();
-        rd.clear();
-        rep(i, N) {
-            if (X[i] <= head) ld.emplace_hint(ld.begin(), head - X[i]);
-            else rd.emplace_hint(rd.end(), X[i] - head);
-        }
-        debugs(head, ans, ld, rd, mx, mn);
+    LL(N, M);
+    vv<vll> edges(N);
+    rep(i, M) {
+        LL(l, d, k, c, A, B);
+        A--, B--;
+        edges[B].pb({A, l, d, k, c});
     }
-    ll mx = LINF;
-    rep(i, N) chmin(mx, X[i] + L[N - 1 - i]);
-    ans += max(0LL, mx - X[N - 1] + 1);
-    print(ans);
+    vll ans(N, -1);
+    auto search = [&](ll start) -> void {
+        priority_queue<pll, vector<pll>> q;
+        q.emplace(ans[start] = LINF, start);
+
+        while (!q.empty()) {
+            auto [t, v] = q.top();
+            q.pop();
+            if (ans[v] > t) continue;
+
+            repi(e, edges[v]) {
+                ll d = pred(ans[v], e[1], e[2], e[3], e[4]);
+                if (d > ans[e[0]]) {
+                    q.emplace(ans[e[0]] = d, e[0]);
+                }
+            }
+        }
+    };
+    search(N - 1);
+    ans.pop_back();
+    repi(i, ans) {
+        if (i == -1) print("Unreachable");
+        else print(i);
+    }
 }

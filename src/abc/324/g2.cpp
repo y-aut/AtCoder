@@ -248,7 +248,7 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 3152921500000000000LL;
+CSLL LINF = 1152921500000000000LL;
 CSI INF = 1000000006;
 CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;
@@ -273,46 +273,89 @@ DEFINE_MOD(MOD2);
 
 void solve() {
     LL(N);
-    VLL(X, N);
-    VLL(L, N);
-    ll ans = 0;
-    ll head = -LINF;
-    set<ll> ld, rd;
-    rep(i, N) rd.emplace_hint(rd.end(), X[i] - head);
-    while (ld.size() < N) {
-        ll nxt = X[ld.size()] - head;
-        repi(i, ld) {
-            auto itr = rd.upper_bound(i);
-            if (itr != rd.end()) {
-                chmin(nxt, (*itr - i + 1) / 2);
-            }
-        }
-        ll mn = head, mx = head + nxt - 1;
-        auto litr = ld.begin(), ritr = rd.begin();
-        ll lpos = 0, rpos = 0;
-        while (lpos < ld.size() && rpos < rd.size()) {
-            if (*litr < *ritr) {
-                chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]);
-                lpos++, litr++;
-            } else {
-                chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]);
-                rpos++, ritr++;
-            }
-        }
-        while (lpos < ld.size()) chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]), lpos++, litr++;
-        while (rpos < rd.size()) chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]), rpos++, ritr++;
-        ans += max(0LL, mx - mn + 1);
-        head += nxt;
-        ld.clear();
-        rd.clear();
-        rep(i, N) {
-            if (X[i] <= head) ld.emplace_hint(ld.begin(), head - X[i]);
-            else rd.emplace_hint(rd.end(), X[i] - head);
-        }
-        debugs(head, ans, ld, rd, mx, mn);
+    VLL(A, N);
+    LL(Q);
+    v<set<pll>> ias, ais;
+    {
+        set<pll> ia, ai;
+        rep(i, N) ia.emplace(i, A[i]), ai.emplace(A[i], i);
+        ias.pb(ia);
+        ais.pb(ai);
     }
-    ll mx = LINF;
-    rep(i, N) chmin(mx, X[i] + L[N - 1 - i]);
-    ans += max(0LL, mx - X[N - 1] + 1);
-    print(ans);
+    rep(q, Q) {
+        LL(t, s, x);
+        if (t == 1) {
+            set<pll> ia, ai;
+            if (x < ias[s].size() / 2) {
+                ll ind = 0;
+                for (auto itr = ias[s].begin(); itr != ias[s].end();) {
+                    if (ind++ == x) break;
+                    auto [i, a] = *itr;
+                    ia.emplace(i, a);
+                    ai.emplace(a, i);
+                    itr = ias[s].erase(itr);
+                    ais[s].erase({a, i});
+                }
+                ias.pb(ia);
+                ais.pb(ai);
+                swap(ias[s], ias.back());
+                swap(ais[s], ais.back());
+            } else {
+                x = ias[s].size() - x;
+                ll ind = 0;
+                for (auto itr = ias[s].end(); itr != ias[s].begin();) {
+                    if (ind++ >= x) break;
+                    auto [i, a] = *--itr;
+                    ia.emplace(i, a);
+                    ai.emplace(a, i);
+                    itr = ias[s].erase(itr);
+                    ais[s].erase({a, i});
+                }
+                ias.pb(ia);
+                ais.pb(ai);
+            }
+        } else {
+            if (ais[s].empty()) {
+                ias.pb({});
+                ais.pb({});
+            } else {
+                auto fw = ais[s].begin(), bw = ais[s].end();
+                bool is_fw = false;
+                while (true) {
+                    if (fw == ais[s].end()) break;
+                    auto [a1, i1] = *fw++;
+                    auto [a2, i2] = *--bw;
+                    if (a1 > x) BREAK(is_fw = true);
+                    else if (a2 <= x) BREAK(is_fw = false);
+                }
+                set<pll> ai, ia;
+                if (is_fw) {
+                    for (auto itr = ais[s].begin(); itr != ais[s].end();) {
+                        auto [a, i] = *itr;
+                        if (a > x) break;
+                        ia.emplace(i, a);
+                        ai.emplace(a, i);
+                        ias[s].erase({i, a});
+                        itr = ais[s].erase(itr);
+                    }
+                    ias.pb(ia);
+                    ais.pb(ai);
+                    swap(ias[s], ias.back());
+                    swap(ais[s], ais.back());
+                } else {
+                    for (auto itr = ais[s].end(); itr != ais[s].begin();) {
+                        auto [a, i] = *--itr;
+                        if (a <= x) break;
+                        ia.emplace(i, a);
+                        ai.emplace(a, i);
+                        ias[s].erase({i, a});
+                        itr = ais[s].erase(itr);
+                    }
+                    ias.pb(ia);
+                    ais.pb(ai);
+                }
+            }
+        }
+        print(ias.back().size());
+    }
 }

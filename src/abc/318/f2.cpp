@@ -248,7 +248,7 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 3152921500000000000LL;
+CSLL LINF = (ll)4.1e18;
 CSI INF = 1000000006;
 CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;
@@ -275,44 +275,24 @@ void solve() {
     LL(N);
     VLL(X, N);
     VLL(L, N);
-    ll ans = 0;
-    ll head = -LINF;
-    set<ll> ld, rd;
-    rep(i, N) rd.emplace_hint(rd.end(), X[i] - head);
-    while (ld.size() < N) {
-        ll nxt = X[ld.size()] - head;
-        repi(i, ld) {
-            auto itr = rd.upper_bound(i);
-            if (itr != rd.end()) {
-                chmin(nxt, (*itr - i + 1) / 2);
-            }
-        }
-        ll mn = head, mx = head + nxt - 1;
-        auto litr = ld.begin(), ritr = rd.begin();
-        ll lpos = 0, rpos = 0;
-        while (lpos < ld.size() && rpos < rd.size()) {
-            if (*litr < *ritr) {
-                chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]);
-                lpos++, litr++;
-            } else {
-                chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]);
-                rpos++, ritr++;
-            }
-        }
-        while (lpos < ld.size()) chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]), lpos++, litr++;
-        while (rpos < rd.size()) chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]), rpos++, ritr++;
-        ans += max(0LL, mx - mn + 1);
-        head += nxt;
-        ld.clear();
-        rd.clear();
-        rep(i, N) {
-            if (X[i] <= head) ld.emplace_hint(ld.begin(), head - X[i]);
-            else rd.emplace_hint(rd.end(), X[i] - head);
-        }
-        debugs(head, ans, ld, rd, mx, mn);
+    set<ll> segp;
+    rep(i, N) rep(j, N) {
+        segp.insert(X[i] + L[j] + 1);
+        segp.insert(X[i] - L[j]);
     }
-    ll mx = LINF;
-    rep(i, N) chmin(mx, X[i] + L[N - 1 - i]);
-    ans += max(0LL, mx - X[N - 1] + 1);
+    vpll seg;
+    for (auto itr = segp.begin(); next(itr) != segp.end(); itr++) {
+        seg.eb(*itr, *next(itr) - *itr);
+    }
+    debug(seg);
+    ll ans = 0;
+    repi(s, l, seg) {
+        vll d;
+        repi(i, X) d.pb(abs(i - s));
+        sort(all(d));
+        bool ok = true;
+        rep(i, N) if (d[i] > L[i]) BREAK(ok = false);
+        if (ok) ans += l;
+    }
     print(ans);
 }

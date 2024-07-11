@@ -248,7 +248,7 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 3152921500000000000LL;
+CSLL LINF = 1152921500000000000LL;
 CSI INF = 1000000006;
 CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;
@@ -271,48 +271,24 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+vvm memo;
+mint f(ll n, ll k) {
+    assert(n >= k);
+    if (memo[n][k] != 0) return memo[n][k];
+    if (n == 0 && k == 0) return 1;
+    if (k == 0) {
+        mint res = 0;
+        rep(i, n) res += mint(2).pow(i) * f(n - 1, i);
+        res *= (mint(2).pow(n + 1) - 1).inv();
+        return memo[n][k] = res;
+    }
+    return memo[n][k] = (f(n - 1, k - 1) + f(n, k - 1)) / 2;
+}
+
 void solve() {
     LL(N);
-    VLL(X, N);
-    VLL(L, N);
-    ll ans = 0;
-    ll head = -LINF;
-    set<ll> ld, rd;
-    rep(i, N) rd.emplace_hint(rd.end(), X[i] - head);
-    while (ld.size() < N) {
-        ll nxt = X[ld.size()] - head;
-        repi(i, ld) {
-            auto itr = rd.upper_bound(i);
-            if (itr != rd.end()) {
-                chmin(nxt, (*itr - i + 1) / 2);
-            }
-        }
-        ll mn = head, mx = head + nxt - 1;
-        auto litr = ld.begin(), ritr = rd.begin();
-        ll lpos = 0, rpos = 0;
-        while (lpos < ld.size() && rpos < rd.size()) {
-            if (*litr < *ritr) {
-                chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]);
-                lpos++, litr++;
-            } else {
-                chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]);
-                rpos++, ritr++;
-            }
-        }
-        while (lpos < ld.size()) chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]), lpos++, litr++;
-        while (rpos < rd.size()) chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]), rpos++, ritr++;
-        ans += max(0LL, mx - mn + 1);
-        head += nxt;
-        ld.clear();
-        rd.clear();
-        rep(i, N) {
-            if (X[i] <= head) ld.emplace_hint(ld.begin(), head - X[i]);
-            else rd.emplace_hint(rd.end(), X[i] - head);
-        }
-        debugs(head, ans, ld, rd, mx, mn);
-    }
-    ll mx = LINF;
-    rep(i, N) chmin(mx, X[i] + L[N - 1 - i]);
-    ans += max(0LL, mx - X[N - 1] + 1);
+    memo.resize(N, vm(N, 0));
+    vm ans;
+    rep(i, N) ans.pb(f(N - 1, i));
     print(ans);
 }

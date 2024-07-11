@@ -248,7 +248,7 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 /* constants */
 CSLL MOD = 1000000007;
 CSLL MOD2 = 998244353;
-CSLL LINF = 3152921500000000000LL;
+CSLL LINF = 1152921500000000000LL;
 CSI INF = 1000000006;
 CSD EPS = 1e-11;
 CSD PI = 3.141592653589793;
@@ -271,48 +271,66 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-void solve() {
-    LL(N);
-    VLL(X, N);
-    VLL(L, N);
-    ll ans = 0;
-    ll head = -LINF;
-    set<ll> ld, rd;
-    rep(i, N) rd.emplace_hint(rd.end(), X[i] - head);
-    while (ld.size() < N) {
-        ll nxt = X[ld.size()] - head;
-        repi(i, ld) {
-            auto itr = rd.upper_bound(i);
-            if (itr != rd.end()) {
-                chmin(nxt, (*itr - i + 1) / 2);
-            }
+struct dat {
+    bool left, right;
+    ll left_len, right_len;
+    ll len;
+    ll suc0, suc1;
+
+    OSTREAM(dat, left, right, left_len, right_len, len, suc0, suc1);
+};
+
+dat op(dat a, const dat &b) {
+    if (a.len == -1) return b;
+    else if (b.len == -1) return a;
+    if (a.right == b.left) {
+        if (a.right) chmax(a.suc1, a.right_len + b.left_len);
+        else chmax(a.suc0, a.right_len + b.left_len);
+        if (a.left_len == a.len) {
+            a.left_len += b.left_len;
         }
-        ll mn = head, mx = head + nxt - 1;
-        auto litr = ld.begin(), ritr = rd.begin();
-        ll lpos = 0, rpos = 0;
-        while (lpos < ld.size() && rpos < rd.size()) {
-            if (*litr < *ritr) {
-                chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]);
-                lpos++, litr++;
-            } else {
-                chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]);
-                rpos++, ritr++;
-            }
+        if (b.left_len == b.len) {
+            a.right_len += b.len;
+        } else {
+            a.right_len = b.right_len;
         }
-        while (lpos < ld.size()) chmin(mx, X[ld.size() - 1 - lpos] + L[lpos + rpos]), lpos++, litr++;
-        while (rpos < rd.size()) chmax(mn, X[ld.size() + rpos] - L[lpos + rpos]), rpos++, ritr++;
-        ans += max(0LL, mx - mn + 1);
-        head += nxt;
-        ld.clear();
-        rd.clear();
-        rep(i, N) {
-            if (X[i] <= head) ld.emplace_hint(ld.begin(), head - X[i]);
-            else rd.emplace_hint(rd.end(), X[i] - head);
-        }
-        debugs(head, ans, ld, rd, mx, mn);
+    } else {
+        a.right_len = b.right_len;
     }
-    ll mx = LINF;
-    rep(i, N) chmin(mx, X[i] + L[N - 1 - i]);
-    ans += max(0LL, mx - X[N - 1] + 1);
-    print(ans);
+    a.right = b.right;
+    a.len += b.len;
+    chmax(a.suc0, b.suc0);
+    chmax(a.suc1, b.suc1);
+    return a;
+}
+dat e() { return dat{false, false, 0, 0, -1, 0, 0}; }
+dat mp(bool f, dat x) {
+    if (f) {
+        x.left = !x.left;
+        x.right = !x.right;
+        swap(x.suc0, x.suc1);
+    }
+    return x;
+}
+bool comp(bool f, bool g) { return f ^ g; }
+bool id() { return false; }
+
+void solve() {
+    LL(N, Q);
+    STR(S);
+    v<dat> init;
+    rep(i, N) {
+        if (S[i] == '1') init.pb({true, true, 1, 1, 1, 0, 1});
+        else init.pb({false, false, 1, 1, 1, 1, 0});
+    }
+    lazy_segtree<dat, op, e, bool, mp, comp, id> tree(init);
+    rep(q, Q) {
+        LL(c, L, R);
+        L--;
+        if (c == 1) {
+            tree.apply(L, R, true);
+        } else {
+            print(tree.prod(L, R).suc1);
+        }
+    }
 }
