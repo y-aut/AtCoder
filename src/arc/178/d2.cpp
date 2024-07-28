@@ -241,8 +241,11 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #ifdef DEBUG
 #include "debug.hpp"
 #else
+#define dsep (void)0
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -271,17 +274,49 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+mint dp[2][501][501];
+mint ep1[502][502];
+mint ep2[502][502];
+
 void solve() {
     LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    VLL(A, M);
+    vll ind(N, -1);
+    rep(i, M) ind[A[i]] = i;
+    ll now = 0;
+    rep(j, M + 1) rep(k, M + 1) dp[now][j][k] = 0;
+    if (ind[0] == -1) {
+        rep(i, M + 1) {
+            dp[now][i][M - i] = 1;
+        }
+    } else {
+        dp[now][ind[0]][M - 1 - ind[0]] = 1;
+    }
+    rep(i, 1, N) {
+        ll nxt = 1 - now;
+        rep(j, M + 1) rep(k, M + 1) dp[nxt][j][k] = 0;
+        if (ind[i] != -1) {
+            rep(j, M + 1) rep(k, M + 1) {
+                dp[nxt][min(ind[i], j)][min(M - 1 - ind[i], k)] += dp[now][j][k];
+            }
+        } else {
+            rep(j, M + 2) rep(k, M + 2) ep1[j][k] = ep2[j][k] = 0;
+            rep(j, M + 1) rep(k, M + 1) {
+                ep1[0][k] += dp[now][j][k];
+                ep1[j + 1][k] -= dp[now][j][k];
+                ep2[j][0] += dp[now][j][k];
+                ep2[j][k + 1] -= dp[now][j][k];
+            }
+            rep(k, M + 1) {
+                mint acc = 0;
+                rep(j, M + 1) dp[nxt][j][k] += acc += ep1[j][k];
+            }
+            rep(j, M + 1) {
+                mint acc = 0;
+                rep(k, M + 1) dp[nxt][j][k] += acc += ep2[j][k];
+            }
+        }
+        now = nxt;
+    }
+    print(dp[now][0][0]);
 }

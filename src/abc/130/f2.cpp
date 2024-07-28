@@ -271,17 +271,45 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+void g(ll lleft, ll lstab, ll lright, usll &ts) {
+    ts.insert(lstab - lright);
+    ts.insert(lleft - lstab);
+    ts.insert((lleft - lright) / 2);
+}
+
+void f(vpll &p, usll &ts) {
+    ll lleft = LINF, lstab = LINF, lright = LINF;
+    ll rleft = -LINF, rstab = -LINF, rright = -LINF;
+    repi(i, d, p) {
+        if (d == -1) chmin(lleft, i), chmax(rleft, i);
+        else if (d == 0) chmin(lstab, i), chmax(rstab, i);
+        else chmin(lright, i), chmax(rright, i);
+    }
+    g(lleft, lstab, lright, ts);
+    g(-rright, -rstab, -rleft, ts);
+}
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    vpll xs, ys;
+    rep(i, N) {
+        LL(x, y);
+        x *= 2;
+        y *= 2;
+        CHR(d);
+        xs.eb(x, d == 'R' ? 1 : (d == 'L' ? -1 : 0));
+        ys.eb(y, d == 'U' ? 1 : (d == 'D' ? -1 : 0));
+    }
+    usll ts{0};
+    f(xs, ts);
+    f(ys, ts);
+    ll ans = LINF;
+    repi(t, ts) {
+        if (t < 0 || t > LINF / 4) continue;
+        ll xmin = LINF, xmax = -LINF, ymin = LINF, ymax = -LINF;
+        repi(x, d, xs) chmin(xmin, x + d * t), chmax(xmax, x + d * t);
+        repi(y, d, ys) chmin(ymin, y + d * t), chmax(ymax, y + d * t);
+        chmin(ans, (xmax - xmin) * (ymax - ymin));
+    }
+    print((double)ans / 4);
 }

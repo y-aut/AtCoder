@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -271,17 +273,105 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+template <typename T, typename Compare = less<T>, typename RCompare = greater<T>>
+struct PrioritySumStructure {
+
+    size_t k;
+    T sum;
+
+    priority_queue<T, vector<T>, Compare> in, d_in;
+    priority_queue<T, vector<T>, RCompare> out, d_out;
+
+    PrioritySumStructure(int k) : k(k), sum(0) {}
+
+    void modify() {
+        while (in.size() - d_in.size() < k && !out.empty()) {
+            auto p = out.top();
+            out.pop();
+            if (!d_out.empty() && p == d_out.top()) {
+                d_out.pop();
+            } else {
+                sum += p;
+                in.emplace(p);
+            }
+        }
+        while (in.size() - d_in.size() > k) {
+            auto p = in.top();
+            in.pop();
+            if (!d_in.empty() && p == d_in.top()) {
+                d_in.pop();
+            } else {
+                sum -= p;
+                out.emplace(p);
+            }
+        }
+        while (!d_in.empty() && in.top() == d_in.top()) {
+            in.pop();
+            d_in.pop();
+        }
+    }
+
+    T query() const {
+        return sum;
+    }
+
+    void insert(T x) {
+        in.emplace(x);
+        sum += x;
+        modify();
+    }
+
+    void erase(T x) {
+        assert(size());
+        if (!in.empty() && in.top() == x) {
+            sum -= x;
+            in.pop();
+        } else if (!in.empty() && RCompare()(in.top(), x)) {
+            sum -= x;
+            d_in.emplace(x);
+        } else {
+            d_out.emplace(x);
+        }
+        modify();
+    }
+
+    void set_k(size_t kk) {
+        k = kk;
+        modify();
+    }
+
+    size_t get_k() const {
+        return k;
+    }
+
+    size_t size() const {
+        return in.size() + out.size() - d_in.size() - d_out.size();
+    }
+};
+
+template <typename T>
+using MaximumSum = PrioritySumStructure<T, greater<T>, less<T>>;
+
+template <typename T>
+using MinimumSum = PrioritySumStructure<T, less<T>, greater<T>>;
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N, M, H);
+    VPLL(AB, N);
+    repi(a, b, AB) b--;
+
+    vll ans(M + 1);
+    vll color_sum(M);
+    MaximumSum<ll> csum(0);
+    rep(i, M) csum.insert(0);
+    ll k = 0, sum = 0;
+    rep(i, N) {
+        sum += AB[i].first;
+        csum.erase(color_sum[AB[i].second]);
+        color_sum[AB[i].second] += AB[i].first;
+        csum.insert(color_sum[AB[i].second]);
+        while (sum - csum.query() >= H) ans[k] = i, csum.set_k(++k);
+    }
+    rep(i, k, M + 1) ans[i] = N;
+    print(ans);
 }

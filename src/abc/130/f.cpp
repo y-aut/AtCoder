@@ -271,17 +271,90 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+vvll g(ll lleft, ll lstab, ll lright) {
+    vvll l;
+    l.pb({0, min({lleft, lstab, lright}), 0});
+    if (lleft == LINF) {
+        if (lstab == LINF) {
+            l[0][2] = 1;
+        } else if (lright != LINF) {
+            if (lright < lstab) {
+                l[0][2] = 1;
+                l.pb({lstab - lright, lstab, 0});
+            }
+        }
+    } else {
+        if (lleft <= lstab && lleft <= lright) {
+            l[0][2] = -1;
+        } else if (lstab <= lleft && lstab <= lright) {
+            l.pb({lleft - lstab, lstab, -1});
+        } else {
+            l[0][2] = 1;
+            if (lleft <= lstab + lstab - lright) {
+                l.pb({(lleft - lright) / 2, lright + (lright - lleft) / 2, -1});
+            } else {
+                l.pb({lstab - lright, lstab, 0});
+                l.pb({lleft - lstab, lstab, -1});
+            }
+        }
+    }
+    return l;
+}
+
+pll get2(const vvll &res, ll t) {
+    auto itr = lower_bound(all(res), vll{t, -LINF, -LINF});
+    if (itr != res.end() && itr->at(0) == t) return {itr->at(1), itr->at(2)};
+    itr--;
+    return {itr->at(1) + itr->at(2) * (t - itr->at(0)), itr->at(2)};
+}
+
+vvll f(vpll &p) {
+    ll lleft = LINF, lstab = LINF, lright = LINF;
+    ll rleft = -LINF, rstab = -LINF, rright = -LINF;
+    repi(i, d, p) {
+        if (d == -1) chmin(lleft, i), chmax(rleft, i);
+        else if (d == 0) chmin(lstab, i), chmax(rstab, i);
+        else chmin(lright, i), chmax(rright, i);
+    }
+    auto l = g(lleft, lstab, lright);
+    auto r = g(-rright, -rstab, -rleft);
+    repi(i, r) i[1] = -i[1], i[2] = -i[2];
+    debug(l);
+    debug(r);
+    set<ll> ts;
+    repi(i, l) ts.insert(i[0]);
+    repi(i, r) ts.insert(i[0]);
+    vvll ans;
+    repi(t, ts) {
+        auto [lv, la] = get2(l, t);
+        auto [rv, ra] = get2(r, t);
+        ans.pb({t, rv - lv, ra - la});
+    }
+    return ans;
+}
+
+ll get(const vvll &res, ll t) {
+    auto itr = lower_bound(all(res), vll{t, -LINF, -LINF});
+    if (itr != res.end() && itr == res.begin()) return res.front()[1];
+    return prev(itr)->at(1) + prev(itr)->at(2) * (t - prev(itr)->at(0));
+}
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    vpll xs, ys;
+    rep(i, N) {
+        LL(x, y);
+        x *= 2;
+        y *= 2;
+        CHR(d);
+        xs.eb(x, d == 'R' ? 1 : (d == 'L' ? -1 : 0));
+        ys.eb(y, d == 'U' ? 1 : (d == 'D' ? -1 : 0));
+    }
+    auto sx = f(xs), sy = f(ys);
+    ll ans = sx[0][1] * sy[0][1];
+    usll ts;
+    repi(i, sx) ts.insert(i[0]);
+    repi(i, sy) ts.insert(i[0]);
+    repi(t, ts) chmin(ans, get(sx, t) * get(sy, t));
+    print((double)ans / 4);
 }

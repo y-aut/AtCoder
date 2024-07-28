@@ -241,8 +241,11 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #ifdef DEBUG
 #include "debug.hpp"
 #else
+#define dsep (void)0
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -272,16 +275,12 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    VS(S, N);
+    rep(i, N - 2) {
+        if (S[i] == "sweet" && S[i + 1] == "sweet") {
+            EXIT(No);
+        }
+    }
+    Yes;
 }

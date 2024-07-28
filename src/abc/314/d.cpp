@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -271,17 +273,42 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+bool op(bool, bool) { return false; }
+bool e() { return false; }
+bool mp(ll f, bool x) { return f == -1 ? x : bool(f); }
+ll comp(ll f, ll g) { return f == -1 ? g : f; }
+ll id() { return -1; }
+
+char to_upper(char c) {
+    if (c < 'a') return c;
+    else return c + 'A' - 'a';
+}
+char to_lower(char c) {
+    if (c >= 'a') return c;
+    else return c + 'a' - 'A';
+}
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    STR(S);
+    LL(Q);
+    vb init(N);
+    rep(i, N) init[i] = S[i] < 'a';
+    lazy_segtree<bool, op, e, ll, mp, comp, id> tree(init);
+    rep(q, Q) {
+        LL(t, x);
+        CHR(c);
+        if (t == 1) {
+            tree.set(x - 1, c < 'a');
+            S[x - 1] = c;
+        } else {
+            tree.apply(0, N, t == 3);
+        }
+    }
+    string ans;
+    rep(i, N) {
+        if (tree.get(i)) ans += to_upper(S[i]);
+        else ans += to_lower(S[i]);
+    }
+    print(ans);
 }

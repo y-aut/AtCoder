@@ -271,17 +271,32 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+vll get() {
+    STR(res);
+    if (res == "OK") exit(0);
+    if (res == "-1") exit(0);
+    ll k = stoll(res);
+    VLL(adj, k);
+    repi(i, adj) i--;
+    return adj;
+}
+
 void solve() {
     LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    vb vis(N);
+    vis[0] = true;
+    auto dfs = [&](auto rc, ll now) -> void {
+        auto adj = get();
+        repi(i, adj) {
+            if (vis[i]) continue;
+            vis[i] = true;
+            print(i + 1);
+            cout << flush;
+            rc(rc, i);
+            print(now + 1);
+            cout << flush;
+            get();
+        }
+    };
+    dfs(dfs, 0);
 }

@@ -271,17 +271,33 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+int op(int a, int b) { return min(a, b); }
+int e() { return INF; }
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    STR(S);
+    LL(Q);
+    VS(T, Q);
+    auto a = S + '$';
+    repi(t, T) a += t;
+    auto sa = suffix_array(a);
+    auto lcp = lcp_array(a, sa);
+    vll ins(a.size() + 1);
+    rep(i, a.size()) ins[i + 1] = sa[i] < S.size();
+    rep(i, 1, ins.size()) ins[i] += ins[i - 1];
+    umll pos;
+    ll cur = S.size() + 1;
+    rep(i, Q) {
+        pos[cur] = i;
+        cur += T[i].size();
+    }
+    vll sapos(Q);
+    rep(i, a.size()) if (pos.count(sa[i])) sapos[pos[sa[i]]] = i;
+    segtree<int, op, e> tree(lcp);
+    rep(i, Q) {
+        ll l = tree.min_left(sapos[i], [&](ll v) { return v >= T[i].size(); });
+        ll r = tree.max_right(sapos[i], [&](ll v) { return v >= T[i].size(); });
+        ll ans = ins[r + 1] - ins[l];
+        print(ans);
+    }
 }

@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -272,16 +274,55 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(H, W, Y);
+    VVLL(A, H, W);
+    rep(i, H) rep(j, W) chmin(A[i][j], Y + 1);
+    v<ush<pll>> watch(Y + 1);
+    fenwick_tree<ll> tree(Y + 1);
+    vvb vis(H, vb(W));
+    rep(i, H) {
+        if (!vis[i][0]) {
+            watch[A[i][0] - 1].emplace(i, 0);
+            vis[i][0] = true;
+            tree.add(A[i][0] - 1, 1);
+        }
+        if (!vis[i][W - 1]) {
+            watch[A[i][W - 1] - 1].emplace(i, W - 1);
+            vis[i][W - 1] = true;
+            tree.add(A[i][W - 1] - 1, 1);
+        }
+    }
+    rep(i, W) {
+        if (!vis[0][i]) {
+            watch[A[0][i] - 1].emplace(0, i);
+            vis[0][i] = true;
+            tree.add(A[0][i] - 1, 1);
+        }
+        if (!vis[H - 1][i]) {
+            watch[A[H - 1][i] - 1].emplace(H - 1, i);
+            vis[H - 1][i] = true;
+            tree.add(A[H - 1][i] - 1, 1);
+        }
+    }
+    // debug(tree, Y + 1);
+    rep(y, Y) {
+        auto dfs = [&](auto rc, ll i, ll j) -> void {
+            rep(d, 4) {
+                ll ni = i + DY[d], nj = j + DX[d];
+                if (!(0 <= ni && ni < H && 0 <= nj && nj < W)) continue;
+                if (vis[ni][nj]) continue;
+                tree.add(A[ni][nj] - 1, 1);
+                vis[ni][nj] = true;
+                if (A[ni][nj] > y + 1) {
+                    watch[A[ni][nj] - 1].emplace(ni, nj);
+                    continue;
+                }
+                rc(rc, ni, nj);
+            }
+        };
+        repi(i, j, watch[y]) dfs(dfs, i, j);
+        // debug(watch);
+        // debug(tree, Y + 1);
+        print(H * W - tree.sum(0, y + 1));
+    }
 }

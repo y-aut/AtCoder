@@ -241,8 +241,11 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #ifdef DEBUG
 #include "debug.hpp"
 #else
+#define dsep (void)0
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -271,17 +274,151 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "ダイクストラ法"
+
+class Dijkstra {
+    const vvpll &wedges;
+    const ll start;
+    vll dist;
+    vll prev; // 直前の頂点を記録する配列
+
+    void set_dist() {
+        // (現時点での最短距離, 頂点)
+        priority_queue<pll, vector<pll>, greater<pll>> q;
+        q.emplace(dist[start] = 0, start);
+
+        while (!q.empty()) {
+            auto p = q.top();
+            q.pop();
+            if (dist[p.second] < p.first) continue;
+
+            repi(i, wedges[p.second]) {
+                ll d = dist[p.second] + i.second;
+                if (d < dist[i.first]) {
+                    prev[i.first] = p.second;
+                    q.emplace(dist[i.first] = d, i.first);
+                }
+            }
+        }
+    }
+
+public:
+    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
+        set_dist();
+    }
+
+    ll get_dist(ll v) const { return dist[v]; }
+    vll &get_dist() { return dist; }
+
+    // 最短経路を取得
+    vll get_path(ll v) const {
+        vll ans;
+        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
+        reverse(all(ans));
+        return ans;
+    }
+};
+
+#pragma endregion
+
+template <typename T>
+class SteinerTree {
+private:
+    struct edge {
+        int to;
+        T cost;
+    };
+    int V;
+    vector<vector<edge>> G;
+    const T inf = numeric_limits<T>::max() / 10;
+    using pti = pair<T, int>;
+
+public:
+    vector<vector<T>> dp;
+    SteinerTree(int node_size) : V(node_size), G(V) {}
+    void add_edge(int u, int v, T cost) {
+        G[u].push_back((edge){v, cost}), G[v].push_back((edge){u, cost});
+    }
+    T solve(vector<int> &terminal) {
+        int t = (int)terminal.size();
+        if (t == 0) return (T)0;
+        dp.assign((1 << t), vector<T>(V, inf));
+        for (int i = 0; i < t; i++) {
+            dp[(1 << i)][terminal[i]] = 0;
+        }
+        for (int i = 1; i < (1 << t); i++) {
+            for (int j = 0; j < V; j++) {
+                for (int k = i; k > 0; k = (k - 1) & i) {
+                    dp[i][j] = min(dp[i][j], dp[k][j] + dp[i ^ k][j]);
+                }
+            }
+            if (i == (1 << t) - 1) break;
+            priority_queue<pti, vector<pti>, greater<pti>> que;
+            for (int j = 0; j < V; j++) {
+                que.push(make_pair(dp[i][j], j));
+            }
+            while (!que.empty()) {
+                pti p = que.top();
+                que.pop();
+                int v = p.second;
+                if (dp[i][v] < p.first) continue;
+                for (auto &e : G[v]) {
+                    if (dp[i][e.to] > dp[i][v] + e.cost) {
+                        dp[i][e.to] = dp[i][v] + e.cost;
+                        que.push(make_pair(dp[i][e.to], e.to));
+                    }
+                }
+            }
+        }
+        return dp[(1 << t) - 1][terminal[0]];
+    }
+};
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N, M, K);
+    v<umll> m(N);
+    rep(i, M) {
+        LL(A, B, C);
+        A--, B--;
+        if (m[A].count(B)) chmin(m[A][B], C);
+        else m[A][B] = C;
+    }
+    vvpll edges(N);
+    SteinerTree<ll> tree(N);
+    rep(i, N) {
+        repi(j, c, m[i]) {
+            edges[i].eb(j, c);
+            edges[j].eb(i, c);
+            if (i < j) tree.add_edge(i, j, c);
+        }
+    }
+    vvll dist;
+    rep(i, K - 1) {
+        Dijkstra d(edges, i);
+        dist.pb(d.get_dist());
+    }
+    vi terminal;
+    rep(i, K - 1) terminal.pb(i);
+    tree.solve(terminal);
+    vll res(1LL << (K - 1), LINF);
+    res[0] = 0;
+    rep(i, 1, 1LL << (K - 1)) {
+        rep(j, tree.dp[i].size()) {
+            chmin(res[i], tree.dp[i][j]);
+        }
+    }
+    rep(q, K - 1, N) {
+        auto dp = res;
+        rep(i, 1, 1LL << (K - 1)) {
+            ll d = LINF;
+            rep(j, K - 1) if (i >> j & 1) chmin(d, dist[j][q]);
+            dp[i] += d;
+        }
+        rep(i, 1LL << (K - 1)) {
+            for (ll j = i; j > 0; j = (j - 1) & i) {
+                chmin(dp[i], dp[j] + dp[i ^ j]);
+            }
+        }
+        print(dp.back());
+    }
 }

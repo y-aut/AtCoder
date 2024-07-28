@@ -272,16 +272,19 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    VPLL(LR, N);
+    vll ans(N);
+    rep(i, N) ans[i] = LR[i].first;
+    ll sum = accumulate(all(ans), 0LL);
+    if (sum > 0) EXIT(No);
+    rep(i, N) {
+        if (sum == 0) break;
+        ans[i] += min(-sum, LR[i].second - LR[i].first);
+        sum += min(-sum, LR[i].second - LR[i].first);
+    }
+    if (sum == 0) {
+        Yes;
+        print(ans);
+    } else No;
 }

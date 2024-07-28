@@ -272,16 +272,52 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N, K);
+    auto ask = [&](const set<ll> &x) -> bool {
+        cout << "? ";
+        vll a;
+        repi(i, x) a.pb(i + 1);
+        print(a);
+        cout << flush;
+        INT(ans);
+        return (bool)ans;
+    };
+    auto decide = [&](const vb &v) {
+        cout << "! ";
+        print(v);
+        cout << flush;
+        exit(0);
+    };
+    vb res;
+    set<ll> x;
+    rep(i, K + 1) x.insert(i);
+    rep(i, K) {
+        x.erase(i);
+        res.pb(ask(x));
+        x.insert(i);
+    }
+    x.erase(K);
+    res.pb(ask(x));
+    vb ans(N);
+    {
+        rep(i, K - 1) {
+            if (res[i] != res[i + 1]) ans[i + 1] = !ans[i];
+            else ans[i + 1] = ans[i];
+        }
+        if (accumulate(ans.begin(), ans.begin() + K, 0LL) % 2 != res[K]) {
+            rep(i, K) ans[i] = !ans[i];
+        }
+    }
+    rep(i, N - K) {
+        x.erase(i);
+        x.insert(i + K);
+        if (i == 0) res.pb(res.front());
+        else res.pb(ask(x));
+        if (res.back() == res[res.size() - 2]) {
+            ans[i + K] = ans[i];
+        } else {
+            ans[i + K] = !ans[i];
+        }
+    }
+    decide(ans);
 }

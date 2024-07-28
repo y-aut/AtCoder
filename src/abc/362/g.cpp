@@ -272,16 +272,24 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    STR(S);
+    LL(Q);
+    VS(T, Q);
+    auto sa = suffix_array(S);
+    auto search = [&](const string &s) -> ll {
+        ll lower = 0, upper = S.size() + 1;
+        while (lower + 1 < upper) {
+            ll mid = (lower + upper) / 2;
+            if (s <= S.substr(sa[mid - 1], min(S.size() - sa[mid - 1], s.size()))) {
+                upper = mid;
+            } else {
+                lower = mid;
+            }
+        }
+        return lower;
+    };
+    repi(t, T) {
+        auto tend = t + '~';
+        print(search(tend) - search(t));
+    }
 }

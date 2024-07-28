@@ -16,9 +16,12 @@
 #define MACRO_MAP(f, ...) OVERLOAD9(__VA_ARGS__, MACRO_MAP_8, MACRO_MAP_7, MACRO_MAP_6, MACRO_MAP_5, MACRO_MAP_4, \
                                     MACRO_MAP_3, MACRO_MAP_2, MACRO_MAP_1)(f, __VA_ARGS__)
 
+#define dsep dseparator(__LINE__)
 #define debug(...) dprint(__LINE__, HEAD_NAME(__VA_ARGS__), __VA_ARGS__)
 #define debugs(...) \
-    { MACRO_MAP(debug, __VA_ARGS__) }
+    {MACRO_MAP(debug, __VA_ARGS__)}
+#define debugif(pred, ...) dprint_if(__LINE__, HEAD_NAME(__VA_ARGS__), pred, __VA_ARGS__)
+#define debuga(...) debugif([](auto x) { return x != 0; }, __VA_ARGS__)
 
 TPL_T
 inline string to_str(const T &val) { return to_string(val); }
@@ -26,6 +29,10 @@ template <>
 inline string to_str(const string &val) { return val; }
 TPL_TS
 inline string to_str(const pair<T, S> &val) { return to_str(val.first) + "," + to_str(val.second); }
+
+inline void dseparator(ll line) {
+    cout << "\033[33m(line:" << line << ") " << string(20, '-') << "\033[m" << endl;
+}
 
 TPL_T
 inline void dprint_base(ll line, string name, const T &val);
@@ -147,4 +154,26 @@ inline void dprint(ll line, string name, lazy_segtree<S, op, e, F, mapping, comp
 template <typename T, typename... Rest>
 inline void dprint(ll line, string name, const T val, ll size, Rest... rest) {
     rep(i, size) dprint(line, name + "[" + to_str(i) + "]", val[i], rest...);
+}
+
+TPL_TS
+inline void dprint_if_base(ll line, string name, const T &pred, const S &val);
+TPL_TS
+inline void dprint_if(ll line, string name, const T &pred, const S &val);
+TPL_TS
+inline void dprint_if(ll line, string name, const T &pred, const v<S> &val);
+
+TPL_TS
+inline void dprint_if_base(ll line, string name, const T &pred, const S &val) {
+    if (pred(val)) dprint_base(line, name, val);
+}
+
+TPL_TS
+inline void dprint_if(ll line, string name, const T &pred, const S &val) {
+    dprint_if_base(line, name, pred, val);
+}
+
+TPL_TS
+inline void dprint_if(ll line, string name, const T &pred, const v<S> &val) {
+    rep(i, val.size()) dprint_if(line, name + "[" + to_str(i) + "]", pred, val[i]);
 }

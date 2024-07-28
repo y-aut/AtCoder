@@ -236,8 +236,11 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #ifdef DEBUG
 #include "debug.hpp"
 #else
+#define dsep (void)0
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */

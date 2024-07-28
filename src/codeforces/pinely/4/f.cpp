@@ -5,11 +5,8 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
-#include <atcoder/all>
 #include <bits/stdc++.h>
-#include <gmpxx.h>
 using namespace std;
-using namespace atcoder;
 
 // clang-format off
 
@@ -35,8 +32,6 @@ struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #define um unordered_map
 using ull = unsigned long long;
 using ll = long long;
-using mll = mpz_class;
-using md = mpf_class;
 // pair
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
@@ -46,9 +41,7 @@ TPL_T using vv = v<v<T>>;
 TPL_T using vvv = v<vv<T>>;
 using vi = v<int>;
 using vll = v<ll>;
-using vmll = v<mll>;
 using vd = v<double>;
-using vmd = v<md>;
 using vb = v<bool>;
 using vc = v<char>;
 using vs = v<string>;
@@ -66,15 +59,6 @@ using uss = us<string>;
 // unordered map
 using umi = um<int, int>;
 using umll = um<ll, ll>;
-
-/* mint */
-#define DEFINE_MOD(m)               \
-    using mint = static_modint<m>;  \
-    using vm = v<mint>;             \
-    using vvm = v<vm>;              \
-    using pmm = pair<mint, mint>;   \
-    inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
-    inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
 
 /* extract params */
 #define HEAD_NAME(x, ...) #x
@@ -94,7 +78,6 @@ using umll = um<ll, ll>;
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
 #define INT(...) VAR(int, __VA_ARGS__)
 #define LL(...) VAR(ll, __VA_ARGS__)
-#define MLL(...) VAR(mll, __VA_ARGS__)
 #define DBL(...) VAR(double, __VA_ARGS__)
 #define CHR(...) VAR(char, __VA_ARGS__)
 #define STR(...) VAR(string, __VA_ARGS__)
@@ -102,7 +85,6 @@ using umll = um<ll, ll>;
 #define PLL(...) VAR(pll, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
-#define VMLL(a, b) auto a = in_vmll(b)
 #define VM(a, b) auto a = in_vm(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
@@ -142,7 +124,6 @@ TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.seco
 // input
 inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
-inline mll in_mll() { mll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
 inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
@@ -150,7 +131,6 @@ inline pii in_pii() { pii x; cin >> x; return x; }
 inline pll in_pll() { pll x; cin >> x; return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
-inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
@@ -169,10 +149,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
     res[a].eb(b, w); if (bidir) res[b].eb(a, w); } return res; }
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
-
-// conversion
-inline mll to_mll(ll v) { return mll(to_string(v)); }
-inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -211,8 +187,6 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
 #define OSTREAM(class, ...) \
     void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
-template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
-ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
 TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
 
 // print
@@ -241,8 +215,11 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #ifdef DEBUG
 #include "debug.hpp"
 #else
+#define dsep (void)0
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -269,19 +246,126 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD2);
+template <class T>
+struct FenwickTree {
+    using U = ull;
+
+public:
+    FenwickTree() : _n(0) {}
+    explicit FenwickTree(int n) : _n(n), data(n) {}
+
+    void add(int p, T x) {
+        assert(0 <= p && p < _n);
+        p++;
+        while (p <= _n) {
+            data[p - 1] += U(x);
+            p += p & -p;
+        }
+    }
+
+    T sum(int l, int r) {
+        assert(0 <= l && l <= r && r <= _n);
+        return sum(r) - sum(l);
+    }
+
+private:
+    int _n;
+    std::vector<U> data;
+
+    U sum(int r) {
+        U s = 0;
+        while (r > 0) {
+            s += data[r - 1];
+            r -= r & -r;
+        }
+        return s;
+    }
+};
+
+bool check(ll a, ll b, ll c) {
+    return abs(a - b) < c && c < a + b;
+}
+
+bool check3(const set<ll>::iterator &itr, const set<ll>::iterator &end) {
+    assert(itr != end);
+    rrep(i, 3) {
+        if (next(itr, i) == end) return false;
+    }
+    return true;
+}
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N, Q);
+    VLL(A, N);
+    VPLL(LR, Q);
+    repi(l, r, LR) l--;
+
+    vpll Ap;
+    rep(i, N) Ap.eb(A[i], i);
+    sort(all(Ap));
+    vll Aind(N);
+    rep(i, N) Aind[Ap[i].second] = i;
+
+    set<ll> good;
+    set<ll> cur;
+    {
+        rep(i, 2) {
+            cur.insert(Aind[i]);
+        }
+    }
+    vll pos(N);
+    ll st = 0;
+    rep(i, 2, N) {
+        auto itr = cur.insert(Aind[i]).first;
+        if (itr != cur.begin()) {
+            if (next(itr) == cur.end() || !check(Ap[*prev(itr)].first, Ap[*itr].first, Ap[*next(itr)].first)) {
+                good.erase(*prev(itr));
+            } else {
+                good.insert(*prev(itr));
+            }
+            if (prev(itr) != cur.begin()) {
+                if (!check(Ap[*prev(itr, 2)].first, Ap[*prev(itr)].first, Ap[*itr].first)) {
+                    good.erase(*prev(itr, 2));
+                } else {
+                    good.insert(*prev(itr, 2));
+                }
+            }
+        }
+        if (next(itr) != cur.end() && next(itr, 2) != cur.end() &&
+            check(Ap[*itr].first, Ap[*next(itr)].first, Ap[*next(itr, 2)].first)) {
+            good.insert(*itr);
+        }
+        debug(i);
+        debug(good);
+        while (!good.empty() && check3(good.begin(), good.end())) {
+            pos[st] = i;
+            auto t = Aind[st++];
+            auto itr = cur.find(t);
+            assert(itr != cur.end());
+            good.erase(t);
+            if (itr != cur.begin()) {
+                good.erase(*prev(itr));
+                if (prev(itr) != cur.begin()) {
+                    good.erase(*prev(itr, 2));
+                }
+            }
+            itr++;
+            cur.erase(t);
+            if (itr != cur.begin() && itr != cur.end()) {
+                if (next(itr) != cur.end() && check(Ap[*prev(itr)].first, Ap[*itr].first, Ap[*next(itr)].first)) {
+                    good.insert(*prev(itr));
+                }
+                if (prev(itr) != cur.begin()) {
+                    if (check(Ap[*prev(itr, 2)].first, Ap[*prev(itr)].first, Ap[*itr].first)) {
+                        good.insert(*prev(itr, 2));
+                    }
+                }
+            }
+        }
+    }
+    debug(pos);
+
+    repi(l, r, LR) {
+        YesNo(pos[l] >= r - 1);
+    }
 }

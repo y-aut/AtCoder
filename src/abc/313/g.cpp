@@ -271,17 +271,31 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+ll op(ll a, ll b) { return 0; }
+ll e() { return 0; }
+ll mp(ll f, ll x) { return f + x; }
+ll comp(ll f, ll g) { return f + g; }
+ll id() { return 0; }
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    VLL(a, N);
+    sort(all(a));
+    lazy_segtree<ll, op, e, ll, mp, comp, id> tree(a);
+    mint ans = 0;
+    ans += a[0] + 1;
+    tree.apply(0, N, -a[0]);
+    ll bag = a[0] * N;
+    ll hd = 0;
+    while (true) {
+        while (hd < N && tree.get(hd) == 0) hd++;
+        if (hd == N) break;
+        ll v = tree.get(hd);
+        ans += v;
+        // \sum_{k=1~v} bag+k(N-hd) // N
+        ans += floor_sum(v, N, N - hd, bag + N - hd);
+        tree.apply(hd, N, -v);
+        bag += v * (N - hd);
+    }
+    print(ans);
 }

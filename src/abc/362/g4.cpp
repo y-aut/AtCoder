@@ -271,17 +271,95 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+// https://yosupo.hatenablog.com/entry/2023/08/06/181942
+class RollingHash {
+    // using ll = unsigned long long;
+    using lll = __int128;
+    using ll = ull;
+    const ll mod = (1ull << 61) - 1;
+    const ll base = 10007;
+    string s;
+    // Hash[i] = [0, i)のhash, power[i] = base ^ i
+    vector<ll> Hash, power;
+
+    // 値を8倍にして扱う
+    ll mul2(const ll a, const ll b) {
+        lll c = (lll)(a)*b;
+        ll x = (c >> 67 << 3), y = (c << 61 >> 64);
+
+        ll z;
+        if (__builtin_uaddll_overflow(x, y, &z)) z -= mod << 3;
+        return z;
+    }
+
+    ll mul(const ll a, const ll b) {
+        ll t = mul2(a << 3, b << 3) >> 3;
+        return t == mod ? 0 : t;
+    }
+
+public:
+    RollingHash(string &S) : s(S) {
+        if (Hash.size() < S.size() + 1) {
+            int t = Hash.size();
+            Hash.resize(S.size() + 1);
+            power.resize(S.size() + 1);
+            power[0] = 1;
+            for (int i = t; i < (int)S.size(); i++) {
+                Hash[i + 1] = mul(Hash[i], base) + s[i];
+                if (Hash[i + 1] >= mod) Hash[i + 1] -= mod;
+                power[i + 1] = mul(power[i], base);
+            }
+        }
+    }
+
+    ll getHash(int l, int r) {
+        ll pos = Hash[r] + mod - mul(Hash[l], power[r - l]);
+        return pos >= mod ? pos - mod : pos;
+    }
+
+    // lenはh2の長さ
+    ll connect(ll h1, ll h2, int len) {
+        ll pos = mul(h1, power[len]) + h2;
+        return pos >= mod ? pos - mod : pos;
+    }
+};
+
+using RH = RollingHash;
+
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/priority_queue.hpp>
+#include <ext/pb_ds/tag_and_trait.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+#undef um
+#define um gp_hash_table
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    STR(S);
+    LL(Q);
+    vvpll qry(S.size() + 1);
+    rep(q, Q) {
+        STR(T);
+        RH rht(T);
+        qry[T.size()].eb(rht.getHash(0, T.size()), q);
+    }
+    vll ans(Q);
+    RH rh(S);
+    rep(i, S.size() + 1) {
+        if (qry[i].empty()) continue;
+        ll l = 0, r = i;
+        um<ll, ll> mp;
+        um<ll, vll> idx;
+        repi(x, y, qry[i]) {
+            mp[x] = 0;
+            idx[x].pb(y);
+        }
+        for (; r <= S.size(); l++, r++) {
+            ll hsh = rh.getHash(l, r);
+            if (mp.find(hsh) == mp.end()) continue;
+            mp[hsh]++;
+        }
+        repi(x, y, mp) repi(z, idx[x]) ans[z] = y;
+    }
+    print(ans, "\n");
 }

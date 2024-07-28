@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -272,16 +274,37 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    VLL(A, 3);
+    vll zero;
+    rep(i, 8) {
+        if (((i ^ i >> 1 ^ i >> 2) & 1) == 0) zero.pb(i);
+    }
+    ll top = 1;
+    while (N >= (1LL << top)) top++;
+    vector dp(A[0], vector(A[1], vector(A[2], vector(8, vector(8, mint(0))))));
+    dp[0][0][0][7][0] = 1;
+    repd(i, top) {
+        vector nxt(A[0], vector(A[1], vector(A[2], vector(8, vector(8, mint(0))))));
+        rep(j, A[0]) rep(k, A[1]) rep(l, A[2]) rep(m, 8) rep(z, 8) repi(n, zero) {
+            ll nm = 0;
+            if (m & 1) {
+                if ((n & 1) > (N >> i & 1)) continue;
+                if ((n & 1) == (N >> i & 1)) nm |= 1;
+            }
+            if (m >> 1 & 1) {
+                if ((n >> 1 & 1) > (N >> i & 1)) continue;
+                if ((n >> 1 & 1) == (N >> i & 1)) nm |= 1 << 1;
+            }
+            if (m >> 2 & 1) {
+                if ((n >> 2 & 1) > (N >> i & 1)) continue;
+                if ((n >> 2 & 1) == (N >> i & 1)) nm |= 1 << 2;
+            }
+            nxt[(j + ((n & 1) << i)) % A[0]][(k + ((n >> 1 & 1) << i)) % A[1]][(l + ((n >> 2 & 1) << i)) % A[2]][nm][z | n] += dp[j][k][l][m][z];
+        }
+        dp = move(nxt);
+    }
+    mint ans = 0;
+    rep(i, 8) ans += dp[0][0][0][i][7];
+    print(ans);
 }

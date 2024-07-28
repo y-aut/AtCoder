@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -273,15 +275,30 @@ DEFINE_MOD(MOD2);
 
 void solve() {
     LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    vd C;
+    vll P;
+    vvll S;
+    rep(i, N) {
+        DBL(c);
+        LL(p);
+        VLL(s, p);
+        vll sz;
+        rep(i, p) if (s[i]) sz.pb(s[i]);
+        c *= (double)s.size() / sz.size();
+        C.pb(c);
+        P.pb(p);
+        S.pb(sz);
+    }
+    vd dp(M * 2 + 10, LINF);
+    dp[0] = 0;
+    rep(i, 1, M * 2 + 10) rep(j, N) {
+        double cur = 0;
+        repi(k, S[j]) if (i >= k) cur += dp[i - k];
+        cur /= S[j].size();
+        cur += C[j];
+        chmin(dp[i], cur);
+    }
+    double ans = dp[M];
+    rep(i, M, M * 2 + 10) chmin(ans, dp[i]);
+    print(ans);
 }

@@ -271,17 +271,282 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+template <int char_size>
+struct TrieNode {
+    int nxt[char_size];
+
+    int exist;
+    vector<int> accept;
+
+    TrieNode() : exist(0) {
+        memset(nxt, -1, sizeof(nxt));
+    }
+};
+
+template <int char_size, int margin>
+struct Trie {
+    using Node = TrieNode<char_size>;
+
+    vector<Node> nodes;
+    int root;
+
+    Trie() : root(0) {
+        nodes.push_back(Node());
+    }
+
+    void update_direct(int node, int id) {
+        nodes[node].accept.push_back(id);
+    }
+
+    void update_child(int node, int child, int id) {
+        ++nodes[node].exist;
+    }
+
+    void add(const string &str, int str_index, int node_index, int id) {
+        if (str_index == str.size()) {
+            update_direct(node_index, id);
+        } else {
+            const int c = str[str_index] - margin;
+            if (nodes[node_index].nxt[c] == -1) {
+                nodes[node_index].nxt[c] = (int)nodes.size();
+                nodes.push_back(Node());
+            }
+            add(str, str_index + 1, nodes[node_index].nxt[c], id);
+            update_child(node_index, nodes[node_index].nxt[c], id);
+        }
+    }
+
+    void add(const string &str, int id) {
+        add(str, 0, 0, id);
+    }
+
+    void add(const string &str) {
+        add(str, nodes[0].exist);
+    }
+
+    void query(const string &str, const function<void(int)> &f, int str_index, int node_index) {
+        for (auto &idx : nodes[node_index].accept) f(idx);
+        if (str_index == str.size()) {
+            return;
+        } else {
+            const int c = str[str_index] - margin;
+            if (nodes[node_index].nxt[c] == -1) return;
+            query(str, f, str_index + 1, nodes[node_index].nxt[c]);
+        }
+    }
+
+    void query(const string &str, const function<void(int)> &f) {
+        query(str, f, 0, 0);
+    }
+
+    int count() const {
+        return (nodes[0].exist);
+    }
+
+    int size() const {
+        return ((int)nodes.size());
+    }
+};
+
+/**
+ * @brief Aho-Corasick(エイホ–コラシック法)
+ *
+ */
+template <int char_size, int margin>
+struct AhoCorasick : Trie<char_size + 1, margin> {
+    using Trie<char_size + 1, margin>::Trie;
+
+    const int FAIL = char_size;
+    vector<int> correct;
+
+    void build(bool heavy = true) {
+        correct.resize(this->size());
+        for (int i = 0; i < this->size(); i++) {
+            correct[i] = (int)this->nodes[i].accept.size();
+        }
+        queue<int> que;
+        for (int i = 0; i <= char_size; i++) {
+            if (~this->nodes[0].nxt[i]) {
+                this->nodes[this->nodes[0].nxt[i]].nxt[FAIL] = 0;
+                que.emplace(this->nodes[0].nxt[i]);
+            } else {
+                this->nodes[0].nxt[i] = 0;
+            }
+        }
+        while (!que.empty()) {
+            auto &now = this->nodes[que.front()];
+            int fail = now.nxt[FAIL];
+            correct[que.front()] += correct[fail];
+            que.pop();
+            for (int i = 0; i < char_size; i++) {
+                if (~now.nxt[i]) {
+                    this->nodes[now.nxt[i]].nxt[FAIL] = this->nodes[fail].nxt[i];
+                    if (heavy) {
+                        auto &u = this->nodes[now.nxt[i]].accept;
+                        auto &v = this->nodes[this->nodes[fail].nxt[i]].accept;
+                        vector<int> accept;
+                        set_union(begin(u), end(u), begin(v), end(v), back_inserter(accept));
+                        u = accept;
+                    }
+                    que.emplace(now.nxt[i]);
+                } else {
+                    now.nxt[i] = this->nodes[fail].nxt[i];
+                }
+            }
+        }
+    }
+
+    map<int, int> match(const string &str, int now = 0) {
+        map<int, int> result;
+        for (auto &c : str) {
+            now = this->nodes[now].nxt[c - margin];
+            for (auto &v : this->nodes[now].accept) result[v] += 1;
+        }
+        return result;
+    }
+
+    pair<int64_t, int> move(const char &c, int now = 0) {
+        now = this->nodes[now].nxt[c - margin];
+        return {correct[now], now};
+    }
+
+    pair<int64_t, int> move(const string &str, int now = 0) {
+        int64_t sum = 0;
+        for (auto &c : str) {
+            auto nxt = move(c, now);
+            sum += nxt.first;
+            now = nxt.second;
+        }
+        return {sum, now};
+    }
+};
+
+#pragma region "正方行列"
+
+/**
+ * @brief Square-Matrix(正方行列)
+ */
+template <class T, size_t N>
+struct SquareMatrix {
+    array<array<T, N>, N> A;
+
+    SquareMatrix() : A{{}} {}
+
+    size_t size() const { return N; }
+
+    inline const array<T, N> &operator[](int k) const {
+        return (A.at(k));
+    }
+
+    inline array<T, N> &operator[](int k) {
+        return (A.at(k));
+    }
+
+    static SquareMatrix add_identity() {
+        return SquareMatrix();
+    }
+
+    static SquareMatrix mul_identity() {
+        SquareMatrix mat;
+        for (size_t i = 0; i < N; i++) mat[i][i] = 1;
+        return mat;
+    }
+
+    SquareMatrix &operator+=(const SquareMatrix &B) {
+        for (size_t i = 0; i < N; i++) {
+            for (size_t j = 0; j < N; j++) {
+                (*this)[i][j] += B[i][j];
+            }
+        }
+        return *this;
+    }
+
+    SquareMatrix &operator-=(const SquareMatrix &B) {
+        for (size_t i = 0; i < N; i++) {
+            for (size_t j = 0; j < N; j++) {
+                (*this)[i][j] -= B[i][j];
+            }
+        }
+        return *this;
+    }
+
+    SquareMatrix &operator*=(const SquareMatrix &B) {
+        array<array<T, N>, N> C;
+        for (size_t i = 0; i < N; i++) {
+            for (size_t j = 0; j < N; j++) {
+                for (size_t k = 0; k < N; k++) {
+                    C[i][j] = (C[i][j] + (*this)[i][k] * B[k][j]);
+                }
+            }
+        }
+        A.swap(C);
+        return (*this);
+    }
+
+    SquareMatrix &operator^=(uint64_t k) {
+        SquareMatrix B = SquareMatrix::mul_identity();
+        while (k > 0) {
+            if (k & 1) B *= *this;
+            *this *= *this;
+            k >>= 1LL;
+        }
+        A.swap(B.A);
+        return *this;
+    }
+
+    SquareMatrix operator+(const SquareMatrix &B) const {
+        return SquareMatrix(*this) += B;
+    }
+
+    SquareMatrix operator-(const SquareMatrix &B) const {
+        return SquareMatrix(*this) -= B;
+    }
+
+    SquareMatrix operator*(const SquareMatrix &B) const {
+        return SquareMatrix(*this) *= B;
+    }
+
+    SquareMatrix operator^(uint64_t k) const {
+        return SquareMatrix(*this) ^= k;
+    }
+
+    SquareMatrix pow(uint64_t n) const {
+        SquareMatrix a = *this, res = mul_identity();
+        for (; n; a = a * a, n >>= 1)
+            if (n & 1) res = res * a;
+        return res;
+    }
+
+    friend ostream &operator<<(ostream &os, SquareMatrix &p) {
+        for (int i = 0; i < N; i++) {
+            os << "[";
+            for (int j = 0; j < N; j++) {
+                os << p[i][j] << (j + 1 == N ? "]\n" : ",");
+            }
+        }
+        return os;
+    }
+};
+
+#pragma endregion
+
 void solve() {
     LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    VS(S, M);
+    AhoCorasick<2, 'a'> tree;
+    repi(i, S) tree.add(i);
+    tree.build();
+    SquareMatrix<mint, (1 << 7) + 10> mat;
+    debug(tree.nodes.size());
+    rep(i, tree.nodes.size()) {
+        rep(c, 2) {
+            if (tree.correct[tree.nodes[i].nxt[c]] == 0) {
+                mat[tree.nodes[i].nxt[c]][i]++;
+            }
+        }
+    }
+    mat = mat.pow(N);
+    mint ans = 0;
+    rep(i, tree.nodes.size()) ans += mat[i][0];
+    print(ans);
 }

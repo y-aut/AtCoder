@@ -269,19 +269,18 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD2);
+DEFINE_MOD(MOD);
 
 void solve() {
     LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    VLL(S, N);
+    VLL(T, M);
+    vvm dp(N + 1, vm(M + 1));
+    rep(i, N + 1) dp[i][0] = 1;
+    rep(i, M + 1) dp[0][i] = 1;
+    rep(i, N) rep(j, M) {
+        dp[i + 1][j + 1] = dp[i][j + 1] + dp[i + 1][j] - dp[i][j];
+        if (S[i] == T[j]) dp[i + 1][j + 1] += dp[i][j];
+    }
+    print(dp[N][M]);
 }

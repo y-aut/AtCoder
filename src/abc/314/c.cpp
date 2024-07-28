@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -273,15 +275,16 @@ DEFINE_MOD(MOD2);
 
 void solve() {
     LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    STR(S);
+    VLL(C, N);
+    repi(i, C) i--;
+    vvll idx(M);
+    rep(i, N) idx[C[i]].pb(i);
+    vll nxt(N);
+    rep(i, M) rep(j, idx[i].size()) nxt[idx[i][j]] = idx[i][(j + idx[i].size() - 1) % (idx[i].size())];
+    string ans;
+    rep(i, N) {
+        ans += S[nxt[i]];
+    }
+    print(ans);
 }

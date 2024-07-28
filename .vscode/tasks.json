@@ -73,6 +73,19 @@
             "problemMatcher": []
         },
         {
+            "label": "copy c++ nolib template",
+            "type": "shell",
+            "command": "cp",
+            "args": [
+                "${workspaceFolder}/tpl/template_nolib",
+                "${file}"
+            ],
+            "presentation": {
+                "reveal": "silent",
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "update template",
             "type": "shell",
             "command": "bash",

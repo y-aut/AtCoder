@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -271,17 +273,87 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "約数列挙"
+
+vll factors(ll n) {
+    vll ans{1};
+    for (ll i = 2; i * i <= n; i++) {
+        if (n % i == 0) ans.pb(i);
+    }
+    for (ll i = ans.size() - (ans.back() * ans.back() == n ? 2 : 1); i >= 0; i--) {
+        ans.pb(n / ans[i]);
+    }
+    return ans;
+}
+
+#pragma endregion
+
+bool is_pal(const string &s) {
+    rep(i, s.size()) if (s[i] != s[s.size() - 1 - i]) return false;
+    return true;
+}
+
+vpll nz;
+
+usll memo;
+bool sol(ll N, ll mid, vll &cur) {
+    if (memo.count(mid)) return false;
+    if (N % mid != 0) return false;
+    if (N == mid) return true;
+    repi(i, j, nz) {
+        if ((double)mid * i * j > N * 2) continue;
+        cur.pb(i);
+        if (sol(N, mid * i * j, cur)) {
+            return true;
+        }
+        cur.pop_back();
+    }
+    memo.insert(mid);
+    return false;
+}
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    if (N < 10) {
+        print(N);
+        return;
+    }
+    string ns = to_string(N);
+    if (is_pal(ns) && ns.find('0') == string::npos) {
+        print(N);
+        return;
+    }
+    auto fc = factors(N);
+    if (fc.size() == 2) {
+        print(-1);
+        return;
+    }
+    rep(i, 2, 1000000) {
+        string is = to_string(i);
+        if (is.find('0') == string::npos) {
+            string js = is;
+            reverse(all(js));
+            ll j = stoll(js);
+            if (i <= j) nz.eb(i, j);
+        }
+    }
+    debug(fc);
+    repi(f, fc) {
+        debug(f);
+        string fs = to_string(f);
+        if (!is_pal(fs) || fs.find('0') != string::npos) continue;
+        vll cur;
+        if (sol(N, f, cur)) {
+            string ans = to_string(f);
+            repi(i, cur) {
+                string is = to_string(i);
+                string js = is;
+                reverse(all(js));
+                ans = is + "*" + ans + "*" + js;
+            }
+            print(ans);
+            return;
+        }
+    }
+    print(-1);
 }

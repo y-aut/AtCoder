@@ -272,16 +272,39 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    STR(S);
+    rep(i, N - 1) {
+        if (S[i] != '1' && S[i + 1] != '1') {
+            print(-1);
+            return;
+        }
+    }
+    vpll p;
+    ll cur = 0;
+    while (cur < N) {
+        if (S[cur] != '1') {
+            p.eb(0, S[cur] - '0');
+            cur++;
+        } else {
+            ll i = cur + 1;
+            while (i < N && S[i] == '1') i++;
+            p.eb(i - cur, i == N ? -1 : S[i] - '0');
+            cur = i + 1;
+        }
+    }
+    debug(p);
+    mint ans = 0;
+    while (!p.empty()) {
+        if (p.back().second == -1) {
+            ans += p.back().first;
+        } else if (p.back().first == 0) {
+            ans++;
+        } else {
+            ans += p.back().first + p.back().second + (p.back().second - 1) * ans;
+        }
+        p.pop_back();
+    }
+    ans--;
+    print(ans);
 }

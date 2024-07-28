@@ -110,7 +110,8 @@
         "ios": "cpp",
         "locale": "cpp",
         "stack": "cpp",
-        "__memory": "cpp"
+        "__memory": "cpp",
+        "internal_type_traits": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"

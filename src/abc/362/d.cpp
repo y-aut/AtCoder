@@ -271,17 +271,35 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "ダイクストラ法"
+
+vll get_dist(const vll &A, const vvpll &wedges, ll start) {
+    vll dist(A.size(), LINF);
+    // (現時点での最短距離, 頂点)
+    priority_queue<pll, vector<pll>, greater<pll>> q;
+    q.emplace(dist[start] = A[0], start);
+
+    while (!q.empty()) {
+        auto p = q.top();
+        q.pop();
+        if (dist[p.second] < p.first) continue;
+
+        repi(i, wedges[p.second]) {
+            ll d = dist[p.second] + i.second + A[i.first];
+            if (d < dist[i.first]) {
+                q.emplace(dist[i.first] = d, i.first);
+            }
+        }
+    }
+    return dist;
+}
+
+#pragma endregion
+
 void solve() {
     LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    VLL(A, N);
+    auto wedges = in_wedges<true>(N, M);
+    auto dist = get_dist(A, wedges, 0);
+    print(dist.begin() + 1, dist.end());
 }

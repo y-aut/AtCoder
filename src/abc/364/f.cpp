@@ -241,8 +241,11 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #ifdef DEBUG
 #include "debug.hpp"
 #else
+#define dsep (void)0
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -271,17 +274,96 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "区間を set で管理する"
+
+/// @brief 開区間を set で管理する．
+/// @tparam merge [3, 4), [4, 5) を [3, 5) と扱うかどうか．
+template <bool merge>
+class IntervalSet {
+    set<pll> s;
+
+    inline bool lt(ll x, ll y) const {
+        if (merge) return x <= y;
+        else return x < y;
+    }
+
+public:
+    IntervalSet() {
+        s.insert({-LINF, -LINF});
+        s.insert({LINF, LINF});
+    }
+
+    set<pll> &get_set() { return s; }
+
+    // 指定した区間と交わる区間を取得する
+    vpll intersect(const pll &interval) {
+        vpll ans;
+        auto itr = prev(s.lower_bound(interval));
+        if (itr->first <= interval.first && interval.first < itr->second) {
+            ans.pb(*itr);
+        }
+        while (true) {
+            itr++;
+            if (interval.first <= itr->first && itr->first < interval.second) {
+                ans.pb(*itr);
+            } else break;
+        }
+        return ans;
+    }
+
+    // 区間を挿入し，マージする
+    pll insert(const pll &interval) {
+        ll x = interval.first, y = interval.second;
+        auto itr = prev(s.lower_bound(interval));
+
+        // 直前の区間が被っていたらマージする
+        if (itr->first <= x && lt(x, itr->second)) {
+            chmin(x, itr->first);
+            chmax(y, itr->second);
+            s.erase(itr);
+        }
+        itr = s.lower_bound({x, y});
+
+        while (true) {
+            if (x <= itr->first && lt(itr->first, y)) {
+                chmax(y, itr->second);
+                itr = s.erase(itr);
+            } else break;
+        }
+        s.insert({x, y});
+        return {x, y};
+    }
+};
+
+#pragma endregion
+
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N, Q);
+    VVLL(LRC, Q, 3);
+    sort(all(LRC), [](const vll &a, const vll &b) { return a[2] < b[2]; });
+    IntervalSet<false> s;
+    ll ec = 0, ans = 0;
+    rep(q, Q) {
+        ll L = LRC[q][0];
+        ll R = LRC[q][1];
+        ll C = LRC[q][2];
+        L--;
+        auto it = s.intersect({L, R});
+        debug(it);
+        ll len = 0;
+        repi(i, it) {
+            ec++;
+            ans += C;
+            len += min(R, i.second) - max(L, i.first);
+        }
+        ec += R - L - len;
+        ans += C * (R - L - len);
+        s.insert({L, R});
+    }
+    debugs(ec, ans);
+    if (ec != N + Q - 1) {
+        print(-1);
+    } else {
+        print(ans);
+    }
 }

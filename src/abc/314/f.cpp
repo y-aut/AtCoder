@@ -243,6 +243,8 @@ template <typename First, typename... Rest> void print_all(ostream& os, const Fi
 #else
 #define debug(...) (void)0
 #define debugs(...) (void)0
+#define debugif(...) (void)0
+#define debuga(...) (void)0
 #endif
 
 /* constants */
@@ -272,16 +274,37 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    LL(A, B, C);
-    A--, B--, C--;
-    VPLL(UV, M);
-    repi(u, v, UV) u--, v--;
-    mf_graph<ll> g(N * 2 + 2);
-    rep(i, N) g.add_edge(i, i + N, 1);
-    repi(u, v, UV) g.add_edge(u + N, v, 1), g.add_edge(v + N, u, 1);
-    g.add_edge(N * 2, B + N, 2);
-    g.add_edge(A + N, N * 2 + 1, 1);
-    g.add_edge(C + N, N * 2 + 1, 1);
-    YesNo(g.flow(N * 2, N * 2 + 1) == 2);
+    LL(N);
+    VPLL(pq, N - 1);
+    repi(p, q, pq) p--, q--;
+    dsu uf(N);
+    um<ll, vll> ary;
+    rep(i, N) ary[i] = {i};
+    repi(p, q, pq) {
+        auto pl = uf.leader(p);
+        auto ql = uf.leader(q);
+        auto nl = uf.merge(pl, ql);
+        if (nl == ql) swap(pl, ql);
+        repi(i, ary[ql]) ary[pl].pb(i);
+        ary.erase(ql);
+    }
+    auto &a = ary.begin()->second;
+    debug(a);
+    vll rev(N);
+    rep(i, N) rev[a[i]] = i;
+    vm ans(N + 1);
+    uf = dsu(N);
+    repi(p, q, pq) {
+        mint sp = uf.size(p), sq = uf.size(q);
+        mint rp = sp / (sp + sq), rq = sq / (sp + sq);
+        ans[rev[uf.leader(p)]] += rp;
+        ans[rev[uf.leader(p)] + uf.size(p)] -= rp;
+        ans[rev[uf.leader(q)]] += rq;
+        ans[rev[uf.leader(q)] + uf.size(q)] -= rq;
+        uf.merge(p, q);
+    }
+    rep(i, N) ans[i + 1] += ans[i];
+    vm res(N);
+    rep(i, N) res[a[i]] = ans[i];
+    print(res);
 }
