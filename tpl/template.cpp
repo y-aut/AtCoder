@@ -1,9 +1,13 @@
+// !ifdef NOLIB
+// #define USE_MODINT
+
+// !endif
 #pragma region "Template"
 
 #ifdef DEBUG
 #include "template.hpp"
 #else
-// TEMPLATE
+// !template
 #endif
 
 // clang-format on

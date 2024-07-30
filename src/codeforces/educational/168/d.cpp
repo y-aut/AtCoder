@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -19,11 +17,6 @@ using namespace std;
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
-#endif
-
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
 #endif
 
 /* templates */
@@ -67,19 +60,6 @@ using uss = us<string>;
 using umi = um<int, int>;
 using umll = um<ll, ll>;
 
-/* mint */
-#ifdef USE_MODINT
-#define DEFINE_MOD(m)               \
-    using mint = static_modint<m>;  \
-    using vm = v<mint>;             \
-    using vvm = v<vm>;              \
-    using pmm = pair<mint, mint>;   \
-    inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
-    inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
-#else
-#define DEFINE_MOD(...) (void)0
-#endif
-
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
@@ -91,8 +71,8 @@ using umll = um<ll, ll>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define popcnt __builtin_popcount
-#define popcntll __builtin_popcountll
+#define pcnt __builtin_popcount
+#define pcntll __builtin_popcountll
 
 /* set variables */
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
@@ -170,7 +150,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
 template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
@@ -208,11 +187,7 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
 #define OSTREAM(class, ...) \
     void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
-template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
 TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
-#ifdef USE_MODINT
-ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
-#endif
 
 // print
 TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }
@@ -271,7 +246,172 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD2);
+#pragma region "Tree"
+
+class Tree {
+protected:
+    const ll size;
+    vvll edges;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(root, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(ll v, ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+public:
+    Tree(const vvll &_edges, ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                             parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    const vll &get_depth() const { return depth; }
+    ll get_depth(ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    const vvll &get_edges() const { return edges; }
+    const vll &get_edges(ll v) const { return edges[v]; }
+    const vll &get_parent() const { return parents; }
+    ll get_parent(ll v) const { return parents[v]; }
+    const vvll &get_children() const { return children; }
+    const vll &get_children(ll v) const { return children[v]; }
+    const vll &get_partial_size() const { return partial_size; }
+    ll get_partial_size(ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+
+    // 重心の一つを取得する
+    ll get_centroid() const {
+        ll v = get_root();
+        while (true) {
+            ll max_size = 0, max_c = 0;
+            repi(c, get_children(v)) {
+                if (chmax(max_size, get_partial_size(c))) max_c = c;
+            }
+            if (max_size <= get_size() / 2) return v;
+            v = max_c;
+        }
+    }
+
+    // 木の直径と，それを実現する頂点の組を返す
+    ll get_diameter(pll &nodes) const {
+        nodes.first = max_element(all(depth)) - depth.begin();
+        Tree tree(edges, nodes.first);
+        nodes.second = max_element(all(tree.depth)) - tree.depth.begin();
+        return tree.depth[nodes.second];
+    }
+};
+
+#pragma endregion
 
 void solve() {
+    LL(T);
+    rep(t, T) {
+        LL(N);
+        VLL(A, N);
+        VLL(P, N - 1);
+        vvll edges(N);
+        rep(i, N - 1) {
+            edges[i + 1].pb(P[i] - 1);
+            edges[P[i] - 1].pb(i + 1);
+        }
+        Tree tree(edges, 0);
+        auto dfs = [&](auto rc, ll v) -> ll {
+            if (tree.get_children(v).empty()) return A[v];
+            ll res = LINF;
+            repi(i, tree.get_children(v)) {
+                chmin(res, rc(rc, i));
+            }
+            if (A[v] >= res) return res;
+            ll ans = (A[v] + res) / 2;
+            A[v] += (res - A[v] + 1) / 2;
+            return ans;
+        };
+        auto ans = dfs(dfs, 0);
+        print(A[0] + ans);
+    }
 }

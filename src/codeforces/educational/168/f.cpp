@@ -1,4 +1,4 @@
-// #define USE_MODINT
+#define USE_MODINT
 
 #pragma region "Template"
 
@@ -273,5 +273,27 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+CSLL L = 55000;
+int cnt[L + 1];
+mint dp[1010][L + 1] = {};
+
 void solve() {
+    LL(N, X, M);
+    vll fib(30);
+    fib[0] = fib[1] = 1;
+    rep(i, 2, 30) fib[i] = fib[i - 1] + fib[i - 2];
+    rep(i, L + 1) cnt[i] = INF;
+    cnt[0] = 0;
+    rep(i, 24) cnt[fib[i]] = 1;
+    rep(i, 24) {
+        rep(j, L - fib[i] + 1) chmin(cnt[j + fib[i]], cnt[j] + 1);
+    }
+    dp[0][0] = 1;
+    rep(i, X) {
+        ll f = fib[i];
+        rep(j, N) rep(k, L - f + 1) dp[j + 1][k + f] += dp[j][k];
+    }
+    mint ans = 0;
+    rep(i, L + 1) if (cnt[i] == M) ans += dp[N][i];
+    print(ans);
 }

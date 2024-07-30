@@ -62,11 +62,5 @@ else
     /usr/bin/g++-12 ${args[@]}
 fi
 
-cp /dev/null $1/tpl/template
-while IFS= read line; do
-    if [ "$line" == '// TEMPLATE' ]; then
-        cat $1/tpl/template.hpp >>$1/tpl/template
-        continue
-    fi
-    echo "$line" >>$1/tpl/template
-done <$1/tpl/template.cpp
+python3 $1/scripts/make_template.py $1/tpl template
+python3 $1/scripts/make_template.py $1/tpl template_nolib -d NOLIB

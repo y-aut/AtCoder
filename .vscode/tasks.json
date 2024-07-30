@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/build.sh",
+                "${workspaceFolder}/scripts/build.sh",
                 "d",
                 "${workspaceFolder}",
                 "${file}",
@@ -26,7 +26,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/build.sh",
+                "${workspaceFolder}/scripts/build.sh",
                 "r",
                 "${workspaceFolder}",
                 "${file}",
@@ -45,7 +45,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/build.sh",
+                "${workspaceFolder}/scripts/build.sh",
                 "r",
                 "${workspaceFolder}",
                 "${file}",
@@ -90,8 +90,22 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/update.sh",
+                "${workspaceFolder}/scripts/update.sh",
                 "${workspaceFolder}"
+            ],
+            "presentation": {
+                "reveal": "silent",
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "expand ac-library",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "${workspaceFolder}/scripts/expand.sh",
+                "${workspaceFolder}",
+                "${file}"
             ],
             "presentation": {
                 "reveal": "silent",
@@ -103,7 +117,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/makefiles.sh",
+                "${workspaceFolder}/scripts/makefiles.sh",
                 "${workspaceFolder}",
                 "src/abc/${input:contestNum}",
                 "'a b c d e f g'"
@@ -115,7 +129,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/makefiles.sh",
+                "${workspaceFolder}/scripts/makefiles.sh",
                 "${workspaceFolder}",
                 "src/${input:contestType}/${input:contestNum}",
                 "'${input:fileNames}'"
@@ -127,7 +141,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/makefile.sh",
+                "${workspaceFolder}/scripts/makefile.sh",
                 "${workspaceFolder}",
                 "${input:url}"
             ],
@@ -138,7 +152,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/compare.sh",
+                "${workspaceFolder}/scripts/compare.sh",
                 "${workspaceFolder}",
                 "${input:exeFile1}",
                 "${input:exeFile2}"
@@ -150,7 +164,7 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/shell/check.sh",
+                "${workspaceFolder}/scripts/check.sh",
                 "${workspaceFolder}",
                 "${input:exeFile1}",
                 "${input:exeFile2}"
@@ -192,7 +206,10 @@
             "options": [
                 "arc",
                 "agc",
-                "abc"
+                "abc",
+                "codeforces/round",
+                "codeforces/educational",
+                "codeforces/pinely",
             ],
             "default": "arc"
         },

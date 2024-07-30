@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -19,11 +17,6 @@ using namespace std;
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
-#endif
-
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
 #endif
 
 /* templates */
@@ -67,19 +60,6 @@ using uss = us<string>;
 using umi = um<int, int>;
 using umll = um<ll, ll>;
 
-/* mint */
-#ifdef USE_MODINT
-#define DEFINE_MOD(m)               \
-    using mint = static_modint<m>;  \
-    using vm = v<mint>;             \
-    using vvm = v<vm>;              \
-    using pmm = pair<mint, mint>;   \
-    inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
-    inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
-#else
-#define DEFINE_MOD(...) (void)0
-#endif
-
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
@@ -91,8 +71,8 @@ using umll = um<ll, ll>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define popcnt __builtin_popcount
-#define popcntll __builtin_popcountll
+#define pcnt __builtin_popcount
+#define pcntll __builtin_popcountll
 
 /* set variables */
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
@@ -170,7 +150,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
 template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
@@ -208,11 +187,7 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
 #define OSTREAM(class, ...) \
     void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
-template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
 TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
-#ifdef USE_MODINT
-ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
-#endif
 
 // print
 TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }
@@ -271,7 +246,62 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD2);
+// Reference: https://en.wikipedia.org/wiki/Fenwick_tree
+template <class T>
+struct FenwickTree {
+    using U = ull;
+
+public:
+    FenwickTree() : _n(0) {}
+    explicit FenwickTree(int n) : _n(n), data(n) {}
+
+    void add(int p, T x) {
+        assert(0 <= p && p < _n);
+        p++;
+        while (p <= _n) {
+            data[p - 1] += U(x);
+            p += p & -p;
+        }
+    }
+
+    T sum(int l, int r) {
+        assert(0 <= l && l <= r && r <= _n);
+        return sum(r) - sum(l);
+    }
+
+private:
+    int _n;
+    std::vector<U> data;
+
+    U sum(int r) {
+        U s = 0;
+        while (r > 0) {
+            s += data[r - 1];
+            r -= r & -r;
+        }
+        return s;
+    }
+};
 
 void solve() {
+    LL(N, Q);
+    VLL(A, N);
+    VPLL(IX, Q);
+    FenwickTree<ll> v(N);
+    vll res(N);
+    rep(i, N) {
+        ll lower = 0, upper = N;
+        while (upper - lower >= 2) {
+            ll mid = (lower + upper) / 2;
+            ll cnt = v.sum(0, mid);
+            if (1 + cnt / mid > A[i]) lower = mid;
+            else upper = mid;
+        }
+        debug(upper);
+        v.add(upper - 1, 1);
+        res[i] = upper;
+    }
+    repi(i, x, IX) {
+        YESNO(res[i - 1] <= x);
+    }
 }

@@ -1,6 +1,7 @@
 in
 out
 build.ans
+combined.cpp
 src/test
 src/test.*
 src/work

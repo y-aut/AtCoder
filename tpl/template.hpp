@@ -1,10 +1,12 @@
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
-#include <atcoder/all>
 #include <bits/stdc++.h>
-#include <gmpxx.h>
 using namespace std;
+// !ifndef NOLIB
+#include <atcoder/all>
+#include <gmpxx.h>
 using namespace atcoder;
+// !endif
 
 // clang-format off
 
@@ -16,6 +18,16 @@ using namespace atcoder;
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
+
+// !ifndef NOLIB
+#define USE_MODINT
+// !endif
+// !ifdef NOLIB
+#ifdef USE_MODINT
+#include <atcoder/modint>
+using namespace atcoder;
+#endif
+// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -30,8 +42,6 @@ struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #define um unordered_map
 using ull = unsigned long long;
 using ll = long long;
-using mll = mpz_class;
-using md = mpf_class;
 // pair
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
@@ -41,9 +51,7 @@ TPL_T using vv = v<v<T>>;
 TPL_T using vvv = v<vv<T>>;
 using vi = v<int>;
 using vll = v<ll>;
-using vmll = v<mll>;
 using vd = v<double>;
-using vmd = v<md>;
 using vb = v<bool>;
 using vc = v<char>;
 using vs = v<string>;
@@ -63,6 +71,7 @@ using umi = um<int, int>;
 using umll = um<ll, ll>;
 
 /* mint */
+#ifdef USE_MODINT
 #define DEFINE_MOD(m)               \
     using mint = static_modint<m>;  \
     using vm = v<mint>;             \
@@ -70,6 +79,9 @@ using umll = um<ll, ll>;
     using pmm = pair<mint, mint>;   \
     inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
     inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
+#else
+#define DEFINE_MOD(...) (void)0
+#endif
 
 /* extract params */
 #define HEAD_NAME(x, ...) #x
@@ -82,14 +94,13 @@ using umll = um<ll, ll>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define pcnt __builtin_popcount
-#define pcntll __builtin_popcountll
+#define popcnt __builtin_popcount
+#define popcntll __builtin_popcountll
 
 /* set variables */
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
 #define INT(...) VAR(int, __VA_ARGS__)
 #define LL(...) VAR(ll, __VA_ARGS__)
-#define MLL(...) VAR(mll, __VA_ARGS__)
 #define DBL(...) VAR(double, __VA_ARGS__)
 #define CHR(...) VAR(char, __VA_ARGS__)
 #define STR(...) VAR(string, __VA_ARGS__)
@@ -97,7 +108,6 @@ using umll = um<ll, ll>;
 #define PLL(...) VAR(pll, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
-#define VMLL(a, b) auto a = in_vmll(b)
 #define VM(a, b) auto a = in_vm(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
@@ -137,7 +147,6 @@ TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.seco
 // input
 inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
-inline mll in_mll() { mll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
 inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
@@ -145,7 +154,6 @@ inline pii in_pii() { pii x; cin >> x; return x; }
 inline pll in_pll() { pll x; cin >> x; return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
-inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
@@ -165,9 +173,19 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// conversion
+// !ifndef NOLIB
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 inline md to_md(ll v) { return md(to_string(v)); }
+// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -207,8 +225,10 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
     void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
 template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
-ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
 TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
+#ifdef USE_MODINT
+ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
+#endif
 
 // print
 TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }

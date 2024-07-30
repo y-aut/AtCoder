@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -7,8 +5,11 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#include <atcoder/all>
 #include <bits/stdc++.h>
+#include <gmpxx.h>
 using namespace std;
+using namespace atcoder;
 
 // clang-format off
 
@@ -19,11 +20,6 @@ using namespace std;
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
-#endif
-
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
 #endif
 
 /* templates */
@@ -39,6 +35,8 @@ using namespace atcoder;
 #define um unordered_map
 using ull = unsigned long long;
 using ll = long long;
+using mll = mpz_class;
+using md = mpf_class;
 // pair
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
@@ -48,7 +46,9 @@ TPL_T using vv = v<v<T>>;
 TPL_T using vvv = v<vv<T>>;
 using vi = v<int>;
 using vll = v<ll>;
+using vmll = v<mll>;
 using vd = v<double>;
+using vmd = v<md>;
 using vb = v<bool>;
 using vc = v<char>;
 using vs = v<string>;
@@ -68,7 +68,6 @@ using umi = um<int, int>;
 using umll = um<ll, ll>;
 
 /* mint */
-#ifdef USE_MODINT
 #define DEFINE_MOD(m)               \
     using mint = static_modint<m>;  \
     using vm = v<mint>;             \
@@ -76,9 +75,6 @@ using umll = um<ll, ll>;
     using pmm = pair<mint, mint>;   \
     inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
     inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
-#else
-#define DEFINE_MOD(...) (void)0
-#endif
 
 /* extract params */
 #define HEAD_NAME(x, ...) #x
@@ -91,13 +87,14 @@ using umll = um<ll, ll>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define popcnt __builtin_popcount
-#define popcntll __builtin_popcountll
+#define pcnt __builtin_popcount
+#define pcntll __builtin_popcountll
 
 /* set variables */
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
 #define INT(...) VAR(int, __VA_ARGS__)
 #define LL(...) VAR(ll, __VA_ARGS__)
+#define MLL(...) VAR(mll, __VA_ARGS__)
 #define DBL(...) VAR(double, __VA_ARGS__)
 #define CHR(...) VAR(char, __VA_ARGS__)
 #define STR(...) VAR(string, __VA_ARGS__)
@@ -105,6 +102,7 @@ using umll = um<ll, ll>;
 #define PLL(...) VAR(pll, __VA_ARGS__)
 #define VI(a, b) auto a = in_vi(b)
 #define VLL(a, b) auto a = in_vll(b)
+#define VMLL(a, b) auto a = in_vmll(b)
 #define VM(a, b) auto a = in_vm(b)
 #define VD(a, b) auto a = in_vd(b)
 #define VC(a, b) auto a = in_vc(b)
@@ -144,6 +142,7 @@ TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.seco
 // input
 inline int in_int() { int x; cin >> x; return x; }
 inline ll in_ll() { ll x; cin >> x; return x; }
+inline mll in_mll() { mll x; cin >> x; return x; }
 inline double in_double() { double x; cin >> x; return x; }
 inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
@@ -151,6 +150,7 @@ inline pii in_pii() { pii x; cin >> x; return x; }
 inline pll in_pll() { pll x; cin >> x; return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
 inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return res; }
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
@@ -170,6 +170,9 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// conversion
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -209,10 +212,8 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
     void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
 template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
-TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
-#ifdef USE_MODINT
 ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
-#endif
+TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
 
 // print
 TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }
@@ -273,5 +274,132 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "ダイクストラ法"
+
+class Dijkstra {
+    const vvpll &wedges;
+    const ll start;
+    vll dist;
+    vll prev; // 直前の頂点を記録する配列
+
+    void set_dist() {
+        // (現時点での最短距離, 頂点)
+        priority_queue<pll, vector<pll>, greater<pll>> q;
+        q.emplace(dist[start] = 0, start);
+
+        while (!q.empty()) {
+            auto p = q.top();
+            q.pop();
+            if (dist[p.second] < p.first) continue;
+
+            repi(i, wedges[p.second]) {
+                ll d = dist[p.second] + i.second;
+                if (d < dist[i.first]) {
+                    prev[i.first] = p.second;
+                    q.emplace(dist[i.first] = d, i.first);
+                }
+            }
+        }
+    }
+
+public:
+    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
+        set_dist();
+    }
+
+    ll get_dist(ll v) const { return dist[v]; }
+    vll &get_dist() { return dist; }
+
+    // 最短経路を取得
+    vll get_path(ll v) const {
+        vll ans;
+        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
+        reverse(all(ans));
+        return ans;
+    }
+};
+
+#pragma endregion
+
+template <typename T>
+class SteinerTree {
+private:
+    struct edge {
+        int to;
+        T cost;
+    };
+    int V;
+    vector<vector<edge>> G;
+    const T inf = numeric_limits<T>::max() / 10;
+    using pti = pair<T, int>;
+
+public:
+    vector<vector<T>> dp;
+    SteinerTree(int node_size) : V(node_size), G(V) {}
+    void add_edge(int u, int v, T cost) {
+        G[u].push_back((edge){v, cost}), G[v].push_back((edge){u, cost});
+    }
+    T solve(vector<int> &terminal) {
+        int t = (int)terminal.size();
+        if (t == 0) return (T)0;
+        dp.assign((1 << t), vector<T>(V, inf));
+        for (int i = 0; i < t; i++) {
+            dp[(1 << i)][terminal[i]] = 0;
+        }
+        for (int i = 1; i < (1 << t); i++) {
+            for (int j = 0; j < V; j++) {
+                for (int k = i; k > 0; k = (k - 1) & i) {
+                    dp[i][j] = min(dp[i][j], dp[k][j] + dp[i ^ k][j]);
+                }
+            }
+            priority_queue<pti, vector<pti>, greater<pti>> que;
+            for (int j = 0; j < V; j++) {
+                que.push(make_pair(dp[i][j], j));
+            }
+            while (!que.empty()) {
+                pti p = que.top();
+                que.pop();
+                int v = p.second;
+                if (dp[i][v] < p.first) continue;
+                for (auto &e : G[v]) {
+                    if (dp[i][e.to] > dp[i][v] + e.cost) {
+                        dp[i][e.to] = dp[i][v] + e.cost;
+                        que.push(make_pair(dp[i][e.to], e.to));
+                    }
+                }
+            }
+        }
+        return dp[(1 << t) - 1][terminal[0]];
+    }
+};
+
 void solve() {
+    LL(N, M, K);
+    v<umll> m(N);
+    rep(i, M) {
+        LL(A, B, C);
+        A--, B--;
+        if (m[A].count(B)) chmin(m[A][B], C);
+        else m[A][B] = C;
+    }
+    vvpll edges(N);
+    SteinerTree<ll> tree(N);
+    rep(i, N) {
+        repi(j, c, m[i]) {
+            edges[i].eb(j, c);
+            edges[j].eb(i, c);
+            if (i < j) tree.add_edge(i, j, c);
+        }
+    }
+    vvll dist;
+    rep(i, K - 1) {
+        Dijkstra d(edges, i);
+        dist.pb(d.get_dist());
+    }
+    vi terminal;
+    rep(i, K - 1) terminal.pb(i);
+    tree.solve(terminal);
+    rep(q, K - 1, N) {
+        print(tree.dp.back()[q]);
+    }
 }

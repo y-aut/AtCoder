@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -19,11 +17,6 @@ using namespace std;
 #pragma GCC optimize("O3")
 #pragma GCC optimize("unroll-loops")
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
-#endif
-
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
 #endif
 
 /* templates */
@@ -67,19 +60,6 @@ using uss = us<string>;
 using umi = um<int, int>;
 using umll = um<ll, ll>;
 
-/* mint */
-#ifdef USE_MODINT
-#define DEFINE_MOD(m)               \
-    using mint = static_modint<m>;  \
-    using vm = v<mint>;             \
-    using vvm = v<vm>;              \
-    using pmm = pair<mint, mint>;   \
-    inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
-    inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
-#else
-#define DEFINE_MOD(...) (void)0
-#endif
-
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
@@ -91,8 +71,8 @@ using umll = um<ll, ll>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define popcnt __builtin_popcount
-#define popcntll __builtin_popcountll
+#define pcnt __builtin_popcount
+#define pcntll __builtin_popcountll
 
 /* set variables */
 #define VAR(type, ...) type __VA_ARGS__; IN(__VA_ARGS__)
@@ -170,7 +150,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
 template <typename T, typename S> inline bool chmax(T &a, const S &b) { return a < b && (a = b, true); }
@@ -208,11 +187,7 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
 #define OSTREAM(class, ...) \
     void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
-template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
 TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
-#ifdef USE_MODINT
-ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
-#endif
 
 // print
 TPL_T inline void print(const T &v, string end = "\n") { cout << v << end; }
@@ -271,7 +246,75 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD2);
+ll delta(const vs &s) {
+    if (s[0].size() == 2) {
+        if (s[1][0] == 'x') return -LINF;
+        ll b = (s[0][0] == 'x') << 2 | (s[0][1] == 'x') << 1 | (s[1][1] == 'x');
+        if (b == 0b111 || b == 0b101) return -1;
+        if (b == 0b010) return 1;
+    } else {
+        if (s[1][1] == 'x') return -LINF;
+        ll b = (s[0][0] == 'x') << 4 | (s[0][1] == 'x') << 3 | (s[0][2] == 'x') << 2 | (s[1][0] == 'x') << 1 | (s[1][2] == 'x');
+        if ((b & 0b01011) == 0b01011) return -1;
+        if ((b & 0b11011) == 0b10001) return 1;
+        if ((b & 0b01111) == 0b00110) return 1;
+        if ((b & 0b01011) == 0b01000) return 1;
+        if ((b & 0b01011) == 0) return (s[0][0] == 'x') + (s[0][2] == 'x');
+    }
+    return 0;
+}
 
 void solve() {
+    LL(T);
+    rep(t, T) {
+        LL(N);
+        VS(S, 2);
+        if (N <= 2) {
+            print(0);
+            continue;
+        }
+        vvb vis(2, vb(N));
+        auto dfs = [&](auto rc, ll i, ll j) -> void {
+            vis[i][j] = true;
+            rep(d, 4) {
+                ll ni = i + DY[d], nj = j + DX[d];
+                if (!(0 <= ni && ni < 2 && 0 <= nj && nj < N)) continue;
+                if (vis[ni][nj]) continue;
+                if (S[ni][nj] == 'x') continue;
+                rc(rc, ni, nj);
+            }
+        };
+        ll cnt = 0;
+        rep(i, 2) rep(j, N) {
+            if (S[i][j] != 'x' && !vis[i][j]) {
+                cnt++;
+                dfs(dfs, i, j);
+            }
+        }
+        debug(cnt);
+        if (cnt == 0 || cnt >= 5) {
+            print(0);
+            continue;
+        }
+        ll ans = 0;
+        rep(i, N) {
+            vs s;
+            if (i == 0) {
+                s.pb(S[0].substr(0, 2));
+                s.pb(S[1].substr(0, 2));
+            } else if (i == N - 1) {
+                s.pb(S[0].substr(N - 2, 2));
+                s.pb(S[1].substr(N - 2, 2));
+                reverse(all(s[0]));
+                reverse(all(s[1]));
+            } else {
+                s.pb(S[0].substr(i - 1, 3));
+                s.pb(S[1].substr(i - 1, 3));
+            }
+            if (delta(s) + cnt == 3) ans++;
+            swap(s[0], s[1]);
+            if (delta(s) + cnt == 3) ans++;
+        }
+        print(ans);
+    }
 }
