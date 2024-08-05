@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -274,4 +283,63 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
+    LL(N, H);
+    VPLL(td, N);
+    map<ll, ll> tdm;
+    repi(t, d, td) chmax(tdm[t], d);
+    vpll ntd;
+    repi(t, d, tdm) ntd.eb(t, d);
+    td = move(ntd);
+    N = td.size();
+
+    umll mxtd;
+    {
+        mxtd[1] = -1;
+        set<pll> s;
+        rep(i, N) {
+            s.emplace(td[i].first * td[i].second, i);
+            mxtd[td[i].first] = prev(s.end())->second;
+        }
+    }
+    umll mxd;
+    {
+        set<pll> s;
+        mxd[td[N - 1].first] = -1;
+        s.emplace(td[N - 1].second, N - 1);
+        repd(i, N - 1) {
+            mxd[td[i].first] = prev(s.end())->second;
+            s.emplace(td[i].second, i);
+        }
+        if (!mxd.count(1)) mxd[1] = prev(s.end())->second;
+    }
+    vll tv;
+    if (td[0].first != 1) tv.pb(1);
+    repi(t, d, td) tv.pb(t);
+    auto check = [&](ll v) -> bool {
+        __int128_t total = 0;
+        rep(i, tv.size()) {
+            __int128_t t1 = tv[i];
+            __int128_t t2 = i == tv.size() - 1 ? v + 1 : min(tv[i + 1], v + 1);
+            assert(t1 < t2);
+            ll tdnow = mxtd[t1] == -1 ? -LINF : td[mxtd[t1]].first * td[mxtd[t1]].second;
+            ll dnow = mxd[t1] == -1 ? -LINF : td[mxd[t1]].second;
+            assert(tdnow != -LINF || dnow != -LINF);
+            ll t3 = tdnow / dnow;
+            if (tdnow == -LINF || dnow != -LINF && t3 < t1) total += (t1 + t2 - 1) * (t2 - t1) / 2 * dnow;
+            else if (dnow == -LINF || tdnow != LINF && t3 + 1 >= t2) total += (t2 - t1) * tdnow;
+            else {
+                total += (t3 - t1 + 1) * tdnow;
+                total += (t3 + t2) * (t2 - t3 - 1) / 2 * dnow;
+            }
+            if (t2 == v + 1 || total >= H) break;
+        }
+        return total >= H;
+    };
+    ll l = 0, r = H;
+    while (r - l >= 2) {
+        ll m = (l + r) / 2;
+        if (check(m)) r = m;
+        else l = m;
+    }
+    print(r);
 }

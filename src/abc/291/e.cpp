@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -195,7 +204,7 @@ inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
-inline double abs(const pll &p) { return sqrt(abs2(p)); }
+double abs(const pll &p) { return sqrt(abs2(p)); }
 
 // hash
 TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
@@ -224,7 +233,7 @@ TPL_T inline typename enable_if<is_base_of<forward_iterator_tag,
 TPL_T inline void print(const v<T> &v, string sep = " ") { print(all(v), sep); }
 TPL_T inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
 TPL_T inline void print(const vv<T> &v) { repi(i, v) print(i); }
-inline void print_all_inner(ostream&) {}
+void print_all_inner(ostream&) {}
 template <typename First, typename... Rest> void print_all_inner(ostream& os, const First &f, const Rest &...r)
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
@@ -273,5 +282,48 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "トポロジカルソート"
+
+vll topological_sort(const vvll &edges) {
+    vll ans;
+    vll in_deg(edges.size(), 0);
+
+    // 入次数をカウント
+    repi(i, edges) repi(j, i) in_deg[j]++;
+
+    queue<ll> q;
+    rep(i, in_deg.size()) {
+        if (in_deg[i] == 0)
+            q.push(i);
+    }
+
+    while (!q.empty()) {
+        if (q.size() > 1) return {};
+        auto v = q.front();
+        q.pop();
+
+        repi(i, edges[v]) {
+            if (--in_deg[i] == 0)
+                q.push(i);
+        }
+        ans.pb(v);
+    }
+
+    return ans;
+}
+
+#pragma endregion
+
 void solve() {
+    LL(N, M);
+    auto edges = in_edges<false>(N, M);
+    auto ord = topological_sort(edges);
+    if (ord.empty()) {
+        No;
+        return;
+    }
+    vll ans(N);
+    rep(i, N) ans[ord[i]] = i + 1;
+    Yes;
+    print(ans);
 }

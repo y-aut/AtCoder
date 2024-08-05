@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -274,4 +283,97 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
+    LL(N);
+    VPLL(LU, N);
+    ll B = max(1LL, (ll)(sqrt(N) * 1.5));
+    vv<pair<pii, ll>> mk(N);
+    for (ll i = 0; i < N; i += B) {
+        auto back = LU[i];
+        ll cost = 0;
+        auto add = [&](ll j) -> void {
+            pll now;
+            ll ncost = cost + 1;
+            if (back.second < 0) {
+                if (back.first <= LU[j].first) {
+                    now.first = LU[j].first;
+                    ncost += LU[j].first - back.first;
+                } else if (back.first >= LU[j].second) {
+                    now.first = LU[j].second;
+                    ncost += back.first - LU[j].second;
+                } else now.first = back.first;
+                now.second = back.second;
+            } else {
+                pll it{max(back.first, LU[j].first), min(back.second, LU[j].second)};
+                if (it.first <= it.second) {
+                    now = it;
+                } else {
+                    if (LU[j].second < back.first) {
+                        now.first = LU[j].second;
+                        now.second = -back.first;
+                        ncost += back.first - LU[j].second;
+                    } else {
+                        now.first = LU[j].first;
+                        now.second = -back.second;
+                        ncost += LU[j].first - back.second;
+                    }
+                }
+            }
+            mk[j].eb(now, ncost);
+            back = now;
+            cost = ncost;
+        };
+        for (ll j = i - 1; j >= 0; j--) add(j);
+    }
+    auto search = [&](ll sx, ll sy, ll tx, ll ty) -> ll {
+        if (sx == tx) return abs(sy - ty);
+        assert(sx < tx);
+        ll ans = tx - sx, now = sy;
+        rep(i, sx + 1, tx + 1) {
+            if (now <= LU[i].first) {
+                ans += LU[i].first - now;
+                now = LU[i].first;
+            } else if (now >= LU[i].second) {
+                ans += now - LU[i].second;
+                now = LU[i].second;
+            }
+        }
+        ans += abs(now - ty);
+        return ans;
+    };
+    LL(Q);
+    rep(q, Q) {
+        LL(sx, sy, tx, ty);
+        sx--, tx--;
+        if (sx == tx) {
+            print(abs(sy - ty));
+            continue;
+        }
+        if (sx > tx) {
+            swap(sx, tx);
+            swap(sy, ty);
+        }
+        if (sx / B == tx / B) {
+            print(search(sx, sy, tx, ty));
+        } else {
+            auto [item, c] = mk[sx][tx / B - sx / B - 1];
+            ll cost = c;
+            if (item.second < 0) {
+                cost += abs(sy - item.first);
+                cost += search(tx / B * B, -item.second, tx, ty);
+            } else {
+                ll pos = 0;
+                if (sy <= item.first) {
+                    pos = item.first;
+                    cost += item.first - sy;
+                } else if (sy >= item.second) {
+                    pos = item.second;
+                    cost += sy - item.second;
+                } else {
+                    pos = sy;
+                }
+                cost += search(tx / B * B, pos, tx, ty);
+            }
+            print(cost);
+        }
+    }
 }

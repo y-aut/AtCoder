@@ -6,14 +6,13 @@ CSLL MOD_SIZE = 6;
 const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673, 981914693, 1375179334};
 const ull HASH_MOD[] = {1944897763, 1925898167, 1912776091, 1935497281, 1939942439, 1902550399};
 const ull HASH_BASE_INV[] = {1566673050, 1386797350, 1701798092, 1107754978, 1908540348, 638154975};
-vector<ull> HASH_BASE_POW[] = {{1}, {1}, {1}, {1}, {1}, {1}};
+um<ull, ull> HASH_BASE_POW[] = {{}, {}, {}, {}, {}, {}};
 
 ull get_hash_base_pow(ll index, ull n) {
     assert(0 <= index && index < MOD_SIZE);
-    while (HASH_BASE_POW[index].size() <= n) {
-        HASH_BASE_POW[index].pb(HASH_BASE_POW[index].back() * HASH_BASE[index] % HASH_MOD[index]);
-    }
-    return HASH_BASE_POW[index][n];
+    auto itr = HASH_BASE_POW[index].find(n);
+    if (itr != HASH_BASE_POW[index].end()) return itr->second;
+    return HASH_BASE_POW[index][n] = pow_mod(HASH_BASE[index], n, HASH_MOD[index]);
 }
 
 template <int mod_num = 4>
@@ -72,8 +71,7 @@ struct RollingHash {
 
     RollingHash &operator+=(const RollingHash &v) {
         rep(i, mod_num) {
-            hash[i] *= get_hash_base_pow(i, v.size);
-            hash[i] += v.hash[i];
+            hash[i] = (hash[i] * get_hash_base_pow(i, v.size)) % HASH_MOD[i] + v.hash[i];
             hash[i] %= HASH_MOD[i];
         }
         size += v.size;

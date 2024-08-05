@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -195,7 +204,7 @@ inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
-inline double abs(const pll &p) { return sqrt(abs2(p)); }
+double abs(const pll &p) { return sqrt(abs2(p)); }
 
 // hash
 TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
@@ -224,7 +233,7 @@ TPL_T inline typename enable_if<is_base_of<forward_iterator_tag,
 TPL_T inline void print(const v<T> &v, string sep = " ") { print(all(v), sep); }
 TPL_T inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
 TPL_T inline void print(const vv<T> &v) { repi(i, v) print(i); }
-inline void print_all_inner(ostream&) {}
+void print_all_inner(ostream&) {}
 template <typename First, typename... Rest> void print_all_inner(ostream& os, const First &f, const Rest &...r)
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
@@ -273,5 +282,67 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+/**
+ * @brief Mo's Algorithm
+ */
+struct Mo {
+    int n;
+    vector<pair<int, int>> lr;
+
+    explicit Mo(int n) : n(n) {}
+
+    void add(int l, int r) { /* [l, r) */
+        lr.emplace_back(l, r);
+    }
+
+    template <typename AL, typename AR, typename EL, typename ER, typename O>
+    void build(const AL &add_left, const AR &add_right, const EL &erase_left, const ER &erase_right, const O &out) {
+        int q = (int)lr.size();
+        int bs = n / min<int>(n, sqrt(q));
+        vector<int> ord(q);
+        iota(begin(ord), end(ord), 0);
+        sort(begin(ord), end(ord), [&](int a, int b) {
+            int ablock = lr[a].first / bs, bblock = lr[b].first / bs;
+            if (ablock != bblock) return ablock < bblock;
+            return (ablock & 1) ? lr[a].second > lr[b].second : lr[a].second < lr[b].second;
+        });
+        int l = 0, r = 0;
+        for (auto idx : ord) {
+            while (l > lr[idx].first) add_left(--l);
+            while (r < lr[idx].second) add_right(r++);
+            while (l < lr[idx].first) erase_left(l++);
+            while (r > lr[idx].second) erase_right(--r);
+            out(idx);
+        }
+    }
+
+    template <typename A, typename E, typename O>
+    void build(const A &add, const E &erase, const O &out) {
+        build(add, add, erase, erase, out);
+    }
+};
+
 void solve() {
+    LL(N, Q);
+    VLL(A, N);
+    VPLL(LR, Q);
+    repi(l, r, LR) l--;
+    umll cnt;
+    ll now = 0;
+    vll ans(Q);
+    auto out = [&](ll p) {
+        ans[p] = now;
+    };
+    auto add = [&](ll p) {
+        now += cnt[A[p]] * (cnt[A[p]] - 1) / 2;
+        cnt[A[p]]++;
+    };
+    auto erase = [&](ll p) {
+        cnt[A[p]]--;
+        now -= cnt[A[p]] * (cnt[A[p]] - 1) / 2;
+    };
+    Mo mo(N);
+    repi(l, r, LR) mo.add(l, r);
+    mo.build(add, erase, out);
+    print(ans, "\n");
 }

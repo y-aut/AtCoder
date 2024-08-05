@@ -80,7 +80,7 @@ using umll = um<ll, ll>;
     inline vm in_vm(int length) { vm res; rep(i, length) res.pb(in_ll()); return res; } \
     inline vvm in_vvm(int height, int width) { vvm res; rep(i, height) res.pb(in_vm(width)); return res; }
 #else
-#define DEFINE_MOD(...) (void)0
+#define DEFINE_MOD(...)
 #endif
 
 /* extract params */
@@ -211,7 +211,7 @@ inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
-double abs(const pll &p) { return sqrt(abs2(p)); }
+inline double abs(const pll &p) { return sqrt(abs2(p)); }
 
 // hash
 TPL_T struct Hasher { ull operator()(const T &v) const { return hash<T>()(v); } };
@@ -224,9 +224,9 @@ TPL_TS using umh = um<T, S, Hasher<T>>;
 #define OSTREAM(class, ...) \
     void __inner_print(ostream& os) const { print_all(os, __VA_ARGS__); } \
     friend ostream& operator<<(ostream& os, const class& v) { v.__inner_print(os); return os; }
-template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
 TPL_TS ostream &operator<<(ostream &os, const pair<T, S> &v) { os << v.first << " " << v.second; return os; }
 #ifdef USE_MODINT
+template <int V> ostream &operator<<(ostream &os, const static_modint<V> &v) { os << v.val(); return os; }
 ostream &operator<<(ostream &os, const modint &v) { os << v.val(); return os; }
 #endif
 
@@ -240,7 +240,7 @@ TPL_T inline typename enable_if<is_base_of<forward_iterator_tag,
 TPL_T inline void print(const v<T> &v, string sep = " ") { print(all(v), sep); }
 TPL_T inline void print(const set<T> &v, string sep = " ") { print(all(v), sep); }
 TPL_T inline void print(const vv<T> &v) { repi(i, v) print(i); }
-void print_all_inner(ostream&) {}
+inline void print_all_inner(ostream&) {}
 template <typename First, typename... Rest> void print_all_inner(ostream& os, const First &f, const Rest &...r)
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)

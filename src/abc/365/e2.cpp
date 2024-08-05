@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -274,4 +283,22 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
+    LL(N);
+    VLL(A, N);
+    ll ans = 0;
+    rep(b, 32) {
+        vb bt(N);
+        rep(i, N) bt[i] = A[i] >> b & 1;
+        vb acc(N + 1);
+        rep(i, N) acc[i + 1] = acc[i] ^ bt[i];
+        ll res = 0;
+        ll now = 0;
+        rep(i, N + 1) {
+            if (acc[i]) res += i - now, now++;
+            else res += now;
+        }
+        rep(i, N) res -= bt[i];
+        ans += res << b;
+    }
+    print(ans);
 }

@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -273,5 +282,70 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "区間集合の重なり"
+
+// disjoint な区間集合 a, b の重なりの長さを求める
+ll intersect(const vpll &a, const vpll &b) {
+    ll ans = 0, apos = 0, bpos = 0;
+    while (apos < a.size() && bpos < b.size()) {
+        ans += max(0LL, min(a[apos].second, b[bpos].second) - max(a[apos].first, b[bpos].first));
+        if (a[apos].second <= b[bpos].second) apos++;
+        else bpos++;
+    }
+    return ans;
+}
+
+#pragma endregion
+
 void solve() {
+    LL(N, M);
+    VPLL(TP, M);
+    LL(Q);
+    VPLL(AB, Q);
+    repi(t, p, TP) p--;
+    repi(a, b, AB) a--, b--;
+
+    ll C = max(1LL, (ll)(M / sqrt(Q)));
+    vvll ts(N);
+    repi(t, p, TP) ts[p].pb(t);
+    vvpll intervals(N);
+    rep(i, N) for (ll j = 0; j < ts[i].size(); j += 2) intervals[i].eb(ts[i][j], ts[i][j + 1]);
+    vll big;
+    rep(i, N) if (ts[i].size() >= C) big.pb(i);
+
+    um<ll, vll> bigans;
+    repi(i, big) {
+        vll res(N);
+        ll i_sum = 0;
+        vb is_in(N);
+        ll prev_t = 0;
+        vll prev_i_sum(N);
+        repi(t, p, TP) {
+            if (p == i) {
+                if (is_in[i]) i_sum += t - prev_t;
+                prev_t = t;
+            } else {
+                if (is_in[p]) res[p] += i_sum + is_in[i] * (t - prev_t) - prev_i_sum[p];
+                else prev_i_sum[p] = i_sum + is_in[i] * (t - prev_t);
+            }
+            is_in[p] = !is_in[p];
+        }
+        bigans[i] = res;
+    }
+
+    umh<pll, ll> his;
+    repi(a, b, AB) {
+        if (his.count({a, b})) {
+            print(his[{a, b}]);
+            continue;
+        }
+        ll ans = 0;
+        if (bigans.count(b)) swap(a, b);
+        if (bigans.count(a)) {
+            ans = bigans[a][b];
+        } else {
+            ans = intersect(intervals[a], intervals[b]);
+        }
+        print(his[minmax(a, b)] = ans);
+    }
 }

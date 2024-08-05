@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -274,4 +283,32 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
+    LL(N);
+    VLL(P, N);
+    LL(M);
+    VLL(A, M);
+    repi(i, P) i--;
+    fenwick_tree<ll> ft(N);
+    vll inv(N);
+    rep(i, N) {
+        inv[i] = ft.sum(P[i], N);
+        ft.add(P[i], 1);
+    }
+    priority_queue<ll, vll, greater<ll>> q;
+    ll now = 0, offset = 0;
+    ll qsum = 0, lsum = accumulate(all(inv), 0LL);
+    rep(i, M) {
+        rep(j, now, A[i]) {
+            q.push(inv[j] + offset);
+            qsum += inv[j] + offset;
+            lsum -= inv[j];
+        }
+        now = A[i];
+        offset++;
+        while (!q.empty() && q.top() <= offset) {
+            qsum -= q.top();
+            q.pop();
+        }
+        print(qsum - q.size() * offset + lsum);
+    }
 }

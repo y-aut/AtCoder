@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -274,4 +283,92 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
+    LL(N, M);
+    VPLL(TP, M);
+    LL(Q);
+    VPLL(AB, Q);
+    repi(t, p, TP) p--;
+    repi(a, b, AB) a--, b--;
+    ll B = max(1LL, (ll)sqrt(N));
+    vll cnt(N);
+    repi(t, p, TP) cnt[p]++;
+    vll big, small;
+    rep(i, N) {
+        if (cnt[i] >= B) big.pb(i);
+        else small.pb(i);
+    }
+    umll bigindex;
+    rep(i, big.size()) bigindex[big[i]] = i;
+    vll timelen;
+    rep(i, M - 1) timelen.pb(TP[i + 1].first - TP[i].first);
+    timelen.pb(0);
+    umll timeindex;
+    rep(i, M) timeindex[TP[i].first] = i;
+    vvb bigin(big.size(), vb(M - 1));
+    vvll times(big.size());
+    repi(t, p, TP) times[p].pb(t);
+    rep(i, big.size()) {
+        assert(times[big[i]].size() % 2 == 0);
+        for (ll j = 0; j < times[big[i]].size(); j += 2) {
+            rep(k, timeindex[times[big[i]][j]], timeindex[times[big[i]][j + 1]]) bigin[i][k] = true;
+        }
+    }
+    vvll mat(big.size() + 1);
+    mat.pb(vll(M - 1));
+    rep(i, big.size()) {
+        auto nw = mat.back();
+        rep(j, M - 1) {
+            if (bigin[i][j]) nw[j]++;
+        }
+        mat.pb(nw);
+    }
+    vvll matinv(big.size() + 1, vll(big.size() + 1));
+    rep(i, mat.size()) {
+        rep(j, M - 1) matinv[i][mat[i][j]] += timelen[j];
+    }
+    vvll bigacc(big.size(), vll(M));
+    rep(i, big.size()) {
+        rep(j, M - 1) {
+            if (bigin[i][j]) bigacc[i][j + 1] = bigacc[i][j] + timelen[j];
+            else bigacc[i][j + 1] = bigacc[i][j];
+        }
+    }
+    auto range = [&](ll i1, ll i2) -> vll {
+        if (i1 > i2) swap(i1, i2);
+        auto tmp = matinv[i2 + 1];
+        vll dif(big.size() + 1);
+        rep(i, big.size() + 1) {
+            dif[i] -= matinv
+        }
+    };
+    umh<pll, ll> memo;
+    repi(a, b, AB) {
+        if (memo.count({a, b})) {
+            print(memo[{a, b}]);
+            continue;
+        }
+        ll ans = 0;
+        if (bigindex.count(a) && bigindex.count(b)) {
+            ll i1 = bigindex[a], i2 = bigindex[b];
+            auto tmp1 = range(i1, i2);
+            if (i2 == i1 + 1) {
+                ans = tmp1[2];
+            } else {
+                auto tmp2 = range(i1 + 1, i2 - 1);
+                rep(k, big.size() - 1) ans += tmp1[k + 2] - tmp2[k];
+            }
+        } else if (bigindex.count(a) || bigindex.count(b)) {
+            if (bigindex.count(b)) swap(a, b);
+            ll i = bigindex.count(b);
+            for (ll j = 0; j < times[a].size(); j += 2) {
+                ans += bigacc[i][timeindex[times[a][j + 1]] + 1] - bigacc[i][timeindex[times[a][j]]];
+            }
+        } else {
+            ll t1 = 0, t2 = 0;
+            while (t1 < times[a].size() && t2 < times[b].size()) {
+                if (t1 < t2) ans += timelen[t1++];
+                else ans += timelen[t2++];
+            }
+        }
+    }
 }

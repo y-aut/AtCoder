@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -273,5 +282,35 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+bool ok(const vll &A) {
+    rep(i, A.size()) if (A[i] != i + 1) return false;
+    return true;
+}
+
 void solve() {
+    LL(T);
+    rep(t, T) {
+        LL(N);
+        VLL(P, N);
+        if (ok(P)) {
+            print(0);
+            continue;
+        }
+        ll lm = 0;
+        bool flg = false;
+        rep(i, N) {
+            chmax(lm, P[i]);
+            if (lm == i + 1 && lm == P[i]) {
+                print(1);
+                flg = true;
+                break;
+            }
+        }
+        if (flg) continue;
+        if (P.front() != N || P.back() != 1) {
+            print(2);
+            continue;
+        }
+        print(3);
+    }
 }

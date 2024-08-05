@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -170,6 +168,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -273,5 +282,154 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "ローリングハッシュ"
+
+CSLL MOD_SIZE = 6;
+const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673, 981914693, 1375179334};
+const ull HASH_MOD[] = {1944897763, 1925898167, 1912776091, 1935497281, 1939942439, 1902550399};
+const ull HASH_BASE_INV[] = {1566673050, 1386797350, 1701798092, 1107754978, 1908540348, 638154975};
+um<ull, ull> HASH_BASE_POW[] = {{}, {}, {}, {}, {}, {}};
+
+ull get_hash_base_pow(ll index, ull n) {
+    assert(0 <= index && index < MOD_SIZE);
+    auto itr = HASH_BASE_POW[index].find(n);
+    if (itr != HASH_BASE_POW[index].end()) return itr->second;
+    return HASH_BASE_POW[index][n] = pow_mod(HASH_BASE[index], n, HASH_MOD[index]);
+}
+
+template <int mod_num = 4>
+struct RollingHash {
+    ll size;
+    array<ull, mod_num> hash = {};
+
+    RollingHash() : size(0) {}
+    template <typename T>
+    RollingHash(T first, T last) : size(distance(first, last)) {
+        ll i = 0;
+        for (T itr = first; itr != last; itr++, i++) {
+            rep(j, mod_num) {
+                hash[j] += get_hash_base_pow(j, size - i - 1) * (*itr);
+                hash[j] %= HASH_MOD[j];
+            }
+        }
+    }
+    RollingHash(const string &s) : RollingHash(all(s)) {}
+    RollingHash(const vll &v) : RollingHash(all(v)) {}
+    RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
+
+    void pop_front(ll c) {
+        rep(i, mod_num) {
+            hash[i] += HASH_MOD[i] - get_hash_base_pow(i, size - 1) * c % HASH_MOD[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size--;
+    }
+
+    void pop_back(ll c) {
+        rep(i, mod_num) {
+            hash[i] += HASH_MOD[i] - c;
+            hash[i] *= HASH_BASE_INV[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size--;
+    }
+
+    void push_front(ll c) {
+        size++;
+        rep(i, mod_num) {
+            hash[i] += get_hash_base_pow(i, size - 1) * c;
+            hash[i] %= HASH_MOD[i];
+        }
+    }
+
+    void push_back(ll c) {
+        size++;
+        rep(i, mod_num) {
+            hash[i] *= HASH_BASE[i];
+            hash[i] += c;
+            hash[i] %= HASH_MOD[i];
+        }
+    }
+
+    RollingHash &operator+=(const RollingHash &v) {
+        rep(i, mod_num) {
+            hash[i] = (hash[i] * get_hash_base_pow(i, v.size)) % HASH_MOD[i] + v.hash[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size += v.size;
+        return *this;
+    }
+    friend ostream &operator<<(ostream &os, const RollingHash &v) {
+        os << "{ size=" << v.size << ", hash=[";
+        rep(i, mod_num) {
+            os << v.hash[i] << (i == mod_num - 1 ? "] }" : ", ");
+        }
+        return os;
+    }
+};
+
+template <int n>
+bool operator==(const RollingHash<n> &a, const RollingHash<n> &b) {
+    rep(i, n) if (a.hash[i] != b.hash[i]) return false;
+    return a.size == b.size;
+}
+template <int n>
+bool operator!=(const RollingHash<n> &a, const RollingHash<n> &b) { return !(a == b); }
+template <int n>
+RollingHash<n> operator+(const RollingHash<n> &a, const RollingHash<n> &b) {
+    return RollingHash(a) += b;
+}
+
+template <int n>
+struct Hasher<RollingHash<n>> {
+    ull operator()(const RollingHash<n> &v) const { return v.hash.front(); }
+};
+
+#pragma endregion
+
+using RH = RollingHash<3>;
+
 void solve() {
+    LL(Q);
+    rep(q, Q) {
+        STR(S, X, Y);
+        ll x0 = 0, y0 = 0;
+        repi(c, X) if (c == '0') x0++;
+        repi(c, Y) if (c == '0') y0++;
+        if (x0 == y0) {
+            Yes;
+            continue;
+        }
+        ll x1 = X.size() - x0, y1 = Y.size() - y0;
+        if (x1 == y1) {
+            No;
+            continue;
+        }
+        const ll Ssz = S.size();
+        if ((Ssz * (y0 - x0)) % (x1 - y1)) {
+            No;
+            continue;
+        }
+        ll Tsz = Ssz * (y0 - x0) / (x1 - y1);
+        if (Tsz <= 0) {
+            No;
+            continue;
+        }
+        ll n = Tsz / Ssz, rem = Tsz % Ssz;
+        RH Sh(S);
+        RH Th;
+        RH now = Sh;
+        ll ncpy = n;
+        while (ncpy) {
+            if (ncpy & 1) Th += now;
+            now += now;
+            ncpy >>= 1;
+        }
+        Th += S.substr(0, rem);
+        assert(Th.size == Tsz);
+        RH xh, yh;
+        repi(c, X) xh += c == '0' ? Sh : Th;
+        repi(c, Y) yh += c == '0' ? Sh : Th;
+        YesNo(xh == yh);
+    }
 }
