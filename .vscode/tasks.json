@@ -99,6 +99,20 @@
             "problemMatcher": []
         },
         {
+            "label": "make lib snippets",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/scripts/make_snippets.py",
+                "${workspaceFolder}",
+                "lib.code-snippets"
+            ],
+            "presentation": {
+                "reveal": "silent",
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "expand ac-library",
             "type": "shell",
             "command": "bash",

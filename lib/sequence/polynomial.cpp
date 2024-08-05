@@ -1,61 +1,7 @@
-#include "../tpl/template.cpp"
-
-#pragma region "座標圧縮"
-
-/// @brief 1 次元配列を座標圧縮する
-/// @param x 圧縮する配列
-/// @param xs 圧縮後の座標に対応する元の座標
-/// @return 圧縮後の配列
-vll get_compressed(const vll &x, vll &xs) {
-    xs.clear();
-    repi(i, x) xs.pb(i);
-    sort(all(xs));
-    xs.erase(unique(all(xs)), xs.end());
-
-    vll ans(x.size());
-    rep(i, x.size()) {
-        ans[i] = lower_bound(all(xs), x[i]) - xs.begin();
-    }
-    return ans;
-}
-
-#pragma endregion
-
-#pragma region "転倒数"
-
-// 座標圧縮された数列に対して，転倒数を求める
-ll get_inversion(const vll &A) {
-    fenwick_tree<ll> ft(A.size());
-    ll ans = 0;
-    repd(i, A.size()) {
-        ans += ft.sum(0, A[i]);
-        ft.add(A[i], 1);
-    }
-    return ans;
-}
-
-#pragma endregion
-
-#pragma region "最長増加部分列"
-
-// 各 i に対して，A[0:i] の LIS を求める
-vll get_lis(const vll &A) {
-    vll ans, tmp;
-    repi(a, A) {
-        auto cnt = lower_bound(all(tmp), a) - tmp.begin();
-        if (cnt == tmp.size()) {
-            tmp.pb(a);
-        } else {
-            tmp[cnt] = a;
-        }
-        ans.pb(tmp.size());
-    }
-    return ans;
-}
-
-#pragma endregion
-
-#pragma region "多項式"
+// !hidden
+#include "template.hpp"
+DEFINE_MOD(MOD2);
+// !endhidden
 
 class Polynomial;
 using Poly = Polynomial;
@@ -227,5 +173,3 @@ public:
     bool operator==(const Poly &p) const { return a == p.a; }
     bool operator!=(const Poly &p) const { return !(*this == p); }
 };
-
-#pragma endregion

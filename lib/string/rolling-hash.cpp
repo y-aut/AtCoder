@@ -1,6 +1,6 @@
-#include "../tpl/template.cpp"
-
-#pragma region "ローリングハッシュ"
+// !hidden
+#include "template.hpp"
+// !endhidden
 
 CSLL MOD_SIZE = 6;
 const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673, 981914693, 1375179334};
@@ -102,25 +102,3 @@ template <int n>
 struct Hasher<RollingHash<n>> {
     ull operator()(const RollingHash<n> &v) const { return v.hash.front(); }
 };
-
-#pragma endregion
-
-#pragma region "Manacher"
-
-// 回分半径を取得する．ex) "abaaababa" -> [1,2,1,4,1,2,3,2,1]
-template <typename RandomAccessIterator>
-vll get_manacher(const RandomAccessIterator first, const RandomAccessIterator last) {
-    ll i = 0, j = 0, size = distance(first, last);
-    vll ans(size);
-    while (i < size) {
-        while (i - j >= 0 && i + j < size && *(first + i - j) == *(first + i + j)) j++;
-        ans[i] = j;
-        ll k = 1;
-        while (i - k >= 0 && k + ans[i - k] < j) ans[i + k] = ans[i - k], k++;
-        i += k;
-        j -= k;
-    }
-    return ans;
-}
-
-#pragma endregion

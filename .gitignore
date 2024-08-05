@@ -11,6 +11,7 @@ tpl/template.hpp.pch
 tpl/template
 .vscode/.zcompdump
 .vscode/.zsh_history
+.vscode/lib.code-snippets
 /*.exe
 .DS_Store
 *.dSYM
