@@ -282,62 +282,33 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "dijkstra"
-
-class Dijkstra {
-    const vvpll &wedges;
-    const ll start;
-    vll dist;
-    vll prev; // 直前の頂点を記録する配列
-
-    void set_dist() {
-        // (現時点での最短距離, 頂点)
-        priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace(dist[start] = 0, start);
-
-        while (!q.empty()) {
-            auto p = q.top();
-            q.pop();
-            if (dist[p.second] < p.first) continue;
-
-            repi(i, wedges[p.second]) {
-                ll d = dist[p.second] + i.second;
-                if (d < dist[i.first]) {
-                    prev[i.first] = p.second;
-                    q.emplace(dist[i.first] = d, i.first);
-                }
-            }
-        }
-    }
-
-public:
-    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
-        set_dist();
-    }
-
-    ll get_dist(ll v) const { return dist[v]; }
-    vll &get_dist() { return dist; }
-
-    // 最短経路を取得
-    vll get_path(ll v) const {
-        vll ans;
-        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
-        reverse(all(ans));
-        return ans;
-    }
-};
-
-#pragma endregion "dijkstra"
+int N, M, P[2 << 17], A[2 << 17], inv[2 << 17];
+ll d[2 << 17];
 
 void solve() {
-    LL(N);
-    VVLL(ABX, N - 1, 3);
-    repi(i, ABX) i[2]--;
-    vvpll edges(N);
-    rep(i, N - 1) {
-        edges[i].eb(i + 1, ABX[i][0]);
-        edges[i].eb(ABX[i][2], ABX[i][1]);
+    cin >> N;
+    for (int i = 0; i < N; i++) cin >> P[i], P[i]--;
+    cin >> M;
+    for (int i = 0; i < M; i++) cin >> A[i], A[i]--;
+    fenwick_tree<int> ft(N);
+    for (int i = 0; i < N; i++) {
+        inv[i] = ft.sum(P[i], N);
+        ft.add(P[i], 1);
     }
-    Dijkstra g(edges, 0);
-    print(g.get_dist(N - 1));
+    for (int i = 0; i < M + 1; i++) d[i] = 0;
+    ll ans = 0, now = 0;
+    for (int i = 0; i < N; i++) {
+        ans += inv[i];
+        int l = lower_bound(A, A + M, i) - A;
+        if (l >= M) continue;
+        d[l]--;
+        d[min(l + inv[i], M)]++;
+    }
+    debug(inv, N);
+    debug(d, M + 1);
+    for (int i = 0; i < M; i++) {
+        now += d[i];
+        ans += now;
+        cout << ans << endl;
+    }
 }

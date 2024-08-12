@@ -282,62 +282,71 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "dijkstra"
+#pragma region "solve-linear"
 
-class Dijkstra {
-    const vvpll &wedges;
-    const ll start;
-    vll dist;
-    vll prev; // 直前の頂点を記録する配列
-
-    void set_dist() {
-        // (現時点での最短距離, 頂点)
-        priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace(dist[start] = 0, start);
-
-        while (!q.empty()) {
-            auto p = q.top();
-            q.pop();
-            if (dist[p.second] < p.first) continue;
-
-            repi(i, wedges[p.second]) {
-                ll d = dist[p.second] + i.second;
-                if (d < dist[i.first]) {
-                    prev[i.first] = p.second;
-                    q.emplace(dist[i.first] = d, i.first);
-                }
-            }
+/// @brief 連立方程式の解を求める．
+/// @param a n * m 行列
+/// @param b m 次元ベクトル
+/// @return 0 行目に解の一つ，1 行目以降に解空間の基底が行ベクトルとして入る．解なしの場合は empty を返す
+template <typename T>
+vv<T> solve_linear(vv<T> a, v<T> b) {
+    assert(!a.empty());
+    ll n = a.size(), m = a[0].size();
+    assert(m == b.size());
+    ll rk = 0;
+    rep(j, m) {
+        if (rk == n) break;
+        rep(i, rk, n) if (a[i][j] != 0) {
+            swap(a[rk], a[i]);
+            swap(b[rk], b[i]);
+            break;
         }
+        if (a[rk][j] == 0) continue;
+        T c = T(1) / a[rk][j];
+        repi(x, a[rk]) x *= c;
+        b[rk] *= c;
+        rep(i, n) if (i != rk) {
+            T c = a[i][j];
+            if (c == T(0)) continue;
+            b[i] -= b[rk] * c;
+            rep(k, j, m) { a[i][k] -= a[rk][k] * c; }
+        }
+        ++rk;
     }
-
-public:
-    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
-        set_dist();
+    rep(i, rk, n) if (b[i] != 0) return {};
+    vv<T> res(1, v<T>(m));
+    vll pivot(m, -1);
+    ll p = 0;
+    rep(i, rk) {
+        while (a[i][p] == 0) ++p;
+        res[0][p] = b[i];
+        pivot[p] = i;
     }
-
-    ll get_dist(ll v) const { return dist[v]; }
-    vll &get_dist() { return dist; }
-
-    // 最短経路を取得
-    vll get_path(ll v) const {
-        vll ans;
-        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
-        reverse(all(ans));
-        return ans;
+    rep(j, m) if (pivot[j] == -1) {
+        v<T> x(m);
+        x[j] = -1;
+        rep(k, j) if (pivot[k] != -1) x[k] = a[pivot[k]][j];
+        res.eb(x);
     }
-};
+    return res;
+}
 
-#pragma endregion "dijkstra"
+#pragma endregion "solve-linear"
 
 void solve() {
-    LL(N);
-    VVLL(ABX, N - 1, 3);
-    repi(i, ABX) i[2]--;
-    vvpll edges(N);
-    rep(i, N - 1) {
-        edges[i].eb(i + 1, ABX[i][0]);
-        edges[i].eb(ABX[i][2], ABX[i][1]);
-    }
-    Dijkstra g(edges, 0);
-    print(g.get_dist(N - 1));
+    LL(N, M);
+    auto edges = in_edges<true>(N, M);
+    vector A(N, vector(N, static_modint<2>(0)));
+    vector B(N, static_modint<2>(0));
+    rep(i, N) repi(j, edges[i]) A[i][j] = 1;
+    auto sol = solve_linear(A, B);
+    vb ex(N);
+    rep(i, 1, sol.size()) rep(j, N) ex[j] = ex[j] | sol[i][j] != 0;
+    bool ok = true;
+    rep(i, N) if (!ex[i]) ok = false;
+    if (!ok) EXIT(No);
+    vll ans(N);
+    rep(i, 1, sol.size()) rep(j, N) if (sol[i][j] != 0) ans[j] |= 1LL << i - 1;
+    Yes;
+    print(ans);
 }

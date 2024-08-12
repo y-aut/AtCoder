@@ -12,6 +12,7 @@ tpl/template
 .vscode/.zcompdump
 .vscode/.zsh_history
 .vscode/lib.code-snippets
-/*.exe
+*.exe
+*.out
 .DS_Store
 *.dSYM

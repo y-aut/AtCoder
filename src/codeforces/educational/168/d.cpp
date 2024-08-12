@@ -246,7 +246,7 @@ int main() {
 
 #pragma endregion
 
-#pragma region "Tree"
+#pragma region "tree"
 
 class Tree {
 protected:
@@ -318,6 +318,15 @@ private:
         }
     }
 
+    static vvll get_edges_from_parents(const vll &parents) {
+        vvll edges(parents.size() + 1);
+        rep(i, parents.size()) {
+            edges[i + 1].pb(parents[i]);
+            edges[parents[i]].pb(i + 1);
+        }
+        return edges;
+    }
+
 public:
     Tree(const vvll &_edges, ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
                                              parents(size, -1), children(size, vll()), partial_size(size, 0) {
@@ -328,6 +337,9 @@ public:
         set_parents_and_children();
         set_partial_size();
     }
+
+    // 頂点 0 を根ノードとして，1, 2, ..., N-1 の親ノードの情報から木を作成
+    Tree(const vll &_parents) : Tree(get_edges_from_parents(_parents)) {}
 
     ll get_size() const { return size; }
     ll get_root() const { return root; }
@@ -386,7 +398,7 @@ public:
     }
 };
 
-#pragma endregion
+#pragma endregion "tree"
 
 void solve() {
     LL(T);
@@ -394,12 +406,8 @@ void solve() {
         LL(N);
         VLL(A, N);
         VLL(P, N - 1);
-        vvll edges(N);
-        rep(i, N - 1) {
-            edges[i + 1].pb(P[i] - 1);
-            edges[P[i] - 1].pb(i + 1);
-        }
-        Tree tree(edges, 0);
+        repi(i, P) i--;
+        Tree tree(P);
         auto dfs = [&](auto rc, ll v) -> ll {
             if (tree.get_children(v).empty()) return A[v];
             ll res = LINF;

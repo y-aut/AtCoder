@@ -29,7 +29,7 @@ if [ "$(uname)" == 'Darwin' ]; then
         "-o"
         "tpl/template.hpp.pch"
         "tpl/template.hpp"
-        "-I/usr/include/eigen3"
+        "-I/opt/homebrew/include/eigen3"
     )
     export CPATH="/opt/homebrew/include/:$CPATH"
     /usr/bin/clang++ ${args[@]}

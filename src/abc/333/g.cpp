@@ -282,62 +282,226 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "dijkstra"
+/**
+ * @brief Rational (有理数型)
+ */
+template <typename T>
+struct Rational {
+private:
+    T num, den;
 
-class Dijkstra {
-    const vvpll &wedges;
-    const ll start;
-    vll dist;
-    vll prev; // 直前の頂点を記録する配列
+    static T gcd(T a, T b) {
+        if (a < 0) a = -a;
+        if (b < 0) b = -b;
+        return std::gcd(a, b);
+    }
 
-    void set_dist() {
-        // (現時点での最短距離, 頂点)
-        priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace(dist[start] = 0, start);
-
-        while (!q.empty()) {
-            auto p = q.top();
-            q.pop();
-            if (dist[p.second] < p.first) continue;
-
-            repi(i, wedges[p.second]) {
-                ll d = dist[p.second] + i.second;
-                if (d < dist[i.first]) {
-                    prev[i.first] = p.second;
-                    q.emplace(dist[i.first] = d, i.first);
-                }
+    void normalize() {
+        if (num == 0) {
+            den = 1;
+        } else {
+            T g = gcd(num, den);
+            num /= g;
+            den /= g;
+            if (den < 0) {
+                num = -num;
+                den = -den;
             }
         }
     }
 
 public:
-    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
-        set_dist();
+    Rational() : num(0), den(1) {}
+
+    explicit Rational(const T &n) : num(n), den(1) {}
+
+    explicit Rational(const T &n, const T &d) : num(n), den(d) {
+        normalize();
     }
 
-    ll get_dist(ll v) const { return dist[v]; }
-    vll &get_dist() { return dist; }
+    Rational &operator=(const T &n) { return assign(n, 1); }
 
-    // 最短経路を取得
-    vll get_path(ll v) const {
-        vll ans;
-        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
-        reverse(all(ans));
-        return ans;
+    Rational &assign(const T &n, const T &d) {
+        num = n;
+        den = d;
+        normalize();
+        return *this;
+    }
+
+    T numerator() const { return num; }
+
+    T denominator() const { return den; }
+
+    Rational &operator+=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g = gcd(den, r_den);
+        den /= g;
+        num = num * (r_den / g) + r_num * den;
+        g = gcd(num, g);
+        num /= g;
+        den *= r_den / g;
+        return *this;
+    }
+
+    Rational &operator-=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g = gcd(den, r_den);
+        den /= g;
+        num = num * (r_den / g) - r_num * den;
+        g = gcd(num, g);
+        num /= g;
+        den *= r_den / g;
+        return *this;
+    }
+
+    Rational &operator*=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g1 = gcd(num, r_den);
+        T g2 = gcd(den, r_num);
+        num = (num / g1) * (r_num / g2);
+        den = (den / g2) * (r_den / g1);
+        return *this;
+    }
+
+    Rational &operator/=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g1 = gcd(num, r_num);
+        T g2 = gcd(den, r_den);
+        num = (num / g1) * (r_den / g2);
+        den = (den / g2) * (r_num / g1);
+        if (den < 0) {
+            num = -num;
+            den = -den;
+        }
+        return *this;
+    }
+
+    Rational &operator+=(const T &i) { return (*this) += Rational{i}; }
+
+    Rational &operator-=(const T &i) { return (*this) -= Rational{i}; }
+
+    Rational &operator*=(const T &i) { return (*this) *= Rational{i}; }
+
+    Rational &operator/=(const T &i) { return (*this) /= Rational{i}; }
+
+    Rational operator+(const Rational &r) const { return Rational(*this) += r; }
+
+    Rational operator-(const Rational &r) const { return Rational(*this) -= r; }
+
+    Rational operator*(const Rational &r) const { return Rational(*this) *= r; }
+
+    Rational operator/(const Rational &r) const { return Rational(*this) /= r; }
+
+    Rational operator+(const T &i) const { return Rational(*this) += i; }
+
+    Rational operator-(const T &i) const { return Rational(*this) -= i; }
+
+    Rational operator*(const T &i) const { return Rational(*this) *= i; }
+
+    Rational operator/(const T &i) const { return Rational(*this) /= i; }
+
+    Rational operator-() const { return Rational{-num, den}; }
+
+    Rational &operator++() {
+        num += den;
+        return *this;
+    }
+
+    Rational &operator--() {
+        num -= den;
+        return *this;
+    }
+
+#define define_cmp(op) \
+    bool operator op(const Rational &r) const { return num * r.den op r.num * den; }
+    define_cmp(==);
+    define_cmp(!=);
+    define_cmp(<);
+    define_cmp(>);
+    define_cmp(<=);
+    define_cmp(>=);
+#undef define_cmp
+
+    template <typename Real = double>
+    Real to_double() const {
+        return static_cast<Real>(numerator()) / denominator();
+    }
+
+    Rational abs() const {
+        return Rational{num < 0 ? -num : num, den};
+    }
+
+    friend ostream &operator<<(ostream &os, const Rational &r) {
+        return os << r.numerator() << "/" << r.denominator();
     }
 };
 
-#pragma endregion "dijkstra"
+void f(const Rational<__int128_t> &r, vll &now, ll depth) {
+    if (depth == 0) return;
+    ll a = r.numerator() / r.denominator();
+    now.pb(a);
+    auto r2 = r - a;
+    if (r2.numerator() == 0) return;
+    f(Rational<__int128_t>(r2.denominator(), r2.numerator()), now, depth - 1);
+}
+
+pll g(const vll::iterator begin, const vll::iterator end) {
+    if (begin == end) return {1, 0};
+    auto tmp = g(begin + 1, end);
+    if (tmp.first == -1) return tmp;
+    double num = double(*begin) * tmp.first + tmp.second;
+    if (num > 1e12) return {-1, 0};
+    return {*begin * tmp.first + tmp.second, tmp.first};
+}
 
 void solve() {
+    STR(rs);
     LL(N);
-    VVLL(ABX, N - 1, 3);
-    repi(i, ABX) i[2]--;
-    vvpll edges(N);
-    rep(i, N - 1) {
-        edges[i].eb(i + 1, ABX[i][0]);
-        edges[i].eb(ABX[i][2], ABX[i][1]);
+    ll len = rs.size() - rs.find('.') - 1;
+    string num_s = rs.substr(0, rs.find('.')) + rs.substr(rs.find('.') + 1);
+    Rational<__int128_t> rn(stoll(num_s), powll(10, len));
+    vll res;
+    f(rn, res, 100);
+    if (res.back() != 1) {
+        res.back()--;
+        res.pb(1);
     }
-    Dijkstra g(edges, 0);
-    print(g.get_dist(N - 1));
+    debug(res);
+    ll k = 0, n = 1;
+    {
+        ll l = 1, r = res.size();
+        while (r - l >= 2) {
+            ll m = (l + r) / 2;
+            ll tmp = res[m];
+            res[m] = 1;
+            auto a = g(res.begin(), res.begin() + m + 1);
+            res[m] = tmp;
+            if (a.first == -1 || a.second > N) r = m;
+            else l = m;
+        }
+        k = l;
+    }
+    {
+        ll l = 1, r = res[k] + 1;
+        while (r - l >= 2) {
+            ll m = (l + r) / 2;
+            auto tmp = res[k];
+            res[k] = m;
+            auto a = g(res.begin(), res.begin() + k + 1);
+            res[k] = tmp;
+            if (a.first == -1 || a.second > N) r = m;
+            else l = m;
+        }
+        n = l;
+    }
+    res[k] = n;
+    auto x = g(res.begin(), res.begin() + k + 1);
+    auto y = g(res.begin(), res.begin() + k);
+    Rational<__int128_t> rx(x.first, x.second), ry(y.first, y.second);
+    auto dx = (rx - rn).abs(), dy = (ry - rn).abs();
+    Rational<__int128_t> ans;
+    if (dx < dy) ans = rx;
+    else if (dy < dx) ans = ry;
+    else ans = rx < ry ? rx : ry;
+    print(pll{ans.numerator(), ans.denominator()});
 }

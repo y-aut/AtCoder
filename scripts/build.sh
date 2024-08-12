@@ -32,7 +32,7 @@ if [ "$(uname)" == 'Darwin' ]; then
             "$3"
             "-lgmpxx"
             "-lgmp"
-            "-I/usr/include/eigen3"
+            "-I/opt/homebrew/include/eigen3"
         )
     else
         args=(
@@ -57,7 +57,7 @@ if [ "$(uname)" == 'Darwin' ]; then
             "$3"
             "-lgmpxx"
             "-lgmp"
-            "-I/usr/include/eigen3"
+            "-I/opt/homebrew/include/eigen3"
         )
     fi
     export CPATH="/opt/homebrew/include/:$CPATH"

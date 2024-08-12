@@ -30,6 +30,8 @@ struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #define TPL_TSU template <typename T, typename S, typename U>
 #define TPL_TSUV template <typename T, typename S, typename U, typename V>
 #define TPL_TSUVW template <typename T, typename S, typename U, typename V, typename W>
+#define TPL_N template <int N>
+#define TPL_TN template <typename T, int N>
 
 /* alias */
 // type
@@ -40,6 +42,9 @@ using ll = long long;
 // pair
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
+// array
+TPL_N using ari = array<int, N>;
+TPL_N using arll = array<ll, N>;
 // vector
 TPL_T using v = vector<T>;
 TPL_T using vv = v<v<T>>;
@@ -81,6 +86,7 @@ using umll = um<ll, ll>;
 /* extract params */
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
+#define OVERLOAD5(_1, _2, _3, _4, _5, x, ...) x
 
 /* define short */
 #define CSI constexpr static int
@@ -109,6 +115,8 @@ using umll = um<ll, ll>;
 #define VS(a, b) auto a = in_vs(b)
 #define VPII(a, b) auto a = in_vpii(b)
 #define VPLL(a, b) auto a = in_vpll(b)
+#define VARI(a, n, h) auto a = in_vari<n>(h)
+#define VARLL(a, n, h) auto a = in_varll<n>(h)
 #define VVI(a, h, w) auto a = in_vvi(h, w)
 #define VVLL(a, h, w) auto a = in_vvll(h, w)
 #define VVM(a, h, w) auto a = in_vvm(h, w)
@@ -124,11 +132,13 @@ using umll = um<ll, ll>;
 #define RREPD1(i, n) RREPD2(i, 1, n)
 #define REPI1(a, v) for (auto&& a : (v))
 #define REPI2(a, b, v) for (auto&& [a, b] : (v))
+#define REPI3(a, b, c, v) for (auto&& [a, b, c] : (v))
+#define REPI4(a, b, c, d, v) for (auto&& [a, b, c, d] : (v))
 #define rep(...) OVERLOAD3(__VA_ARGS__, REP2, REP1)(__VA_ARGS__)
 #define rrep(...) OVERLOAD3(__VA_ARGS__, RREP2, RREP1)(__VA_ARGS__)
 #define repd(...) OVERLOAD3(__VA_ARGS__, REPD2, REPD1)(__VA_ARGS__)
 #define rrepd(...) OVERLOAD3(__VA_ARGS__, RREPD2, RREPD1)(__VA_ARGS__)
-#define repi(...) OVERLOAD3(__VA_ARGS__, REPI2, REPI1)(__VA_ARGS__)
+#define repi(...) OVERLOAD5(__VA_ARGS__, REPI4, REPI3, REPI2, REPI1)(__VA_ARGS__)
 
 /* control */
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
@@ -147,6 +157,9 @@ inline char in_char() { char c; cin >> c; return c; }
 inline string in_str() { string x; cin >> x; return x; }
 inline pii in_pii() { pii x; cin >> x; return x; }
 inline pll in_pll() { pll x; cin >> x; return x; }
+TPL_TN inline array<T, N> in_array() { array<T, N> x; rep(i, N) { T t; cin >> t; x[i] = t; } return x; }
+TPL_N inline ari<N> in_ari() { ari<N> x; rep(i, N) x[i] = in_int(); return x; }
+TPL_N inline arll<N> in_arll() { arll<N> x; rep(i, N) x[i] = in_int(); return x; }
 inline vi in_vi(int length) { vi res; rep(i, length) res.pb(in_int()); return res; }
 inline vll in_vll(int length) { vll res; rep(i, length) res.pb(in_ll()); return res; }
 inline vd in_vd(int length) { vd res; rep(i, length) res.pb(in_double()); return res; }
@@ -154,6 +167,9 @@ inline vc in_vc(int length) { vc res; rep(i, length) res.pb(in_char()); return r
 inline vs in_vs(int height) { vs res; rep(i, height) res.pb(in_str()); return res; }
 inline vpii in_vpii(int height) { vpii res; rep(i, height) res.pb(in_pii()); return res; }
 inline vpll in_vpll(int height) { vpll res; rep(i, height) res.pb(in_pll()); return res; }
+TPL_TN inline v<array<T, N>> in_varray(int height) { v<array<T, N>> res; rep(i, height) res.pb(in_array<T, N>()); return res; }
+TPL_N inline v<ari<N>> in_vari(int height) { v<ari<N>> res; rep(i, height) res.pb(in_ari<N>()); return res; }
+TPL_N inline v<arll<N>> in_varll(int height) { v<arll<N>> res; rep(i, height) res.pb(in_arll<N>()); return res; }
 inline vvi in_vvi(int height, int width) { vvi res; rep(i, height) res.pb(in_vi(width)); return res; }
 inline vvll in_vvll(int height, int width) { vvll res; rep(i, height) res.pb(in_vll(width)); return res; }
 template <bool bidir> inline vvll in_edges(int N, int height, ll base = 1)
@@ -282,62 +298,23 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "dijkstra"
-
-class Dijkstra {
-    const vvpll &wedges;
-    const ll start;
-    vll dist;
-    vll prev; // 直前の頂点を記録する配列
-
-    void set_dist() {
-        // (現時点での最短距離, 頂点)
-        priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace(dist[start] = 0, start);
-
-        while (!q.empty()) {
-            auto p = q.top();
-            q.pop();
-            if (dist[p.second] < p.first) continue;
-
-            repi(i, wedges[p.second]) {
-                ll d = dist[p.second] + i.second;
-                if (d < dist[i.first]) {
-                    prev[i.first] = p.second;
-                    q.emplace(dist[i.first] = d, i.first);
-                }
-            }
-        }
-    }
-
-public:
-    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
-        set_dist();
-    }
-
-    ll get_dist(ll v) const { return dist[v]; }
-    vll &get_dist() { return dist; }
-
-    // 最短経路を取得
-    vll get_path(ll v) const {
-        vll ans;
-        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
-        reverse(all(ans));
-        return ans;
-    }
-};
-
-#pragma endregion "dijkstra"
-
 void solve() {
-    LL(N);
-    VVLL(ABX, N - 1, 3);
-    repi(i, ABX) i[2]--;
-    vvpll edges(N);
-    rep(i, N - 1) {
-        edges[i].eb(i + 1, ABX[i][0]);
-        edges[i].eb(ABX[i][2], ABX[i][1]);
+    LL(N, M);
+    VARLL(TWS, 3, M);
+    priority_queue<ll, vll, greater<ll>> row;
+    rep(i, N) row.push(i);
+    priority_queue<pll, vpll, greater<pll>> time;
+    vll ans(N);
+    repi(t, w, s, TWS) {
+        while (!time.empty() && time.top().first <= t) {
+            row.push(time.top().second);
+            time.pop();
+        }
+        if (row.empty()) continue;
+        ll p = row.top();
+        row.pop();
+        time.emplace(t + s, p);
+        ans[p] += w;
     }
-    Dijkstra g(edges, 0);
-    print(g.get_dist(N - 1));
+    print(ans, "\n");
 }

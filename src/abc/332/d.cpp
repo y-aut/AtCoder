@@ -282,62 +282,47 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "dijkstra"
+#pragma region "inversion"
 
-class Dijkstra {
-    const vvpll &wedges;
-    const ll start;
-    vll dist;
-    vll prev; // 直前の頂点を記録する配列
-
-    void set_dist() {
-        // (現時点での最短距離, 頂点)
-        priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace(dist[start] = 0, start);
-
-        while (!q.empty()) {
-            auto p = q.top();
-            q.pop();
-            if (dist[p.second] < p.first) continue;
-
-            repi(i, wedges[p.second]) {
-                ll d = dist[p.second] + i.second;
-                if (d < dist[i.first]) {
-                    prev[i.first] = p.second;
-                    q.emplace(dist[i.first] = d, i.first);
-                }
-            }
-        }
+// 座標圧縮された数列に対して，転倒数を求める
+ll get_inversion(const vll &A) {
+    fenwick_tree<ll> ft(A.size());
+    ll ans = 0;
+    repd(i, A.size()) {
+        ans += ft.sum(0, A[i]);
+        ft.add(A[i], 1);
     }
+    return ans;
+}
 
-public:
-    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
-        set_dist();
-    }
-
-    ll get_dist(ll v) const { return dist[v]; }
-    vll &get_dist() { return dist; }
-
-    // 最短経路を取得
-    vll get_path(ll v) const {
-        vll ans;
-        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
-        reverse(all(ans));
-        return ans;
-    }
-};
-
-#pragma endregion "dijkstra"
+#pragma endregion "inversion"
 
 void solve() {
-    LL(N);
-    VVLL(ABX, N - 1, 3);
-    repi(i, ABX) i[2]--;
-    vvpll edges(N);
-    rep(i, N - 1) {
-        edges[i].eb(i + 1, ABX[i][0]);
-        edges[i].eb(ABX[i][2], ABX[i][1]);
-    }
-    Dijkstra g(edges, 0);
-    print(g.get_dist(N - 1));
+    LL(H, W);
+    VVLL(A, H, W);
+    VVLL(B, H, W);
+    vll pi, pj;
+    rep(i, H) pi.pb(i);
+    rep(i, W) pj.pb(i);
+    vll ci, cj;
+    do {
+        ci.pb(get_inversion(pi));
+    } while (next_permutation(all(pi)));
+    do {
+        cj.pb(get_inversion(pj));
+    } while (next_permutation(all(pj)));
+
+    ll ans = LINF;
+    ll ii = 0, ij = 0;
+    do {
+        ij = 0;
+        do {
+            bool ok = true;
+            rep(i, H) rep(j, W) if (A[pi[i]][pj[j]] != B[i][j]) BREAK(ok = false);
+            if (ok) chmin(ans, ci[ii] + cj[ij]);
+            ij++;
+        } while (next_permutation(all(pj)));
+        ii++;
+    } while (next_permutation(all(pi)));
+    print(ans == LINF ? -1 : ans);
 }

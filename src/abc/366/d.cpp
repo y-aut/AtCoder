@@ -282,62 +282,17 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "dijkstra"
-
-class Dijkstra {
-    const vvpll &wedges;
-    const ll start;
-    vll dist;
-    vll prev; // 直前の頂点を記録する配列
-
-    void set_dist() {
-        // (現時点での最短距離, 頂点)
-        priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace(dist[start] = 0, start);
-
-        while (!q.empty()) {
-            auto p = q.top();
-            q.pop();
-            if (dist[p.second] < p.first) continue;
-
-            repi(i, wedges[p.second]) {
-                ll d = dist[p.second] + i.second;
-                if (d < dist[i.first]) {
-                    prev[i.first] = p.second;
-                    q.emplace(dist[i.first] = d, i.first);
-                }
-            }
-        }
-    }
-
-public:
-    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
-        set_dist();
-    }
-
-    ll get_dist(ll v) const { return dist[v]; }
-    vll &get_dist() { return dist; }
-
-    // 最短経路を取得
-    vll get_path(ll v) const {
-        vll ans;
-        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
-        reverse(all(ans));
-        return ans;
-    }
-};
-
-#pragma endregion "dijkstra"
-
 void solve() {
     LL(N);
-    VVLL(ABX, N - 1, 3);
-    repi(i, ABX) i[2]--;
-    vvpll edges(N);
-    rep(i, N - 1) {
-        edges[i].eb(i + 1, ABX[i][0]);
-        edges[i].eb(ABX[i][2], ABX[i][1]);
+    vector<vvll> A(N + 1, vvll(N + 1, vll(N + 1)));
+    rep(i, N) rep(j, N) rep(k, N) A[i + 1][j + 1][k + 1] = in_ll();
+    rep(i, N + 1) rep(j, N + 1) rep(k, N + 1) if (i) A[i][j][k] += A[i - 1][j][k];
+    rep(i, N + 1) rep(j, N + 1) rep(k, N + 1) if (j) A[i][j][k] += A[i][j - 1][k];
+    rep(i, N + 1) rep(j, N + 1) rep(k, N + 1) if (k) A[i][j][k] += A[i][j][k - 1];
+    LL(Q);
+    rep(q, Q) {
+        LL(Lx, Rx, Ly, Ry, Lz, Rz);
+        Lx--, Ly--, Lz--;
+        print(A[Rx][Ry][Rz] - (A[Rx][Ry][Lz] + A[Rx][Ly][Rz] + A[Lx][Ry][Rz]) + (A[Lx][Ly][Rz] + A[Lx][Ry][Lz] + A[Rx][Ly][Lz]) - A[Lx][Ly][Lz]);
     }
-    Dijkstra g(edges, 0);
-    print(g.get_dist(N - 1));
 }

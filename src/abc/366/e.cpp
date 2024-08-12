@@ -282,62 +282,39 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "dijkstra"
+ll M = 2000010;
 
-class Dijkstra {
-    const vvpll &wedges;
-    const ll start;
-    vll dist;
-    vll prev; // 直前の頂点を記録する配列
-
-    void set_dist() {
-        // (現時点での最短距離, 頂点)
-        priority_queue<pll, vector<pll>, greater<pll>> q;
-        q.emplace(dist[start] = 0, start);
-
-        while (!q.empty()) {
-            auto p = q.top();
-            q.pop();
-            if (dist[p.second] < p.first) continue;
-
-            repi(i, wedges[p.second]) {
-                ll d = dist[p.second] + i.second;
-                if (d < dist[i.first]) {
-                    prev[i.first] = p.second;
-                    q.emplace(dist[i.first] = d, i.first);
-                }
-            }
-        }
+vll f(const vll &x) {
+    vll ans;
+    ans.reserve(M * 2 + 1);
+    ll now = 0, d = 0;
+    repi(i, x) d += i + M;
+    rrep(i, -M, M) {
+        while (now < x.size() && x[now] <= i) now++;
+        d += now - (x.size() - now);
+        ans.pb(d);
     }
-
-public:
-    Dijkstra(const vvpll &_edges, ll _start) : wedges(_edges), start(_start), dist(wedges.size(), LINF), prev(wedges.size(), -1) {
-        set_dist();
-    }
-
-    ll get_dist(ll v) const { return dist[v]; }
-    vll &get_dist() { return dist; }
-
-    // 最短経路を取得
-    vll get_path(ll v) const {
-        vll ans;
-        for (ll i = v; i >= 0; i = prev[i]) ans.pb(i);
-        reverse(all(ans));
-        return ans;
-    }
-};
-
-#pragma endregion "dijkstra"
+    return ans;
+}
 
 void solve() {
-    LL(N);
-    VVLL(ABX, N - 1, 3);
-    repi(i, ABX) i[2]--;
-    vvpll edges(N);
-    rep(i, N - 1) {
-        edges[i].eb(i + 1, ABX[i][0]);
-        edges[i].eb(ABX[i][2], ABX[i][1]);
+    LL(N, D);
+    VPLL(P, N);
+    vll xs, ys;
+    repi(x, y, P) {
+        xs.pb(x);
+        ys.pb(y);
     }
-    Dijkstra g(edges, 0);
-    print(g.get_dist(N - 1));
+    sort(all(xs));
+    sort(all(ys));
+    auto xv = f(xs), yv = f(ys);
+    debug(xv);
+    debug(yv);
+    sort(all(yv));
+    ll ans = 0;
+    repi(i, xv) {
+        ll rest = D - i;
+        ans += upper_bound(all(yv), rest) - yv.begin();
+    }
+    print(ans);
 }
