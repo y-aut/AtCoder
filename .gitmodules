@@ -12,4 +12,4 @@
 	url = https://github.com/NyaanNyaan/library.git
 [submodule "library/noshi91"]
 	path = library/noshi91
-	url = https://github.com/noshi91/Library
+	url = https://github.com/noshi91/Library.git
