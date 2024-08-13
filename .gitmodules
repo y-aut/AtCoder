@@ -4,6 +4,12 @@
 [submodule "library/ei1333"]
 	path = library/ei1333
 	url = https://github.com/ei1333/library.git
-[submodule "noshi91"]
+[submodule "library/maspypy"]
+	path = library/maspypy
+	url = https://github.com/maspypy/library.git
+[submodule "library/NyaanNyaan"]
+	path = library/NyaanNyaan
+	url = https://github.com/NyaanNyaan/library.git
+[submodule "library/noshi91"]
 	path = library/noshi91
-	url = https://github.com/noshi91/Library.git
+	url = https://github.com/noshi91/Library
