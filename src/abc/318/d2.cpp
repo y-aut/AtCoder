@@ -300,19 +300,18 @@ DEFINE_MOD(MOD2);
 
 void solve() {
     LL(N);
-    VLL(A, N);
-    um<ll, vll> pos, acc;
-    rep(i, N) pos[A[i]].pb(i);
-    repi(i, j, pos) {
-        vll a{0};
-        rep(k, j.size()) a.pb(a.back() + j[k]);
-        acc[i] = a;
+    vvll edges(N, vll(N));
+    rep(i, N) rep(j, i + 1, N) {
+        LL(D);
+        edges[i][j] = edges[j][i] = D;
     }
-    umll ind;
-    ll ans = 0;
-    rep(i, N) {
-        ll d = ind[A[i]]++;
-        ans += i * d - acc[A[i]][d] - d * (d + 1) / 2;
+    vll dp(1LL << N, -1);
+    dp[0] = 0;
+    rep(i, dp.size()) {
+        if (dp[i] == -1) continue;
+        rep(j, N) if (!(i >> j & 1)) rep(k, j + 1, N) if (!(i >> k & 1)) {
+            chmax(dp[i ^ 1LL << j ^ 1LL << k], dp[i] + edges[j][k]);
+        }
     }
-    print(ans);
+    print(*max_element(all(dp)));
 }

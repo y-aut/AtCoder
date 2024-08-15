@@ -300,19 +300,19 @@ DEFINE_MOD(MOD2);
 
 void solve() {
     LL(N);
-    VLL(A, N);
-    um<ll, vll> pos, acc;
-    rep(i, N) pos[A[i]].pb(i);
-    repi(i, j, pos) {
-        vll a{0};
-        rep(k, j.size()) a.pb(a.back() + j[k]);
-        acc[i] = a;
+    STR(S);
+    vvll m(26);
+    rep(i, N) m[S[i] - 'a'].pb(i);
+    LL(Q);
+    rep(q, Q) {
+        CHR(c, d);
+        if (c == d) continue;
+        ll src = c - 'a', dst = d - 'a';
+        if (m[src].size() > m[dst].size()) swap(m[src], m[dst]);
+        repi(i, m[src]) m[dst].pb(i);
+        m[src].clear();
     }
-    umll ind;
-    ll ans = 0;
-    rep(i, N) {
-        ll d = ind[A[i]]++;
-        ans += i * d - acc[A[i]][d] - d * (d + 1) / 2;
-    }
+    string ans(N, '.');
+    rep(i, 26) repi(j, m[i]) ans[j] = char('a' + i);
     print(ans);
 }

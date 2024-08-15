@@ -299,20 +299,49 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N);
-    VLL(A, N);
-    um<ll, vll> pos, acc;
-    rep(i, N) pos[A[i]].pb(i);
-    repi(i, j, pos) {
-        vll a{0};
-        rep(k, j.size()) a.pb(a.back() + j[k]);
-        acc[i] = a;
+    LL(N, M);
+    VS(S, N);
+    if (N == 1) {
+        print(0);
+        return;
     }
-    umll ind;
-    ll ans = 0;
-    rep(i, N) {
-        ll d = ind[A[i]]++;
-        ans += i * d - acc[A[i]][d] - d * (d + 1) / 2;
+    ll ans = LINF;
+    v<vvll> nums(N, vvll(10));
+    rep(i, N) rep(j, M) nums[i][S[i][j] - '0'].pb(j);
+    rep(d, 10) {
+        ll l = 0, r = N * M + 10;
+        while (r - l >= 2) {
+            ll m = (l + r) / 2;
+            ll rp = (m + 1) / M, rem = (m + 1) % M;
+            usll use;
+            rep(i, N) use.insert(i);
+            usll cols;
+            rep(i, N) {
+                auto pos = lower_bound(all(nums[i][d]), rem) - nums[i][d].begin();
+                ll cnt = nums[i][d].size() * rp + pos;
+                if (cnt > N) {
+                    use.erase(i);
+                    continue;
+                }
+                rep(j, rp) repi(k, nums[i][d]) cols.insert(j * M + k);
+                rep(j, pos) cols.insert(rp * M + nums[i][d][j]);
+            }
+            ll C = use.size() + cols.size();
+            mf_graph<ll> gr(C + 2);
+            umll rind, cind;
+            repi(i, use) gr.add_edge(C, rind[i] = rind.size(), 1);
+            repi(i, cols) gr.add_edge(cind[i] = rind.size() + cind.size(), C + 1, 1);
+            repi(i, use) {
+                rep(j, rp) repi(k, nums[i][d]) gr.add_edge(rind[i], cind[j * M + k], 1);
+                repi(j, nums[i][d]) {
+                    if (j >= rem) break;
+                    gr.add_edge(rind[i], cind[rp * M + j], 1);
+                }
+            }
+            if (gr.flow(C, C + 1) == use.size()) r = m;
+            else l = m;
+        }
+        chmin(ans, r);
     }
-    print(ans);
+    print(ans >= N * M + 10 ? -1 : ans);
 }

@@ -1,5 +1,3 @@
-// #define USE_MODINT
-
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -9,6 +7,9 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+#include <gmpxx.h>
+using namespace atcoder;
 
 // clang-format off
 
@@ -21,10 +22,7 @@ using namespace std;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
+#define USE_MODINT
 
 /* templates */
 #define TPL_T template <typename T>
@@ -89,6 +87,7 @@ using umll = um<ll, ll>;
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
 #define OVERLOAD5(_1, _2, _3, _4, _5, x, ...) x
+#define OVERLOAD6(_1, _2, _3, _4, _5, _6, x, ...) x
 
 /* define short */
 #define CSI constexpr static int
@@ -147,6 +146,11 @@ using umll = um<ll, ll>;
 #define BREAK(...) ({ __VA_ARGS__; break; })
 #define CONTINUE(...) ({ __VA_ARGS__; continue; })
 
+/* others */
+#define BTW1(x, l, r) ((l) <= (x) && (x) < (r))
+#define BTW2(x1, l1, r1, x2, l2, r2) (BTW1(x1, l1, r1) && BTW1(x2, l2, r2))
+#define BTW(...) OVERLOAD6(__VA_ARGS__, BTW2, , , BTW1)(__VA_ARGS__)
+
 // istream
 TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.second; return is; }
 
@@ -186,6 +190,17 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
+// gmp
+using mll = mpz_class;
+using md = mpf_class;
+using vmll = v<mll>;
+using vmd = v<md>;
+#define MLL(...) VAR(mll, __VA_ARGS__)
+#define VMLL(a, b) auto a = in_vmll(b)
+inline mll in_mll() { mll x; cin >> x; return x; }
+inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
+inline mll to_mll(ll v) { return mll(to_string(v)); }
+inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -290,4 +305,29 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
+    LL(N);
+    VLL(A, N);
+    repi(i, A) i--;
+    ll ans = 0;
+    rrep(i, N) ans += (i / 2) * (N - i + 1);
+    vvll pos(N);
+    rep(i, N) pos[A[i]].pb(i);
+    vll cnt(N);
+    rep(i, N) cnt[i] = pos[i].size();
+    ll cur = 0;
+    rep(i, N) cur += cnt[i] * (cnt[i] - 1) / 2;
+    rep(i, N / 2) {
+        ans -= cur;
+        ll l = i, r = N - i - 1;
+        if (A[l] == A[r]) {
+            ll &c = cnt[A[l]];
+            cur -= c * (c - 1) / 2;
+            c -= 2;
+            cur += c * (c - 1) / 2;
+        } else {
+            ll &c1 = cnt[A[l]], &c2 = cnt[A[r]];
+            cur -= --c1 + --c2;
+        }
+    }
+    print(ans);
 }

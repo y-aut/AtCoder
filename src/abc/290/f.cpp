@@ -87,6 +87,7 @@ using umll = um<ll, ll>;
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
 #define OVERLOAD5(_1, _2, _3, _4, _5, x, ...) x
+#define OVERLOAD6(_1, _2, _3, _4, _5, _6, x, ...) x
 
 /* define short */
 #define CSI constexpr static int
@@ -144,6 +145,11 @@ using umll = um<ll, ll>;
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
 #define BREAK(...) ({ __VA_ARGS__; break; })
 #define CONTINUE(...) ({ __VA_ARGS__; continue; })
+
+/* others */
+#define BTW1(x, l, r) ((l) <= (x) && (x) < (r))
+#define BTW2(x1, l1, r1, x2, l2, r2) (BTW1(x1, l1, r1) && BTW1(x2, l2, r2))
+#define BTW(...) OVERLOAD6(__VA_ARGS__, BTW2, , , BTW1)(__VA_ARGS__)
 
 // istream
 TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.second; return is; }
@@ -299,20 +305,18 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N);
-    VLL(A, N);
-    um<ll, vll> pos, acc;
-    rep(i, N) pos[A[i]].pb(i);
-    repi(i, j, pos) {
-        vll a{0};
-        rep(k, j.size()) a.pb(a.back() + j[k]);
-        acc[i] = a;
+    LL(T);
+    vm fact{1};
+    rep(i, 1, (ll)2e6 + 10) fact.pb(fact.back() * i);
+    rep(t, T) {
+        LL(N);
+        if (N == 2) {
+            print(1);
+            continue;
+        }
+        mint ans = 0;
+        // rrep(k, N - 2) ans += mint(k + 1) * binom.nCk(N, k) * binom.nCk(N - 3, k - 1);
+        ans = mint(N - 1) * (N * N - 3) * fact[N * 2 - 4] / (fact[N - 1] * fact[N - 1]);
+        print(ans);
     }
-    umll ind;
-    ll ans = 0;
-    rep(i, N) {
-        ll d = ind[A[i]]++;
-        ans += i * d - acc[A[i]][d] - d * (d + 1) / 2;
-    }
-    print(ans);
 }

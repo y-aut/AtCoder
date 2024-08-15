@@ -13,17 +13,11 @@ struct SquareMatrix {
 
     size_t size() const { return N; }
 
-    inline const array<T, N> &operator[](int k) const {
-        return (A.at(k));
-    }
+    inline const array<T, N> &operator[](int k) const { return (A.at(k)); }
 
-    inline array<T, N> &operator[](int k) {
-        return (A.at(k));
-    }
+    inline array<T, N> &operator[](int k) { return (A.at(k)); }
 
-    static SquareMatrix add_identity() {
-        return SquareMatrix();
-    }
+    static SquareMatrix add_identity() { return SquareMatrix(); }
 
     static SquareMatrix mul_identity() {
         SquareMatrix mat;
@@ -85,16 +79,7 @@ struct SquareMatrix {
         return SquareMatrix(*this) *= B;
     }
 
-    SquareMatrix operator^(uint64_t k) const {
-        return SquareMatrix(*this) ^= k;
-    }
-
-    SquareMatrix pow(uint64_t n) const {
-        SquareMatrix a = *this, res = mul_identity();
-        for (; n; a = a * a, n >>= 1)
-            if (n & 1) res = res * a;
-        return res;
-    }
+    SquareMatrix operator^(uint64_t k) const { return SquareMatrix(*this) ^= k; }
 
     friend ostream &operator<<(ostream &os, SquareMatrix &p) {
         for (int i = 0; i < N; i++) {

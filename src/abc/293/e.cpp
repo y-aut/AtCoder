@@ -274,7 +274,7 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-#pragma region "正方行列"
+#pragma region "square-matrix"
 
 /**
  * @brief Square-Matrix(正方行列)
@@ -287,17 +287,11 @@ struct SquareMatrix {
 
     size_t size() const { return N; }
 
-    inline const array<T, N> &operator[](int k) const {
-        return (A.at(k));
-    }
+    inline const array<T, N> &operator[](int k) const { return (A.at(k)); }
 
-    inline array<T, N> &operator[](int k) {
-        return (A.at(k));
-    }
+    inline array<T, N> &operator[](int k) { return (A.at(k)); }
 
-    static SquareMatrix add_identity() {
-        return SquareMatrix();
-    }
+    static SquareMatrix add_identity() { return SquareMatrix(); }
 
     static SquareMatrix mul_identity() {
         SquareMatrix mat;
@@ -359,16 +353,7 @@ struct SquareMatrix {
         return SquareMatrix(*this) *= B;
     }
 
-    SquareMatrix operator^(uint64_t k) const {
-        return SquareMatrix(*this) ^= k;
-    }
-
-    SquareMatrix pow(uint64_t n) const {
-        SquareMatrix a = *this, res = mul_identity();
-        for (; n; a = a * a, n >>= 1)
-            if (n & 1) res = res * a;
-        return res;
-    }
+    SquareMatrix operator^(uint64_t k) const { return SquareMatrix(*this) ^= k; }
 
     friend ostream &operator<<(ostream &os, SquareMatrix &p) {
         for (int i = 0; i < N; i++) {
@@ -381,7 +366,7 @@ struct SquareMatrix {
     }
 };
 
-#pragma endregion
+#pragma endregion "square-matrix"
 
 void solve() {
     LL(A, X, M);
@@ -389,6 +374,6 @@ void solve() {
     SquareMatrix<modint, 2> m;
     m[0][0] = A;
     m[0][1] = m[1][1] = 1;
-    m = m.pow(X);
+    m ^= X;
     print(m[0][1]);
 }

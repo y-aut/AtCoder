@@ -9,6 +9,7 @@ tools/geninput.*
 tpl/template.hpp.gch
 tpl/template.hpp.pch
 tpl/template
+tpl/template_nolib
 .vscode/.zcompdump
 .vscode/.zsh_history
 .vscode/lib.code-snippets

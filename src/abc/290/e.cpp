@@ -87,6 +87,7 @@ using umll = um<ll, ll>;
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
 #define OVERLOAD5(_1, _2, _3, _4, _5, x, ...) x
+#define OVERLOAD6(_1, _2, _3, _4, _5, _6, x, ...) x
 
 /* define short */
 #define CSI constexpr static int
@@ -144,6 +145,11 @@ using umll = um<ll, ll>;
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
 #define BREAK(...) ({ __VA_ARGS__; break; })
 #define CONTINUE(...) ({ __VA_ARGS__; continue; })
+
+/* others */
+#define BTW1(x, l, r) ((l) <= (x) && (x) < (r))
+#define BTW2(x1, l1, r1, x2, l2, r2) (BTW1(x1, l1, r1) && BTW1(x2, l2, r2))
+#define BTW(...) OVERLOAD6(__VA_ARGS__, BTW2, , , BTW1)(__VA_ARGS__)
 
 // istream
 TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.second; return is; }
@@ -301,18 +307,26 @@ DEFINE_MOD(MOD2);
 void solve() {
     LL(N);
     VLL(A, N);
-    um<ll, vll> pos, acc;
-    rep(i, N) pos[A[i]].pb(i);
-    repi(i, j, pos) {
-        vll a{0};
-        rep(k, j.size()) a.pb(a.back() + j[k]);
-        acc[i] = a;
-    }
-    umll ind;
+    repi(i, A) i--;
     ll ans = 0;
+    rrep(i, N) ans += (i / 2) * (N - i + 1);
+    debug(ans);
+    vvll pos(N);
+    rep(i, N) pos[A[i]].pb(i);
     rep(i, N) {
-        ll d = ind[A[i]]++;
-        ans += i * d - acc[A[i]][d] - d * (d + 1) / 2;
+        vll acc(pos[i].size() + 1);
+        repd(j, pos[i].size()) acc[j] = acc[j + 1] + N - pos[i][j];
+        debug(acc);
+        rep(j, pos[i].size()) {
+            if (pos[i][j] < N / 2) {
+                auto p = upper_bound(all(pos[i]), N - 1 - pos[i][j]) - pos[i].begin();
+                debugs(j, p, pos[i][j]);
+                ans -= (p - j - 1) * (pos[i][j] + 1);
+                ans -= acc[p];
+            } else {
+                ans -= acc[j + 1];
+            }
+        }
     }
     print(ans);
 }

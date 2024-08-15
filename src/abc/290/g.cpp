@@ -87,6 +87,7 @@ using umll = um<ll, ll>;
 #define HEAD_NAME(x, ...) #x
 #define OVERLOAD3(_1, _2, _3, x, ...) x
 #define OVERLOAD5(_1, _2, _3, _4, _5, x, ...) x
+#define OVERLOAD6(_1, _2, _3, _4, _5, _6, x, ...) x
 
 /* define short */
 #define CSI constexpr static int
@@ -144,6 +145,11 @@ using umll = um<ll, ll>;
 #define EXIT(...) ({ __VA_ARGS__; exit(0); })
 #define BREAK(...) ({ __VA_ARGS__; break; })
 #define CONTINUE(...) ({ __VA_ARGS__; continue; })
+
+/* others */
+#define BTW1(x, l, r) ((l) <= (x) && (x) < (r))
+#define BTW2(x1, l1, r1, x2, l2, r2) (BTW1(x1, l1, r1) && BTW1(x2, l2, r2))
+#define BTW(...) OVERLOAD6(__VA_ARGS__, BTW2, , , BTW1)(__VA_ARGS__)
 
 // istream
 TPL_TS istream &operator>>(istream &is, pair<T, S> &v) { is >> v.first >> v.second; return is; }
@@ -216,7 +222,8 @@ TPL_TSU pair<T, S> operator*(const pair<T, S> &a, const U &b) { return pair<T, S
 TPL_TSU pair<T, S> operator/(const pair<T, S> &a, const U &b) { return pair<T, S>(a) /= b; }
 
 // math
-inline ll powll(ll a, ll b) { ll ans = 1; rep(i, b) ans *= a; return ans; }
+TPL_T inline T powT(T a, T b) { T ans = T(1); rep(i, b) ans *= a; return ans; }
+inline ll powll(ll a, ll b) { return powT<ll>(a, b); }
 inline ll llceil(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) + 1 : -((-a) / b)); }
 inline ll llfloor(ll a, ll b) { return a % b == 0 ? a / b : (a >= 0 ? (a / b) : -((-a) / b) - 1); }
 TPL_T T abs2(const pair<T, T> &p) { return p.first * p.first + p.second * p.second; }
@@ -299,20 +306,22 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N);
-    VLL(A, N);
-    um<ll, vll> pos, acc;
-    rep(i, N) pos[A[i]].pb(i);
-    repi(i, j, pos) {
-        vll a{0};
-        rep(k, j.size()) a.pb(a.back() + j[k]);
-        acc[i] = a;
+    LL(T);
+    rep(t, T) {
+        LL(D, K, X);
+        ll ans = LINF;
+        rep(d, D + 1) {
+            ll res = d != 0;
+            ll rem = (powT<__int128_t>(K, D - d + 1) - 1) / (K - 1) - X;
+            if (rem < 0) break;
+            for (ll i = D - d; i >= 0 && rem; i--) {
+                ll cls = (powT<__int128_t>(K, i) - 1) / (K - 1);
+                ll c = min(K, rem / cls);
+                res += c;
+                rem -= c * cls;
+            }
+            chmin(ans, res);
+        }
+        print(ans);
     }
-    umll ind;
-    ll ans = 0;
-    rep(i, N) {
-        ll d = ind[A[i]]++;
-        ans += i * d - acc[A[i]][d] - d * (d + 1) / 2;
-    }
-    print(ans);
 }
