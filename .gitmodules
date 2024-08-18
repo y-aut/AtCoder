@@ -4,12 +4,18 @@
 [submodule "library/ei1333"]
 	path = library/ei1333
 	url = https://github.com/ei1333/library.git
-[submodule "library/maspypy"]
-	path = library/maspypy
+[submodule "library/maspy"]
+	path = library/maspy
 	url = https://github.com/maspypy/library.git
-[submodule "library/NyaanNyaan"]
-	path = library/NyaanNyaan
+[submodule "library/Nyaan"]
+	path = library/Nyaan
 	url = https://github.com/NyaanNyaan/library.git
 [submodule "library/noshi91"]
 	path = library/noshi91
 	url = https://github.com/noshi91/Library.git
+[submodule "library/suisen"]
+	path = library/suisen
+	url = https://github.com/suisen-cp/cp-library-cpp.git
+[submodule "library/hitonanode"]
+	path = library/hitonanode
+	url = https://github.com/hitonanode/cplib-cpp.git

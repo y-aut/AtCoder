@@ -1,12 +1,15 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-// !ifndef NOLIB
 #include <atcoder/all>
 #include <gmpxx.h>
 using namespace atcoder;
-// !endif
 
 // clang-format off
 
@@ -19,15 +22,7 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-// !ifndef NOLIB
 #define USE_MODINT
-// !endif
-// !ifdef NOLIB
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
-// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -198,7 +193,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// !ifndef NOLIB
 // gmp
 using mll = mpz_class;
 using md = mpf_class;
@@ -210,7 +204,6 @@ inline mll in_mll() { mll x; cin >> x; return x; }
 inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 inline md to_md(ll v) { return md(to_string(v)); }
-// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -271,7 +264,7 @@ template <typename First, typename... Rest> void print_all_inner(ostream& os, co
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
     { os << f; print_all_inner(os, r...); }
-TPL_TSU inline void printex(const T &x, const S &ex, const U &val) { if (x == ex) print(val); else print(x); }
+TPL_TS inline void printex(const T &x, const T &ex, const S &val) { if (x == ex) print(val); else print(x); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -301,3 +294,41 @@ CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 #endif
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+void solve() {
+    LL(K);
+    ll n = 1 << K;
+    VLL(R, n);
+    auto f = [&](auto rc, ll v) -> um<ll, double> {
+        um<ll, double> ans;
+        if (v >= n) {
+            ans[v - n] = 1.;
+            return ans;
+        }
+        auto left = rc(rc, v * 2), right = rc(rc, v * 2 + 1);
+        repi(i, p, left) repi(j, q, right) {
+            double lwin = 1. / (1 + pow(10., (R[j] - R[i]) / 400.));
+            ans[i] += p * q * lwin;
+            ans[j] += p * q * (1 - lwin);
+        }
+        return ans;
+    };
+    auto res = f(f, 1);
+    vd ans(n);
+    repi(i, p, res) ans[i] = p;
+    print(ans, "\n");
+}

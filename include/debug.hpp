@@ -54,6 +54,8 @@ TPL_TSUV
 inline void dprint(ll line, string name, const map<T, S, U, V> &val);
 TPL_TSUVW
 inline void dprint(ll line, string name, const um<T, S, U, V, W> &val);
+TPL_T inline typename enable_if<is_base_of<forward_iterator_tag, typename iterator_traits<T>::iterator_category>::value>::type
+dprint(ll line, string name, const T &begin, const T &end);
 TPL_T
 inline void dprint(ll line, string name, const fenwick_tree<T> &val, ll n);
 template <class S, auto op, auto e>
@@ -128,6 +130,15 @@ TPL_TSUVW
 inline void dprint(ll line, string name, const um<T, S, U, V, W> &val) {
     if (val.empty()) dprint(line, name, "empty");
     else repi(i, val) dprint(line, name + "[" + to_str(i.first) + "]", i.second);
+}
+
+TPL_T inline typename enable_if<is_base_of<forward_iterator_tag, typename iterator_traits<T>::iterator_category>::value>::type
+dprint(ll line, string name, const T &begin, const T &end) {
+    if (begin == end) dprint(line, name, "empty");
+    else {
+        ll i = 0;
+        for (auto itr = begin; itr != end; itr++) dprint(line, name + "[" + to_str(i++) + "]", *itr);
+    }
 }
 
 TPL_T

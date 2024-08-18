@@ -1,12 +1,15 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-// !ifndef NOLIB
 #include <atcoder/all>
 #include <gmpxx.h>
 using namespace atcoder;
-// !endif
 
 // clang-format off
 
@@ -19,15 +22,7 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-// !ifndef NOLIB
 #define USE_MODINT
-// !endif
-// !ifdef NOLIB
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
-// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -198,7 +193,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// !ifndef NOLIB
 // gmp
 using mll = mpz_class;
 using md = mpf_class;
@@ -210,7 +204,6 @@ inline mll in_mll() { mll x; cin >> x; return x; }
 inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 inline md to_md(ll v) { return md(to_string(v)); }
-// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -271,7 +264,6 @@ template <typename First, typename... Rest> void print_all_inner(ostream& os, co
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
     { os << f; print_all_inner(os, r...); }
-TPL_TSU inline void printex(const T &x, const S &ex, const U &val) { if (x == ex) print(val); else print(x); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -301,3 +293,69 @@ CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 #endif
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+void solve() {
+    PLL(s, t);
+    LL(a, b, c, d);
+    if (s == t) EXIT(Yes);
+    if (a == b) {
+        if (t.first != s.first && t.first != a * 2 - s.first) EXIT(No);
+    }
+    if (c == d) {
+        if (t.second != s.second && t.second != c * 2 - s.second) EXIT(No);
+    }
+    if (a == b && c == d) {
+        s = pll{a, c} * 2 - s;
+        if (s == t) {
+            Yes;
+            print(pll{a, c});
+        } else No;
+        return;
+    }
+    if (s.first % 2 != t.first % 2 || s.second % 2 != t.second % 2) EXIT(No);
+    Yes;
+    if (a == b && s.first != t.first || c == d && s.second != t.second) {
+        print(pll{a, c});
+        s = pll{a, c} * 2 - s;
+    }
+    if (a != b) {
+        while (s.first != t.first) {
+            if (s.first < t.first) {
+                print(pll{a, c});
+                print(pll{a + 1, c});
+                s.first += 2;
+            } else {
+                print(pll{a + 1, c});
+                print(pll{a, c});
+                s.first -= 2;
+            }
+        }
+    }
+    if (c != d) {
+        while (s.second != t.second) {
+            if (s.second < t.second) {
+                print(pll{a, c});
+                print(pll{a, c + 1});
+                s.second += 2;
+            } else {
+                print(pll{a, c + 1});
+                print(pll{a, c});
+                s.second -= 2;
+            }
+        }
+    }
+}

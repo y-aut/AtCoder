@@ -117,7 +117,21 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                "${workspaceFolder}/scripts/expand.sh",
+                "${workspaceFolder}/scripts/expand_ac_library.sh",
+                "${workspaceFolder}",
+                "${file}"
+            ],
+            "presentation": {
+                "reveal": "silent",
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "expand library",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "${workspaceFolder}/scripts/expand_library.sh",
                 "${workspaceFolder}",
                 "${file}"
             ],

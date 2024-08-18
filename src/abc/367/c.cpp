@@ -1,12 +1,15 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-// !ifndef NOLIB
 #include <atcoder/all>
 #include <gmpxx.h>
 using namespace atcoder;
-// !endif
 
 // clang-format off
 
@@ -19,15 +22,7 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-// !ifndef NOLIB
 #define USE_MODINT
-// !endif
-// !ifdef NOLIB
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
-// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -198,7 +193,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// !ifndef NOLIB
 // gmp
 using mll = mpz_class;
 using md = mpf_class;
@@ -210,7 +204,6 @@ inline mll in_mll() { mll x; cin >> x; return x; }
 inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 inline md to_md(ll v) { return md(to_string(v)); }
-// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -301,3 +294,37 @@ CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 #endif
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+void solve() {
+    LL(N, K);
+    VLL(R, N);
+    auto dfs = [&](auto rc, vll &cur, ll sum) -> void {
+        if (cur.size() == N) {
+            if (sum % K == 0) print(cur);
+            return;
+        }
+        rrep(i, R[cur.size()]) {
+            cur.pb(i);
+            sum += i;
+            rc(rc, cur, sum);
+            sum -= i;
+            cur.pop_back();
+        }
+    };
+    vll cur;
+    dfs(dfs, cur, 0);
+}

@@ -1,12 +1,14 @@
+// #define USE_MODINT
+
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-// !ifndef NOLIB
-#include <atcoder/all>
-#include <gmpxx.h>
-using namespace atcoder;
-// !endif
 
 // clang-format off
 
@@ -19,15 +21,10 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-// !ifndef NOLIB
-#define USE_MODINT
-// !endif
-// !ifdef NOLIB
 #ifdef USE_MODINT
 #include <atcoder/modint>
 using namespace atcoder;
 #endif
-// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -131,13 +128,13 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define VVM(a, h, w) auto a = in_vvm(h, w)
 
 /* REP macro */
-#define REP2(i, a, n) for (ll i = (ll)(a); i < (ll)(n); i++)
+#define REP2(i, a, n) for (int i = (int)(a); i < (int)(n); i++)
 #define REP1(i, n) REP2(i, 0, n)
-#define RREP2(i, a, n) for (ll i = (ll)(a); i <= (ll)(n); i++)
+#define RREP2(i, a, n) for (int i = (int)(a); i <= (int)(n); i++)
 #define RREP1(i, n) RREP2(i, 1, n)
-#define REPD2(i, a, n) for (ll i = (ll)(n) - 1; i >= (ll)(a); i--)
+#define REPD2(i, a, n) for (int i = (int)(n) - 1; i >= (int)(a); i--)
 #define REPD1(i, n) REPD2(i, 0, n)
-#define RREPD2(i, a, n) for (ll i = (ll)(n); i >= (ll)(a); i--)
+#define RREPD2(i, a, n) for (int i = (int)(n); i >= (int)(a); i--)
 #define RREPD1(i, n) RREPD2(i, 1, n)
 #define REPI1(a, v) for (auto&& a : (v))
 #define REPI2(a, b, v) for (auto&& [a, b] : (v))
@@ -198,19 +195,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// !ifndef NOLIB
-// gmp
-using mll = mpz_class;
-using md = mpf_class;
-using vmll = v<mll>;
-using vmd = v<md>;
-#define MLL(...) VAR(mll, __VA_ARGS__)
-#define VMLL(a, b) auto a = in_vmll(b)
-inline mll in_mll() { mll x; cin >> x; return x; }
-inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
-inline mll to_mll(ll v) { return mll(to_string(v)); }
-inline md to_md(ll v) { return md(to_string(v)); }
-// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -271,7 +255,6 @@ template <typename First, typename... Rest> void print_all_inner(ostream& os, co
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
     { os << f; print_all_inner(os, r...); }
-TPL_TSU inline void printex(const T &x, const S &ex, const U &val) { if (x == ex) print(val); else print(x); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -301,3 +284,60 @@ CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 #endif
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+CSI B = 2000;
+ll acc[B + 1];
+int ans[B][B];
+pii last[B][B];
+
+void solve() {
+    INT(T);
+    rep(t, T) {
+        INT(N);
+        VI(A, N);
+        acc[0] = 0;
+        rep(i, N) acc[i + 1] = acc[i] + A[i];
+        rep(i, N) rep(j, i, N) {
+            ans[i][j] = int(j - i);
+            last[i][j].first = -1;
+        }
+        map<ll, vpii> sums;
+        rep(i, N) rep(j, i + 1, N + 1) {
+            sums[acc[j] - acc[i]].eb(int(i), int(j));
+        }
+        repi(s, lr, sums) {
+            repi(l, r, lr) {
+                auto p = lower_bound(all(lr), pii{r, 0}) - lr.begin();
+                rep(j, p, lr.size()) {
+                    auto [l2, r2] = lr[j];
+                    int c = 0;
+                    if (last[r - 1][l2].first != -1) {
+                        auto [l3, r3] = last[r - 1][l2];
+                        c = ans[l3][r3 - 1] + (l3 - l - 1) + (r2 - r3 - 1);
+                    } else {
+                        c = r2 - l - 2 - (r != l2);
+                    }
+                    last[r - 1][l2] = {l, r2};
+                    chmin(ans[l][r2 - 1], c);
+                }
+            }
+        }
+        ll rs = 0;
+        rep(i, N) rep(j, i, N) rs += ans[i][j];
+        print(rs);
+    }
+}

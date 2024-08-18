@@ -1,12 +1,15 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-// !ifndef NOLIB
 #include <atcoder/all>
 #include <gmpxx.h>
 using namespace atcoder;
-// !endif
 
 // clang-format off
 
@@ -19,15 +22,7 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-// !ifndef NOLIB
 #define USE_MODINT
-// !endif
-// !ifdef NOLIB
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
-// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -198,7 +193,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// !ifndef NOLIB
 // gmp
 using mll = mpz_class;
 using md = mpf_class;
@@ -210,7 +204,6 @@ inline mll in_mll() { mll x; cin >> x; return x; }
 inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 inline md to_md(ll v) { return md(to_string(v)); }
-// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -271,7 +264,6 @@ template <typename First, typename... Rest> void print_all_inner(ostream& os, co
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
     { os << f; print_all_inner(os, r...); }
-TPL_TSU inline void printex(const T &x, const S &ex, const U &val) { if (x == ex) print(val); else print(x); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -301,3 +293,97 @@ CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 #endif
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+template <int char_size>
+struct TrieNode {
+    int nxt[char_size];
+
+    int exist;
+    vector<int> accept;
+
+    TrieNode() : exist(0) { memset(nxt, -1, sizeof(nxt)); }
+};
+
+template <int char_size, int margin>
+struct Trie {
+    using Node = TrieNode<char_size>;
+
+    vector<Node> nodes;
+    int root;
+
+    Trie() : root(0) { nodes.push_back(Node()); }
+
+    void update_direct(int node, int id) { nodes[node].accept.push_back(id); }
+
+    void update_child(int node, int child, int id) { ++nodes[node].exist; }
+
+    void add(const string &str, int str_index, int node_index, int id) {
+        if (str_index == str.size()) {
+            update_direct(node_index, id);
+        } else {
+            const int c = str[str_index] - margin;
+            if (nodes[node_index].nxt[c] == -1) {
+                nodes[node_index].nxt[c] = (int)nodes.size();
+                nodes.push_back(Node());
+            }
+            add(str, str_index + 1, nodes[node_index].nxt[c], id);
+            update_child(node_index, nodes[node_index].nxt[c], id);
+        }
+    }
+
+    void add(const string &str, int id) { add(str, 0, 0, id); }
+
+    void add(const string &str) { add(str, nodes[0].exist); }
+
+    void query(const string &str, const function<void(int)> &f, int str_index,
+               int node_index) {
+        for (auto &idx : nodes[node_index].accept) f(idx);
+        if (str_index == str.size()) {
+            return;
+        } else {
+            const int c = str[str_index] - margin;
+            if (nodes[node_index].nxt[c] == -1) return;
+            query(str, f, str_index + 1, nodes[node_index].nxt[c]);
+        }
+    }
+
+    void query(const string &str, const function<void(int)> &f) {
+        query(str, f, 0, 0);
+    }
+
+    int count() const { return (nodes[0].exist); }
+
+    int size() const { return ((int)nodes.size()); }
+};
+
+void solve() {
+    LL(N);
+    VS(S, N);
+    Trie<26, 'a'> tr;
+    repi(s, S) tr.add(s);
+    repi(s, S) {
+        auto cur = tr.root;
+        ll depth = 0;
+        rep(i, s.size()) {
+            if ((tr.nodes[tr.nodes[cur].nxt[s[i] - 'a']].exist + tr.nodes[tr.nodes[cur].nxt[s[i] - 'a']].accept.size()) >= 2) {
+                cur = tr.nodes[cur].nxt[s[i] - 'a'];
+                depth++;
+            } else break;
+        }
+        print(depth);
+    }
+}

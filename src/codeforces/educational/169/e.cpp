@@ -1,12 +1,14 @@
+// #define USE_MODINT
+
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-// !ifndef NOLIB
-#include <atcoder/all>
-#include <gmpxx.h>
-using namespace atcoder;
-// !endif
 
 // clang-format off
 
@@ -19,15 +21,10 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-// !ifndef NOLIB
-#define USE_MODINT
-// !endif
-// !ifdef NOLIB
 #ifdef USE_MODINT
 #include <atcoder/modint>
 using namespace atcoder;
 #endif
-// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -198,19 +195,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// !ifndef NOLIB
-// gmp
-using mll = mpz_class;
-using md = mpf_class;
-using vmll = v<mll>;
-using vmd = v<md>;
-#define MLL(...) VAR(mll, __VA_ARGS__)
-#define VMLL(a, b) auto a = in_vmll(b)
-inline mll in_mll() { mll x; cin >> x; return x; }
-inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
-inline mll to_mll(ll v) { return mll(to_string(v)); }
-inline md to_md(ll v) { return md(to_string(v)); }
-// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -271,7 +255,6 @@ template <typename First, typename... Rest> void print_all_inner(ostream& os, co
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
     { os << f; print_all_inner(os, r...); }
-TPL_TSU inline void printex(const T &x, const S &ex, const U &val) { if (x == ex) print(val); else print(x); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -301,3 +284,105 @@ CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 #endif
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+#pragma region "prime"
+
+bool is_prime(ll n) {
+    if (n <= 1) return false;
+    if (n % 2 == 0) return n == 2;
+    for (ll i = 3; i * i <= n; i += 2) {
+        if (n % i == 0) return false;
+    }
+    return true;
+}
+
+// 素因数分解
+// a^b * c^d: [(a, b), (c, d)]
+vpll prime_factors(ll n) {
+    vpll ans;
+    for (ll i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            n /= i;
+            ll cnt = 1;
+            while (n % i == 0) {
+                n /= i;
+                cnt++;
+            }
+            ans.eb(i, cnt);
+            if (n == 1) break;
+        }
+    }
+    if (n != 1) ans.eb(n, 1);
+    return ans;
+}
+
+// [0, n] の各整数の素因数を列挙する
+vvll prime_factors_all(ll n) {
+    vvll ans(n + 1);
+    rrep(i, 2, n) {
+        if (!ans[i].empty()) continue;
+        for (ll j = i; j <= n; j += i) ans[j].pb(i);
+    }
+    return ans;
+}
+
+// [0, n] の各整数の素因数の個数を列挙する
+vll prime_factors_count_all(ll n) {
+    vll ans(n + 1);
+    rrep(i, 2, n) {
+        if (ans[i]) continue;
+        for (ll j = i; j <= n; j += i) ans[j]++;
+    }
+    return ans;
+}
+
+// [0, n] の素数を列挙する
+vll get_primes(ll n) {
+    vll ans;
+    vb cnt(n + 1);
+    rrep(i, 2, n) {
+        if (cnt[i]) continue;
+        ans.pb(i);
+        for (ll j = i; j <= n; j += i) cnt[j] = true;
+    }
+    return ans;
+}
+
+#pragma endregion "prime"
+
+CSLL B = 10000010;
+
+void solve() {
+    LL(T);
+    auto primes = get_primes(B);
+    vll gr(B, -1);
+    for (ll i = 0; i < B; i += 2) gr[i] = 0;
+    gr[1] = 1;
+    rep(i, primes.size()) {
+        if (i == 0) continue;
+        for (ll j = primes[i]; j < B; j += primes[i] * 2) {
+            if (gr[j] == -1) gr[j] = i + 1;
+        }
+    }
+    rep(t, T) {
+        LL(N);
+        VLL(A, N);
+        ll ans = 0;
+        repi(i, A) ans ^= gr[i];
+        print(ans ? "Alice" : "Bob");
+    }
+}

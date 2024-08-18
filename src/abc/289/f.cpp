@@ -1,12 +1,15 @@
+#pragma region "Template"
+
+#ifdef DEBUG
+#include "template.hpp"
+#else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-// !ifndef NOLIB
 #include <atcoder/all>
 #include <gmpxx.h>
 using namespace atcoder;
-// !endif
 
 // clang-format off
 
@@ -19,15 +22,7 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-// !ifndef NOLIB
 #define USE_MODINT
-// !endif
-// !ifdef NOLIB
-#ifdef USE_MODINT
-#include <atcoder/modint>
-using namespace atcoder;
-#endif
-// !endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -198,7 +193,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// !ifndef NOLIB
 // gmp
 using mll = mpz_class;
 using md = mpf_class;
@@ -210,7 +204,6 @@ inline mll in_mll() { mll x; cin >> x; return x; }
 inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
 inline mll to_mll(ll v) { return mll(to_string(v)); }
 inline md to_md(ll v) { return md(to_string(v)); }
-// !endif
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -271,7 +264,6 @@ template <typename First, typename... Rest> void print_all_inner(ostream& os, co
     { os << ' ' << f; print_all_inner(os, r...); }
 template <typename First, typename... Rest> void print_all(ostream& os, const First &f, const Rest &...r)
     { os << f; print_all_inner(os, r...); }
-TPL_TSU inline void printex(const T &x, const S &ex, const U &val) { if (x == ex) print(val); else print(x); }
 
 #define YES print("YES")
 #define NO print("NO")
@@ -301,3 +293,78 @@ CSD PHI = 1.6180339887498948;
 CSLL DX[] = {1, 0, -1, 0};
 CSLL DY[] = {0, 1, 0, -1};
 #endif
+#endif
+
+// clang-format on
+
+void solve();
+int main() {
+    cout << fixed << setprecision(16);
+    solve();
+    return 0;
+}
+
+#pragma endregion
+
+DEFINE_MOD(MOD2);
+
+using Rect = pair<pll, pll>;
+CSLL B = 100000000;
+
+bool include(const Rect &r, const pll &a) {
+    return BTW(a.first, r.first.first, r.second.first + 1, a.second, r.first.second, r.second.second + 1);
+}
+
+pll refl(const pll &a, const pll &p) {
+    pll res{p.first * 2 - a.first, p.second * 2 - a.second};
+    chmin(res.first, B);
+    chmin(res.second, B);
+    chmax(res.first, -B);
+    chmax(res.second, -B);
+    return res;
+}
+
+Rect refl(const pll &a, const Rect &r) {
+    auto p1 = refl(a, r.first), p2 = refl(a, r.second);
+    return {pll{min(p1.first, p2.first), min(p1.second, p2.second)}, pll{max(p1.first, p2.first), max(p1.second, p2.second)}};
+}
+
+Rect refl(const Rect &r, const Rect &p) {
+    auto r1 = refl(r.first, p), r2 = refl(r.second, p);
+    return {pll{min(r1.first.first, r2.first.first), min(r1.first.second, r2.first.second)},
+            pll{max(r1.second.first, r2.second.first), max(r1.second.second, r2.second.second)}};
+}
+
+pll rev(const pll &cur, const Rect &p, const Rect &rng) {
+    auto r = refl(cur, p);
+    pll xr1{r.first.first, r.second.first}, xr2{rng.first.first, rng.second.first};
+    pll yr1{r.first.second, r.second.second}, yr2{rng.first.second, rng.second.second};
+    pll xr{max(xr1.first, xr2.first), min(xr1.second, xr2.second)};
+    pll yr{max(yr1.first, yr2.first), min(yr1.second, yr2.second)};
+    return {xr.first, yr.first};
+}
+
+void solve() {
+    PLL(s, t);
+    LL(a, b, c, d);
+    if (s == t) EXIT(Yes);
+    if (s.first % 2 != t.first % 2 || s.second % 2 != t.second % 2) EXIT(No);
+    Rect p{{a, c}, {b, d}};
+    v<Rect> r{{s, s}};
+    bool ok = false;
+    rep(i, 1000000) {
+        if (include(r.back(), t)) BREAK(ok = true);
+        r.pb(refl(r.back(), p));
+    }
+    if (!ok) EXIT(No);
+    Yes;
+    vpll ans;
+    pll cur = t;
+    repd(i, r.size() - 1) {
+        pll nxt = rev(cur, p, r[i]);
+        ans.eb((cur.first + nxt.first) / 2, (cur.second + nxt.second) / 2);
+        cur = move(nxt);
+    }
+    reverse(all(ans));
+    print(ans);
+}
