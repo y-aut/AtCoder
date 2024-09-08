@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,18 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
-
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
+    LL(N);
+    VLL(A, N);
+    vll acc(N + 1);
+    rep(i, N) acc[i + 1] = acc[i] + A[i];
+    vll dp(N, -LINF);
+    dp[0] = 0;
+    rep(i, 1, N) {
+        rep(j, i) {
+            chmax(dp[i], dp[j] + ((i - j) % 2 ? acc[(i - j) / 2] * 2 : acc[(i - j) / 2 - 1] + acc[(i - j) / 2]));
         }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
-            }
-            now = nxt;
-        }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    }
+    rep(i, N) dp[i] += (N - i) % 2 ? acc[(N - i) / 2] * 2 : acc[(N - i) / 2 - 1] + acc[(N - i) / 2];
+    print(*max_element(all(dp)));
 }

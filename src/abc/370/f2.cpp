@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,45 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
-
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
+    LL(N, K);
+    VLL(A, N);
+    vll A2 = A;
+    repi(i, A) A2.pb(i);
+    vll acc(N * 2 + 1);
+    rep(i, N * 2) acc[i + 1] = acc[i] + A2[i];
+    ll S = acc[N];
+    ll l = 0, r = S, cnt = 0;
+    while (r - l >= 2) {
+        ll m = (l + r) / 2;
+        vll f(N);
+        ll pos = 0;
+        rep(i, N) {
+            while (acc[pos] - acc[i] < m) pos++;
+            f[i] = pos;
         }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
+        vvll dbl;
+        dbl.pb(f);
+        rep(i, 20) {
+            vll nf(N);
+            rep(j, N) nf[j] = dbl.back()[dbl.back()[j] % N] + dbl.back()[j] / N * N;
+            dbl.pb(nf);
+        }
+        ll can = 0;
+        rep(i, N) {
+            ll p = i, k = K, n = 0;
+            while (k) {
+                if (k & 1) p = dbl[n][p % N] + p / N * N;
+                n++;
+                k >>= 1;
             }
-            now = nxt;
+            if (p <= N + i) can++;
         }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
+        if (can == 0) r = m;
+        else {
+            cnt = N - can;
+            l = m;
         }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    }
+    print(pll{l, cnt});
 }

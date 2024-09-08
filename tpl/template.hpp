@@ -1,5 +1,8 @@
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 // !ifndef NOLIB

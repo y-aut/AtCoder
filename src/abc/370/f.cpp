@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,118 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
+bool check(ll N, ll K, const vll &acc, ll start, ll v) {
+    assert(0 <= start && start < N);
+    ll now = start;
+    rep(i, K) {
+        now = lower_bound(all(acc), acc[now] + v) - acc.begin();
+        if (now > start + N) return false;
+    }
+    return true;
+}
+
+bool check2(ll N, ll K, const vll &A2, ll start, ll v) {
+    assert(0 <= start && start < N);
+    ll pos = start, now = 0, cnt = 0;
+    while (cnt < K && pos < start + N) {
+        now += A2[pos++];
+        if (now >= v) {
+            now = 0;
+            cnt++;
+        }
+    }
+    return cnt == K;
+}
+
+ll op(ll a, ll b) { return a + b; }
+ll e() { return 0; }
+ll mp(bool f, ll x) { return f ? 1 : x; }
+bool comp(bool f, bool g) { return f || g; }
+bool id() { return false; }
 
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
+    LL(N, K);
+    VLL(A, N);
+    ll B = max(1LL, (ll)(sqrt(N) / 3));
+    ll S = accumulate(all(A), 0LL);
+    vll A2 = A;
+    A2.reserve(N * 2);
+    repi(i, A) A2.pb(i);
+    vll acc(N * 2 + 1);
+    rep(i, N * 2) acc[i + 1] = acc[i] + A2[i];
+    if (K <= B) {
+        ll ans = 0, cnt = 0;
+        rep(i, N) {
+            if (!check(N, K, acc, i, ans)) {
+                cnt++;
+                continue;
+            }
+            ll l = ans, r = S;
+            while (r - l >= 2) {
+                ll m = (l + r) / 2;
+                if (check(N, K, acc, i, m)) l = m;
+                else r = m;
+            }
+            if (l > ans) {
+                ans = l;
+                cnt = i;
+            } else if (l < ans) {
+                cnt++;
+            }
         }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
+        print(pll{ans, cnt});
+    } else {
+        ll ansmax = S / K;
+        ll border = min(N / K + 10, N);
+        ll pos = -1;
+        rep(i, N) {
+            if (acc[i + border] - acc[i] >= ansmax) BREAK(pos = i);
+        }
+        assert(pos != -1);
+        ll ans = 0;
+        rep(i, pos + 1, pos + border + 1) {
+            if (!check2(N, K, A2, i % N, ans)) {
+                continue;
+            }
+            ll l = ans, r = S;
+            while (r - l >= 2) {
+                ll m = (l + r) / 2;
+                if (check2(N, K, A2, i % N, m)) l = m;
+                else r = m;
+            }
+            chmax(ans, l);
+        }
+        lazy_segtree<ll, op, e, bool, mp, comp, id> tree(N * 2);
+        rep(i, pos + 1, pos + border + 1) {
+            if (!check2(N, K, A2, i % N, ans)) {
+                continue;
+            }
+            vll fw{i % N}, bw{N + i % N};
+            ll p = i % N, now = 0, cnt = 0;
+            while (cnt < K) {
+                now += A2[p++];
+                if (now >= ans) {
+                    now = 0;
+                    cnt++;
+                    fw.pb(p);
                 }
             }
-            now = nxt;
+            p = N + i % N, now = 0, cnt = 0;
+            while (cnt < K) {
+                now += A2[--p];
+                if (now >= ans) {
+                    now = 0;
+                    cnt++;
+                    bw.pb(p);
+                }
+            }
+            debugs(i, ans, fw, bw);
+            rep(i, K + 1) {
+                tree.apply(fw[i], bw[K - i] + 1, true);
+            }
         }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+        vb q(N);
+        rep(i, N * 2) q[i % N] = q[i % N] || tree.get(i) != 0;
+        print(pll{ans, N - accumulate(all(q), 0)});
+    }
 }

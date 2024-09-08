@@ -309,45 +309,39 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
+#pragma region "factors"
+
+// 約数列挙
+vll factors(ll n) {
+    vll ans{1};
+    for (ll i = 2; i * i <= n; i++) {
+        if (n % i == 0) ans.pb(i);
+    }
+    for (ll i = ans.size() - (ans.back() * ans.back() == n ? 2 : 1); i >= 0; i--) {
+        ans.pb(n / ans[i]);
+    }
+    return ans;
+}
+
+#pragma endregion "factors"
+
+int memo[100010];
+ll f(ll n) {
+    if (memo[n] != -1) return memo[n];
+    if (n == 1) return memo[n] = 0;
+    vll fs = factors(n);
+    set<ll> s;
+    rep(i, fs.size() - 1) s.insert(f(fs[i]));
+    ll ans = 0;
+    rep(i, LINF) if (!s.count(i)) BREAK(ans = i);
+    return memo[n] = ans;
+}
 
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
-        }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
-            }
-            now = nxt;
-        }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    LL(N);
+    VLL(A, N);
+    rep(i, 100010) memo[i] = -1;
+    ll g = 0;
+    repi(i, A) g ^= f(i);
+    print(g == 0 ? "Bruno" : "Anna");
 }

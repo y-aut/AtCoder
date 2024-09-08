@@ -309,45 +309,38 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
-
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
+    LL(N);
+    VLL(A, N);
+    VLL(B, N);
+    LL(Q);
+    fenwick_tree<ll> ft(N);
+    rep(i, N) ft.add(i, A[i]);
+    set<ll> bi;
+    rep(i, N) if (B[i] >= 2) bi.insert(i);
+    rep(q, Q) {
+        LL(op, a, b);
+        a--;
+        if (op == 1) {
+            ft.add(a, -ft.sum(a, a + 1) + b);
+            A[a] = b;
+        } else if (op == 2) {
+            if (B[a] >= 2 && b < 2) bi.erase(a);
+            if (B[a] < 2 && b >= 2) bi.insert(a);
+            B[a] = b;
         } else {
-            dp[now][S[l][d] - '0'][0] = 1;
-        }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
+            ll v = 0;
+            auto itr = bi.lower_bound(a);
+            ll pos = a;
+            while (itr != bi.end() && *itr < b) {
+                v += ft.sum(pos, *itr);
+                pos = *itr;
+                v = max(v + A[pos], v * B[pos]);
+                pos++;
+                itr++;
             }
-            now = nxt;
+            v += ft.sum(pos, b);
+            print(v);
         }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    }
 }

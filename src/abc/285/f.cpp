@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,53 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
+CSLL SZ = 26;
+using ar = arll<SZ>;
+
+ar op(ar a, const ar &b) {
+    rep(i, SZ) a[i] += b[i];
+    return a;
+}
+ar e() { return {}; }
+
+bool op2(bool a, bool b) { return a && b; }
+bool e2() { return true; }
 
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
+    LL(N);
+    STR(S);
+    LL(Q);
+    v<ar> init(N);
+    rep(i, N) init[i][S[i] - 'a']++;
+    segtree<ar, op, e> seg(init);
+    vb init2(N - 1);
+    rep(i, N - 1) init2[i] = S[i] <= S[i + 1];
+    segtree<bool, op2, e2> sorted(init2);
+    while (Q--) {
+        LL(op, a);
+        a--;
+        if (op == 1) {
+            CHR(b);
+            auto newar = seg.get(a);
+            newar[S[a] - 'a']--;
+            S[a] = b;
+            newar[S[a] - 'a']++;
+            seg.set(a, newar);
+            if (a > 0) sorted.set(a - 1, S[a - 1] <= S[a]);
+            if (a < N - 1) sorted.set(a, S[a] <= S[a + 1]);
         } else {
-            dp[now][S[l][d] - '0'][0] = 1;
-        }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
+            LL(b);
+            if (!sorted.prod(a, b - 1)) {
+                No;
+                continue;
             }
-            now = nxt;
+            auto &&al = seg.all_prod();
+            auto &&cur = seg.prod(a, b);
+            bool ok = true;
+            rep(i, S[a] - 'a' + 1, S[b - 1] - 'a') {
+                if (al[i] != cur[i]) ok = false;
+            }
+            YesNo(ok);
         }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    }
 }

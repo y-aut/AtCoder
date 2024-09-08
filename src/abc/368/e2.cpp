@@ -309,45 +309,34 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
-
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
+    LL(N, M, X);
+    VARLL(info, 4, M);
+    repi(a, b, s, t, info) a--, b--;
+    v<vpll> ini(N);
+    rep(i, M) {
+        auto [a, b, s, t] = info[i];
+        ini[a].eb(s, i);
+    }
+    vll delay(M);
+    priority_queue<pll> q;
+    delay[0] = X;
+    q.emplace(delay[0], 0);
+    while (!q.empty()) {
+        auto [d, v] = q.top();
+        q.pop();
+        if (d < delay[v]) continue;
+        ll to = info[v][1];
+        auto pos = lower_bound(all(ini[to]), pll{info[v][3], -1}) - ini[to].begin();
+        rep(i, pos, ini[to].size()) {
+            auto [s, j] = ini[to][i];
+            if (j == v) continue;
+            if (s >= info[v][3] + delay[v]) break;
+            if (s + delay[j] >= info[v][3] + delay[v]) continue;
+            delay[j] = info[v][3] + delay[v] - s;
+            q.emplace(delay[j], j);
         }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
-            }
-            now = nxt;
-        }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    }
+    assert(delay[0] == X);
+    print(delay.begin() + 1, delay.end());
 }

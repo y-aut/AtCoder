@@ -6,7 +6,6 @@
                 "${workspaceFolder}/*",
                 "${workspaceFolder}/ac-library/**",
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/library/**",
                 "${workspaceFolder}/tpl/**"
             ],
             "defines": [
@@ -24,7 +23,6 @@
                 "${workspaceFolder}/*",
                 "${workspaceFolder}/ac-library/**",
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/library/**",
                 "${workspaceFolder}/tpl/**",
                 "/opt/homebrew/include"
             ],

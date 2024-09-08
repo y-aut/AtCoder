@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,77 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
+#pragma region "binomial"
+
+class Binomial {
+    const ll mod = 0;
+    vll fact, fact_inv, inv;
+
+public:
+    Binomial(const ll size, const ll _mod) : mod(_mod), fact(size + 5), fact_inv(size + 5), inv(size + 5) {
+        fact[0] = fact[1] = 1;
+        fact_inv[0] = fact_inv[1] = 1;
+        inv[1] = 1;
+
+        for (ll i = 2; i < size + 5; i++) {
+            fact[i] = fact[i - 1] * i % mod;
+            inv[i] = mod - inv[mod % i] * (mod / i) % mod;
+            fact_inv[i] = fact_inv[i - 1] * inv[i] % mod;
+        }
+    }
+
+    /// nCk % mod を求める
+    ll nCk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[k] * fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nPk % mod を求める
+    ll nPk(const ll n, const ll k) const {
+        if (k < 0 || n < k)
+            return 0;
+        return fact[n] * (fact_inv[n - k] % mod) % mod;
+    }
+
+    /// nHk % mod を求める
+    ll nHk(const ll n, const ll k) const {
+        if (n == 0 && k == 0)
+            return 1;
+        return nCk(n + k - 1, k);
+    }
+};
+
+#pragma endregion "binomial"
 
 void solve() {
     LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
-        }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
-            }
-            now = nxt;
-        }
+    VARLL(LRX, 3, M);
+    repi(l, r, x, LRX) l--, r--, x--;
+    vector ex(N, vector(N + 1, vector(N + 1, 0)));
+    repi(l, r, x, LRX) {
+        ex[x][0][r]++;
+        ex[x][l + 1][r]--;
+        ex[x][0][N]--;
+        ex[x][l + 1][N]++;
+    }
+    rep(i, N) {
+        rep(j, N + 1) rep(k, N) ex[i][j][k + 1] += ex[i][j][k];
+        rep(j, N) rep(k, N + 1) ex[i][j + 1][k] += ex[i][j][k];
+    }
+    vector memo(N, vector(N, mint(0)));
+    vector memo_ex(N, vector(N, false));
+    Binomial bn(N + 10, MOD2);
+    auto f = [&](auto rc, ll l, ll r) -> mint {
+        if (l > r) return 1;
+        if (memo_ex[l][r]) return memo[l][r];
+        memo_ex[l][r] = true;
         mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
+        rep(i, l, r + 1) {
+            if (ex[i][l][r] != 0) continue;
+            ans += rc(rc, l, i - 1) * rc(rc, i + 1, r) * bn.nCk(r - l, i - l);
         }
-        return memo[d][l][r] = ans;
+        return memo[l][r] = ans;
     };
-    print(f(f, 0, 0, N));
+    print(f(f, 0, N - 1));
 }

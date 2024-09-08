@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,43 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
-
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
+    LL(T);
+    while (T--) {
+        LL(N, K);
+        VLL(A, N);
+        VLL(B, N);
+        repi(i, A) i--;
+        repi(i, B) i--;
+        usll As(all(A));
+        usll Bs(all(B));
+        bool ok = true;
+        repi(i, B) if (!As.count(i)) BREAK(ok = false);
+        if (!ok) {
+            No;
+            continue;
         }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
+        if (A == B) {
+            Yes;
+            continue;
+        }
+        if (K >= 2) {
+            vvll add(N);
+            rep(i, N) add[B[i]].pb(i);
+            bool ok2 = false;
+            rep(i, N) {
+                rep(j, add[i].size() - 1) if (add[i][j + 1] - add[i][j] <= K) ok2 = true;
             }
-            now = nxt;
+            YesNo(ok2);
+            continue;
         }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
+        vll Ad, Bd;
+        repi(i, A) if (Ad.empty() || Ad.back() != i) Ad.pb(i);
+        repi(i, B) if (Bd.empty() || Bd.back() != i) Bd.pb(i);
+        ll pos = 0;
+        repi(i, Ad) if (i == Bd[pos]) {
+            if (++pos == Bd.size()) break;
         }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+        YesNo(pos == Bd.size());
+    }
 }

@@ -1,3 +1,5 @@
+#define USE_MODINT
+
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -7,9 +9,6 @@
 #define TEMPLATE_H
 #include <bits/stdc++.h>
 using namespace std;
-#include <atcoder/all>
-#include <gmpxx.h>
-using namespace atcoder;
 
 // clang-format off
 
@@ -22,7 +21,10 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#define USE_MODINT
+#ifdef USE_MODINT
+#include <atcoder/modint>
+using namespace atcoder;
+#endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -193,17 +195,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// gmp
-using mll = mpz_class;
-using md = mpf_class;
-using vmll = v<mll>;
-using vmd = v<md>;
-#define MLL(...) VAR(mll, __VA_ARGS__)
-#define VMLL(a, b) auto a = in_vmll(b)
-inline mll in_mll() { mll x; cin >> x; return x; }
-inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
-inline mll to_mll(ll v) { return mll(to_string(v)); }
-inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -307,47 +298,31 @@ int main() {
 
 #pragma endregion
 
-DEFINE_MOD(MOD2);
-
-bool ex[41][41][41];
-mint memo[41][41][41];
+// DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
-        }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
+    LL(T);
+    while (T--) {
+        LL(N, K, P);
+        modint::set_mod(P);
+        vvv<modint> res(2, vv<modint>(N, v<modint>(K + 1)));
+        repd(b, 2) rep(n, N) rep(k, K + 1) {
+            if (n == 0) CONTINUE(res[b][n][k] = 1);
+            v<modint> acc(k + 1);
+            acc[0] = res[b][n - 1][0];
+            rep(i, k) acc[i + 1] = acc[i] + res[b][n - 1][i + 1];
+            modint ans = 0;
+            if (b) {
+                rep(i, k + 1) ans += res[b][n - 1][i] * acc[k - i];
+            } else {
+                rep(i, k + 1) {
+                    if (i + i >= k) break;
+                    ans += res[1][n - 1][i] * (acc[k - i] - acc[i]);
                 }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
+                ans *= 2;
             }
-            now = nxt;
+            res[b][n][k] = ans;
         }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+        print(res[0][N - 1][K]);
+    }
 }

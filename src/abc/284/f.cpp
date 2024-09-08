@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,133 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
+#pragma region "rolling-hash"
+
+CSLL MOD_SIZE = 6;
+const ull HASH_BASE[] = {889293976, 1872217329, 1787722576, 1005514673, 981914693, 1375179334};
+const ull HASH_MOD[] = {1944897763, 1925898167, 1912776091, 1935497281, 1939942439, 1902550399};
+const ull HASH_BASE_INV[] = {1566673050, 1386797350, 1701798092, 1107754978, 1908540348, 638154975};
+um<ull, ull> HASH_BASE_POW[] = {{}, {}, {}, {}, {}, {}};
+
+ull get_hash_base_pow(ll index, ull n) {
+    assert(0 <= index && index < MOD_SIZE);
+    auto itr = HASH_BASE_POW[index].find(n);
+    if (itr != HASH_BASE_POW[index].end()) return itr->second;
+    return HASH_BASE_POW[index][n] = pow_mod(HASH_BASE[index], n, HASH_MOD[index]);
+}
+
+template <int mod_num = 4>
+struct RollingHash {
+    ll size;
+    array<ull, mod_num> hash = {};
+
+    RollingHash() : size(0) {}
+    template <typename T>
+    RollingHash(T first, T last) : size(distance(first, last)) {
+        ll i = 0;
+        for (T itr = first; itr != last; itr++, i++) {
+            rep(j, mod_num) {
+                hash[j] += get_hash_base_pow(j, size - i - 1) * (*itr);
+                hash[j] %= HASH_MOD[j];
+            }
+        }
+    }
+    RollingHash(const string &s) : RollingHash(all(s)) {}
+    RollingHash(const vll &v) : RollingHash(all(v)) {}
+    RollingHash(ll v) : size(1) { rep(i, mod_num) hash[i] = v; }
+
+    void pop_front(ll c) {
+        rep(i, mod_num) {
+            hash[i] += HASH_MOD[i] - get_hash_base_pow(i, size - 1) * c % HASH_MOD[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size--;
+    }
+
+    void pop_back(ll c) {
+        rep(i, mod_num) {
+            hash[i] += HASH_MOD[i] - c;
+            hash[i] *= HASH_BASE_INV[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size--;
+    }
+
+    void push_front(ll c) {
+        size++;
+        rep(i, mod_num) {
+            hash[i] += get_hash_base_pow(i, size - 1) * c;
+            hash[i] %= HASH_MOD[i];
+        }
+    }
+
+    void push_back(ll c) {
+        size++;
+        rep(i, mod_num) {
+            hash[i] *= HASH_BASE[i];
+            hash[i] += c;
+            hash[i] %= HASH_MOD[i];
+        }
+    }
+
+    RollingHash &operator+=(const RollingHash &v) {
+        rep(i, mod_num) {
+            hash[i] = (hash[i] * get_hash_base_pow(i, v.size)) % HASH_MOD[i] + v.hash[i];
+            hash[i] %= HASH_MOD[i];
+        }
+        size += v.size;
+        return *this;
+    }
+    friend ostream &operator<<(ostream &os, const RollingHash &v) {
+        os << "{ size=" << v.size << ", hash=[";
+        rep(i, mod_num) {
+            os << v.hash[i] << (i == mod_num - 1 ? "] }" : ", ");
+        }
+        return os;
+    }
+};
+
+template <int n>
+bool operator==(const RollingHash<n> &a, const RollingHash<n> &b) {
+    rep(i, n) if (a.hash[i] != b.hash[i]) return false;
+    return a.size == b.size;
+}
+template <int n>
+bool operator!=(const RollingHash<n> &a, const RollingHash<n> &b) { return !(a == b); }
+template <int n>
+RollingHash<n> operator+(const RollingHash<n> &a, const RollingHash<n> &b) {
+    return RollingHash(a) += b;
+}
+
+template <int n>
+struct Hasher<RollingHash<n>> {
+    ull operator()(const RollingHash<n> &v) const { return v.hash.front(); }
+};
+
+#pragma endregion "rolling-hash"
+
+using RH = RollingHash<2>;
 
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
+    LL(N);
+    STR(T);
+    v<RH> init(N * 2);
+    rep(i, N * 2) init[i] = T[i];
+    RH hd, tl(T.substr(N)), mid(T.rbegin() + N, T.rend());
+    rep(i, N + 1) {
+        if (hd + tl == mid) {
+            auto S = T.substr(i, N);
+            reverse(all(S));
+            print(S);
+            print(i);
+            return;
         }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
-            }
-            now = nxt;
+        if (i != N) {
+            hd.push_back(T[i]);
+            tl.pop_front(T[i + N]);
+            mid.pop_back(T[i]);
+            mid.push_front(T[i + N]);
         }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    }
+    print(-1);
 }

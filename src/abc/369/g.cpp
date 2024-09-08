@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,247 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
+#pragma region "weighted-tree"
+
+#pragma region "tree"
+
+class Tree {
+protected:
+    const ll size;
+    vvll edges;
+    const ll root;
+    vll depth;
+    ll height; // max(depth) + 1
+    vll parents;
+    vvll children;
+    vll partial_size; // 部分木のノード数
+
+private:
+    void set_depth() {
+        set_depth_impl(root, 0);
+        height = *max_element(all(depth)) + 1;
+    }
+
+    void set_depth_impl(ll v, ll d) {
+        depth[v] = d;
+        repi(i, edges[v]) {
+            if (depth[i] == -1)
+                set_depth_impl(i, d + 1);
+        }
+    }
+
+    void set_parents_and_children() {
+        parents[root] = root;
+        rep(i, size) repi(j, edges[i]) {
+            if (depth[i] < depth[j]) {
+                parents[j] = i;
+            } else {
+                children[j].pb(i);
+            }
+        }
+    }
+
+    void get_preorder_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_preorder_impl(order, i);
+        }
+    }
+
+    void get_postorder_impl(vll &order, ll v) const {
+        repi(i, children[v]) {
+            get_postorder_impl(order, i);
+        }
+        order.pb(v);
+    }
+
+    void get_euler_tour_impl(vll &order, ll v) const {
+        order.pb(v);
+        repi(i, children[v]) {
+            get_euler_tour_impl(order, i);
+            order.pb(v);
+        }
+    }
+
+    void set_partial_size() {
+        set_partial_size_impl(root);
+    }
+
+    void set_partial_size_impl(ll v) {
+        partial_size[v] = 1;
+        repi(c, children[v]) {
+            set_partial_size_impl(c);
+            partial_size[v] += partial_size[c];
+        }
+    }
+
+    static vvll get_edges_from_parents(const vll &parents) {
+        vvll edges(parents.size() + 1);
+        rep(i, parents.size()) {
+            edges[i + 1].pb(parents[i]);
+            edges[parents[i]].pb(i + 1);
+        }
+        return edges;
+    }
+
+public:
+    Tree(const vvll &_edges, ll _root = 0) : size(_edges.size()), edges(_edges), root(_root), depth(size, -1),
+                                             parents(size, -1), children(size, vll()), partial_size(size, 0) {
+        if (size == 0) {
+            throw "The tree size is 0.";
+        }
+        set_depth();
+        set_parents_and_children();
+        set_partial_size();
+    }
+
+    // 頂点 0 を根ノードとして，1, 2, ..., N-1 の親ノードの情報から木を作成
+    Tree(const vll &_parents) : Tree(get_edges_from_parents(_parents)) {}
+
+    ll get_size() const { return size; }
+    ll get_root() const { return root; }
+    const vll &get_depth() const { return depth; }
+    ll get_depth(ll v) const { return depth[v]; }
+    ll get_height() const { return height; }
+    const vvll &get_edges() const { return edges; }
+    const vll &get_edges(ll v) const { return edges[v]; }
+    const vll &get_parent() const { return parents; }
+    ll get_parent(ll v) const { return parents[v]; }
+    const vvll &get_children() const { return children; }
+    const vll &get_children(ll v) const { return children[v]; }
+    const vll &get_partial_size() const { return partial_size; }
+    ll get_partial_size(ll v) const { return partial_size[v]; }
+
+    // 行きがけ順に頂点を取得する
+    vll get_preorder() const {
+        auto ans = vll();
+        get_preorder_impl(ans, root);
+        return ans;
+    }
+
+    // 帰りがけ順に頂点を取得する
+    vll get_postorder() const {
+        auto ans = vll();
+        get_postorder_impl(ans, root);
+        return ans;
+    }
+
+    // オイラーツアーを取得する
+    vll get_euler_tour() const {
+        auto ans = vll();
+        get_euler_tour_impl(ans, root);
+        return ans;
+    }
+
+    // 重心の一つを取得する
+    ll get_centroid() const {
+        ll v = get_root();
+        while (true) {
+            ll max_size = 0, max_c = 0;
+            repi(c, get_children(v)) {
+                if (chmax(max_size, get_partial_size(c))) max_c = c;
+            }
+            if (max_size <= get_size() / 2) return v;
+            v = max_c;
+        }
+    }
+
+    // 木の直径と，それを実現する頂点の組を返す
+    ll get_diameter(pll &nodes) const {
+        nodes.first = max_element(all(depth)) - depth.begin();
+        Tree tree(edges, nodes.first);
+        nodes.second = max_element(all(tree.depth)) - tree.depth.begin();
+        return tree.depth[nodes.second];
+    }
+};
+
+#pragma endregion "tree"
+
+class WTree : public Tree {
+protected:
+    const vvpll &wedges;
+    vll wdepth;
+
+private:
+    void set_wdepth() {
+        set_wdepth_impl(root, 0);
+    }
+
+    void set_wdepth_impl(ll v, ll c) {
+        wdepth[v] = c;
+        repi(i, wedges[v]) {
+            if (wdepth[i.first] == -1)
+                set_wdepth_impl(i.first, c + i.second);
+        }
+    }
+
+    static vvll wedges_to_edges(const vvpll &wedges) {
+        vvll ans(wedges.size(), vll());
+        rep(i, wedges.size()) repi(j, wedges[i]) ans[i].pb(j.first);
+        return ans;
+    }
+
+public:
+    WTree(const vvpll &_wedges, ll _root = 0)
+        : Tree(wedges_to_edges(_wedges), _root), wedges(_wedges), wdepth(size, -1) {
+        set_wdepth();
+    }
+
+    const vll &get_wdepth() const { return wdepth; }
+    ll get_wdepth(ll v) const { return wdepth[v]; }
+    const vvpll &get_wedges() const { return wedges; }
+    const vpll &get_wedges(ll v) const { return wedges[v]; }
+
+    // 木の直径と，それを実現する頂点の組を返す
+    ll get_wdiameter(pll &nodes) const {
+        nodes.first = max_element(all(wdepth)) - wdepth.begin();
+        WTree tree(wedges, nodes.first);
+        nodes.second = max_element(all(tree.wdepth)) - tree.wdepth.begin();
+        return tree.wdepth[nodes.second];
+    }
+};
+
+#pragma endregion "weighted-tree"
+
+pll op(pll a, pll b) { return max(a, b); }
+pll e() { return {0, 0}; }
+pll mp(ll f, pll x) { return {x.first + f, x.second}; }
+ll comp(ll f, ll g) { return f + g; }
+ll id() { return 0; }
 
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
+    LL(N);
+    auto edges = in_wedges<true>(N, N - 1);
+    WTree tree(edges);
+    vll par_len(N);
+    rep(i, N) repi(j, w, edges[i]) if (tree.get_depth(i) < tree.get_depth(j)) par_len[j] = w;
+    vll order;
+    vpll rng(N);
+    auto dfs = [&](auto rc, ll v) -> void {
+        rng[v].first = order.size();
+        order.pb(v);
+        repi(i, tree.get_children(v)) {
+            rc(rc, i);
         }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
-            }
-            now = nxt;
-        }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
+        rng[v].second = order.size();
     };
-    print(f(f, 0, 0, N));
+    dfs(dfs, 0);
+    vpll init(N);
+    rep(i, N) init[rng[i].first] = {tree.get_wdepth(i), i};
+    lazy_segtree<pll, op, e, ll, mp, comp, id> segt(init);
+    vb ex(N);
+    ex[0] = true;
+    ll ans = 0;
+    rep(i, N) {
+        auto res = segt.all_prod();
+        ll now = res.second;
+        while (!ex[now]) {
+            ex[now] = true;
+            segt.apply(rng[now].first, rng[now].second, -par_len[now]);
+            segt.apply(rng[now].first, -INF);
+            now = tree.get_parent(now);
+        }
+        ans += res.first * 2;
+        print(ans);
+    }
 }

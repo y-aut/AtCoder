@@ -5,6 +5,9 @@
 #else
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -309,45 +312,49 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-bool ex[41][41][41];
-mint memo[41][41][41];
+#pragma region "extgcd"
+
+/// @brief 拡張ユークリッドの互除法
+/// @param x ax + by = gcd(a, b) を満たす (x, y) が格納される
+/// @param y ax + by = gcd(a, b) を満たす (x, y) が格納される
+/// @return a と b の最大公約数
+TPL_T T extgcd(T a, T b, T &x, T &y) {
+    if (b == T(0)) {
+        x = T(1);
+        y = T(0);
+        return a;
+    }
+    T d = extgcd<T>(b, a % b, y, x);
+    y -= a / b * x;
+    return d;
+}
+
+#pragma endregion "extgcd"
 
 void solve() {
-    LL(N, M);
-    VS(S, N);
-    auto f = [&](auto rc, ll d, ll l, ll r) -> mint {
-        if (ex[d][l][r]) return memo[d][l][r];
-        ex[d][l][r] = true;
-        if (d == M) return memo[d][l][r] = mint(l + 1 == r);
-        vector dp(2, vector(10, vector(N, mint(0))));
-        ll now = 0;
-        if (S[l][d] == '?') {
-            rep(i, 10) dp[now][i][0] = 1;
-        } else {
-            dp[now][S[l][d] - '0'][0] = 1;
-        }
-        rep(i, l + 1, r) {
-            ll nxt = 1 - now;
-            rep(j, 10) rep(k, N) dp[nxt][j][k] = 0;
-            rep(j, 10) rep(k, N) {
-                if (dp[now][j][k] == 0) continue;
-                if (S[i][d] == '?' || S[i][d] - '0' == j) {
-                    dp[nxt][j][k + 1] += dp[now][j][k];
-                }
-                rep(l, j + 1, 10) {
-                    if (S[i][d] == '?' || S[i][d] - '0' == l) {
-                        dp[nxt][l][0] += dp[now][j][k] * rc(rc, d + 1, i - k - 1, i);
-                    }
-                }
-            }
-            now = nxt;
-        }
-        mint ans = 0;
-        rep(j, 10) rep(k, N) {
-            if (dp[now][j][k] == 0) continue;
-            ans += dp[now][j][k] * rc(rc, d + 1, r - k - 1, r);
-        }
-        return memo[d][l][r] = ans;
-    };
-    print(f(f, 0, 0, N));
+    LL(N, A, B, C, X);
+    __int128_t Bl = B, Cl = C;
+    ll ans = 0;
+    rrep(i, N) {
+        __int128_t rs = X - A * i;
+        __int128_t j = 0, k = 0;
+        auto g = extgcd(Bl, Cl, j, k);
+        if (rs % g != 0) continue;
+        rs /= g;
+        j *= rs, k *= rs;
+        auto b = Bl / g, c = Cl / g;
+        // j>=1, k<=N
+        auto mnj = ((j - 1) % c + c) % c + 1, mxk = N - ((N - k) % b + b) % b;
+        auto nk = (rs - mnj * b) / c;
+        if (nk > N) nk = mxk;
+        if (nk < 1) continue;
+        mnj = (rs - nk * c) / b;
+        if (mnj > N) continue;
+        debugs((ll)mnj, (ll)nk);
+        assert(BTW(mnj, 1, N + 1, nk, 1, N + 1));
+        auto mnk = ((k - 1) % b + b) % b + 1, mxj = N - ((N - j) % c + c) % c;
+        auto cnt = min((nk - mnk) / b, (mxj - mnj) / c) + 1;
+        if (cnt > 0) ans += cnt;
+    }
+    print(ans);
 }
