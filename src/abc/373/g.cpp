@@ -313,14 +313,17 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#include "library/ei1333/graph/flow/hungarian.hpp"
+
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
-    }
+    LL(N);
+    VPLL(P, N);
+    VPLL(Q, N);
+    Matrix<double> dist(N + 1, N + 1);
+    rep(i, N) rep(j, N) dist[i + 1][j + 1] = sqrt(abs2(P[i] - Q[j]));
+    auto res = hungarian(dist);
+    debug(res.first);
+    vll ans(N);
+    rep(i, N) ans[res.second[i + 1] - 1] = i + 1;
     print(ans);
 }

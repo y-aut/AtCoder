@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,53 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+pll op(pll a, pll b) { return a + b; }
+pll e() { return {0, 0}; }
+pll mp(ll f, pll x) { return f == LINF ? x : pll{f * x.second, x.second}; }
+ll comp(ll f, ll g) { return f == LINF ? g : f; }
+ll id() { return LINF; }
+
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
+    LL(N);
+    VLL(X, N);
+    rep(i, N) X[i] -= i;
+    vpll init(N);
+    rep(i, N) init[i] = {X[i], 1};
+    lazy_segtree<pll, op, e, ll, mp, comp, id> tree(init);
     ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(Q);
+    rep(q, Q) {
+        LL(t, g);
+        t--;
+        g -= t;
+        if (tree.get(t).first <= g) {
+            ll l = t, r = N;
+            while (r - l >= 2) {
+                ll m = (l + r) / 2;
+                if (tree.get(m).first <= g) l = m;
+                else r = m;
+            }
+            debug(tree, N);
+            debugs(l, t, g);
+            debug(tree.prod(t, l + 1));
+            ans += g * (l + 1 - t) - tree.prod(t, l + 1).first;
+            tree.apply(t, l + 1, g);
+            debug(ans);
+        } else {
+            ll l = -1, r = t;
+            while (r - l >= 2) {
+                ll m = (l + r) / 2;
+                if (tree.get(m).first >= g) r = m;
+                else l = m;
+            }
+            debug(tree, N);
+            debugs(r, t, g);
+            debug(tree.prod(r, t + 1));
+            ans += tree.prod(r, t + 1).first - g * (t + 1 - r);
+            tree.apply(r, t + 1, g);
+            debug(ans);
+        }
     }
+    debug(tree, N);
     print(ans);
 }

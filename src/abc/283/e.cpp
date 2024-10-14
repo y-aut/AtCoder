@@ -313,14 +313,38 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+bool ok(const vll &a, const vll &b, const vll &c, bool ad, bool bd, bool cd) {
+    rep(i, a.size()) {
+        bool flg = false;
+        if (i == 0) flg = a[i] != a[1];
+        else if (i == a.size() - 1) flg = a[i] != a[a.size() - 2];
+        else flg = a[i] != a[i - 1] && a[i] != a[i + 1];
+        if (flg) {
+            if ((a[i] ^ ad) != (b[i] ^ bd) && (a[i] ^ ad) != (c[i] ^ cd)) return false;
+        }
     }
-    print(ans);
+    return true;
+}
+
+void solve() {
+    LL(H, W);
+    VVLL(A, H, W);
+    vll dummy(W, 3);
+    A.insert(A.begin(), dummy);
+    A.insert(A.begin(), dummy);
+    A.pb(dummy);
+    vll dp(4);
+    rep(i, 2, H + 3) {
+        vll nxt(4, LINF);
+        rep(j, 4) {
+            if (dp[j] == LINF) continue;
+            rep(k, 2) {
+                if (ok(A[i - 1], A[i - 2], A[i], j & 1, j & 2, k)) {
+                    chmin(nxt[(j & 1) << 1 | k], dp[j] + k);
+                }
+            }
+        }
+        dp = move(nxt);
+    }
+    printex(*min_element(all(dp)), LINF, -1);
 }

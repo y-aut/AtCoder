@@ -107,6 +107,7 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
+#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 

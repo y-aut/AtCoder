@@ -314,13 +314,19 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N, W);
+    VPLL(wv, N);
+    v<pq<ll>> q(W);
+    repi(w, v, wv) q[w - 1].push(v - 1);
+    vll dp(W + 1, 0);
+    rep(w, 1, W + 1) {
+        rep(i, 1, W / w + 1) {
+            if (q[w - 1].empty()) break;
+            ll v = q[w - 1].top();
+            q[w - 1].pop();
+            if (v > 2) q[w - 1].push(v - 2);
+            repd(j, W + 1 - w) chmax(dp[j + w], dp[j] + v);
+        }
     }
-    print(ans);
+    print(*max_element(all(dp)));
 }

@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,357 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+#pragma region "ei1333/math/rational/rational.hpp"
+
+/**
+ * @brief Rational (有理数型)
+ */
+template <typename T>
+struct Rational {
+private:
+    T num, den;
+
+    static T gcd(T a, T b) {
+        if (a < 0) a = -a;
+        if (b < 0) b = -b;
+        return std::gcd(a, b);
     }
-    print(ans);
+
+    void normalize() {
+        if (num == 0) {
+            den = 1;
+        } else {
+            T g = gcd(num, den);
+            num /= g;
+            den /= g;
+            if (den < 0) {
+                num = -num;
+                den = -den;
+            }
+        }
+    }
+
+public:
+    Rational() : num(0), den(1) {}
+
+    Rational(const T &n) : num(n), den(1) {}
+
+    Rational(const T &n, const T &d) : num(n), den(d) { normalize(); }
+
+    Rational &operator=(const T &n) { return assign(n, 1); }
+
+    Rational &assign(const T &n, const T &d) {
+        num = n;
+        den = d;
+        normalize();
+        return *this;
+    }
+
+    T numerator() const { return num; }
+
+    T denominator() const { return den; }
+
+    Rational &operator+=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g = gcd(den, r_den);
+        den /= g;
+        num = num * (r_den / g) + r_num * den;
+        g = gcd(num, g);
+        num /= g;
+        den *= r_den / g;
+        return *this;
+    }
+
+    Rational &operator-=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g = gcd(den, r_den);
+        den /= g;
+        num = num * (r_den / g) - r_num * den;
+        g = gcd(num, g);
+        num /= g;
+        den *= r_den / g;
+        return *this;
+    }
+
+    Rational &operator*=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g1 = gcd(num, r_den);
+        T g2 = gcd(den, r_num);
+        num = (num / g1) * (r_num / g2);
+        den = (den / g2) * (r_den / g1);
+        return *this;
+    }
+
+    Rational &operator/=(const Rational &r) {
+        T r_num = r.num, r_den = r.den;
+        T g1 = gcd(num, r_num);
+        T g2 = gcd(den, r_den);
+        num = (num / g1) * (r_den / g2);
+        den = (den / g2) * (r_num / g1);
+        if (den < 0) {
+            num = -num;
+            den = -den;
+        }
+        return *this;
+    }
+
+    Rational &operator+=(const T &i) { return (*this) += Rational{i}; }
+
+    Rational &operator-=(const T &i) { return (*this) -= Rational{i}; }
+
+    Rational &operator*=(const T &i) { return (*this) *= Rational{i}; }
+
+    Rational &operator/=(const T &i) { return (*this) /= Rational{i}; }
+
+    Rational operator+(const Rational &r) const { return Rational(*this) += r; }
+
+    Rational operator-(const Rational &r) const { return Rational(*this) -= r; }
+
+    Rational operator*(const Rational &r) const { return Rational(*this) *= r; }
+
+    Rational operator/(const Rational &r) const { return Rational(*this) /= r; }
+
+    Rational operator+(const T &i) const { return Rational(*this) += i; }
+
+    Rational operator-(const T &i) const { return Rational(*this) -= i; }
+
+    Rational operator*(const T &i) const { return Rational(*this) *= i; }
+
+    Rational operator/(const T &i) const { return Rational(*this) /= i; }
+
+    Rational operator-() const { return Rational{-num, den}; }
+
+    Rational &operator++() {
+        num += den;
+        return *this;
+    }
+
+    Rational &operator--() {
+        num -= den;
+        return *this;
+    }
+
+#define define_cmp(op)                          \
+    bool operator op(const Rational &r) const { \
+        return num * r.den op r.num * den;      \
+    }
+
+    bool operator==(const Rational &r) const {
+        return num == r.num && den == r.den;
+    }
+
+    bool operator!=(const Rational &r) const {
+        return !(*this == r);
+    }
+
+    define_cmp(<)
+
+        define_cmp(>)
+
+            define_cmp(<=)
+
+                define_cmp(>=)
+#undef define_cmp
+
+                    template <typename Real = double>
+                    Real to_double() const {
+        return static_cast<Real>(numerator()) / denominator();
+    }
+
+    Rational abs() const { return Rational{num < 0 ? -num : num, den}; }
+
+    friend ostream &operator<<(ostream &os, const Rational &r) {
+        return os << r.numerator() << "/" << r.denominator();
+    }
+};
+
+#pragma endregion "ei1333/math/rational/rational.hpp"
+
+#pragma region "ei1333/structure/convex-hull-trick/convex-hull-trick-add-monotone.hpp"
+
+template <typename T, bool isMin>
+struct ConvexHullTrickAddMonotone {
+#define F first
+#define S second
+    using P = pair<T, T>;
+    deque<P> H;
+
+    ConvexHullTrickAddMonotone() = default;
+
+    bool empty() const { return H.empty(); }
+
+    void clear() { H.clear(); }
+
+    static constexpr int sgn(T x) { return x == 0 ? 0 : (x < 0 ? -1 : 1); }
+
+    static constexpr T floor_div(T n, T d) {
+        return n / d - ((n ^ d) < 0 and n % d != 0);
+    }
+
+    static constexpr bool check(const P &a, const P &b, const P &c) {
+        if (b.S == a.S || c.S == b.S)
+            return sgn(b.F - a.F) * sgn(c.S - b.S) >= sgn(c.F - b.F) * sgn(b.S - a.S);
+        if constexpr (is_integral<T>::value) {
+            return floor_div(b.S - a.S, a.F - b.F) >= floor_div(c.S - b.S, b.F - c.F);
+        } else {
+            return (b.F - a.F) * sgn(c.S - b.S) / abs(b.S - a.S) >=
+                   (c.F - b.F) * sgn(b.S - a.S) / abs(c.S - b.S);
+        }
+    }
+
+    void add(T a, T b) {
+        if (!isMin) a *= -1, b *= -1;
+        P line(a, b);
+        if (empty()) {
+            H.emplace_front(line);
+            return;
+        }
+        if (H.front().F <= a) {
+            if (H.front().F == a) {
+                if (H.front().S <= b) return;
+                H.pop_front();
+            }
+            while (H.size() >= 2 && check(line, H.front(), H[1])) H.pop_front();
+            H.emplace_front(line);
+        } else {
+            assert(a <= H.back().F);
+            if (H.back().F == a) {
+                if (H.back().S <= b) return;
+                H.pop_back();
+            }
+            while (H.size() >= 2 && check(H[H.size() - 2], H.back(), line))
+                H.pop_back();
+            H.emplace_back(line);
+        }
+    }
+
+    static constexpr T get_y(const P &a, const T &x) { return a.F * x + a.S; }
+
+    T query(T x) const {
+        assert(!empty());
+        int l = -1, r = H.size() - 1;
+        while (l + 1 < r) {
+            int m = (l + r) >> 1;
+            if (get_y(H[m], x) >= get_y(H[m + 1], x))
+                l = m;
+            else
+                r = m;
+        }
+        if (isMin) return get_y(H[r], x);
+        return -get_y(H[r], x);
+    }
+
+    T query_monotone_inc(T x) {
+        assert(!empty());
+        while (H.size() >= 2 && get_y(H.front(), x) >= get_y(H[1], x))
+            H.pop_front();
+        if (isMin) return get_y(H.front(), x);
+        return -get_y(H.front(), x);
+    }
+
+    T query_monotone_dec(T x) {
+        assert(!empty());
+        while (H.size() >= 2 && get_y(H.back(), x) >= get_y(H[H.size() - 2], x))
+            H.pop_back();
+        if (isMin) return get_y(H.back(), x);
+        return -get_y(H.back(), x);
+    }
+
+#undef F
+#undef S
+};
+
+#pragma endregion "ei1333/structure/convex-hull-trick/convex-hull-trick-add-monotone.hpp"
+
+template <typename T>
+T floor(T a, T b) {
+    return a / b - (a % b && (a ^ b) < 0);
+}
+
+template <typename T>
+T ceil(T x, T y) {
+    return floor(x + y - 1, y);
+}
+
+template <typename T>
+pair<T, T> divmod(T x, T y) {
+    T q = floor(x, y);
+    return {q, x - q * y};
+}
+
+// sum_{x in [L,R)} floor(ax + b, mod)
+// I は範囲内で ax+b がオーバーフローしない程度
+template <typename O, typename I>
+O floor_sum_of_linear(I L, I R, I a, I b, I mod) {
+    assert(L <= R);
+    O res = 0;
+    b += L * a;
+    I N = R - L;
+
+    if (b < 0) {
+        I k = ceil(-b, mod);
+        b += k * mod;
+        res -= O(N) * O(k);
+    }
+
+    while (N) {
+        I q;
+        tie(q, a) = divmod(a, mod);
+        res += (N & 1 ? O(N) * O((N - 1) / 2) * O(q) : O(N / 2) * O(N - 1) * O(q));
+        if (b >= mod) {
+            tie(q, b) = divmod(b, mod);
+            res += O(N) * q;
+        }
+        tie(N, b) = divmod(a * N + b, mod);
+        tie(a, mod) = make_pair(mod, a);
+    }
+    return res;
+}
+
+using R = Rational<__int128_t>;
+
+R abs(R x) { return x < R(0) ? -x : x; }
+
+void solve() {
+    LL(T);
+    while (T--) {
+        LL(N);
+        VARLL(ABC, 3, N);
+        v<pair<R, R>> pq;
+        repi(a, b, c, ABC) {
+            pq.eb(R(-a) / b, R(c) / b);
+        }
+        sort(all(pq));
+        ConvexHullTrickAddMonotone<R, true> cht;
+        repi(p, q, pq) {
+            cht.add(p, q);
+        }
+        ll ans = 0;
+        ll now = 1;
+        rep(i, cht.H.size()) {
+            auto &&line = cht.H[i];
+            if (cht.get_y(line, now) <= 0) break;
+            R x, y;
+            if (i == cht.H.size() - 1) {
+                x = -line.second / line.first;
+                y = 0;
+            } else {
+                auto &&line2 = cht.H[i + 1];
+                x = (line2.second - line.second) / (line.first - line2.first);
+                y = cht.get_y(line, x);
+                if (y < 0) {
+                    x = -line.second / line.first;
+                    y = 0;
+                }
+            }
+            if (x < 1) continue;
+            ll nxt = (x.numerator() + x.denominator() - 1) / x.denominator();
+            __int128_t p = line.first.denominator(), q = line.first.numerator(),
+                       r = line.second.denominator(), s = line.second.numerator();
+            ans += floor_sum_of_linear<__int128_t, __int128_t>(now, nxt, q * r, p * s - 1, p * r);
+            now = nxt;
+            if (y == 0) break;
+        }
+        print(ans);
+    }
 }

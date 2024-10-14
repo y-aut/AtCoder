@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,47 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+CSLL K = 10;
+
+array<ll, K> merge(const array<ll, K> &a, const array<ll, K> &b) {
+    array<ll, K> ans;
+    ll p1 = 0, p2 = 0;
+    while (p1 + p2 < K) {
+        if (a[p1] >= b[p2]) {
+            ans[p1 + p2] = a[p1];
+            p1++;
+        } else {
+            ans[p1 + p2] = b[p2];
+            p2++;
+        }
     }
-    print(ans);
+    return ans;
+}
+
+void solve() {
+    LL(N, Q);
+    um<ll, array<ll, K>> rnk;
+    rep(i, N) {
+        array<ll, K> a;
+        a[0] = i;
+        rep(j, 1, K) a[j] = -1;
+        rnk[i] = a;
+    }
+    dsu uf(N);
+    rep(q, Q) {
+        LL(op);
+        if (op == 1) {
+            LL(u, v);
+            u--, v--;
+            if (uf.same(u, v)) continue;
+            auto a = merge(rnk[uf.leader(u)], rnk[uf.leader(v)]);
+            rnk.erase(uf.leader(u)), rnk.erase(uf.leader(v));
+            uf.merge(u, v);
+            rnk[uf.leader(u)] = a;
+        } else {
+            LL(v, k);
+            v--, k--;
+            printex(rnk[uf.leader(v)][k] + 1, 0, -1);
+        }
+    }
 }

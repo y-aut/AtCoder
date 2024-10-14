@@ -314,13 +314,22 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
-    }
-    print(ans);
+    LL(N, M);
+    auto edges = in_edges<true>(N, M);
+    ll cnt = 0;
+    auto dfs = [&](auto rc, ll v, usll &vis) -> void {
+        vis.insert(v);
+        if (++cnt == 1000000) {
+            print(cnt);
+            exit(0);
+        }
+        repi(i, edges[v]) {
+            if (vis.count(i)) continue;
+            rc(rc, i, vis);
+        }
+        vis.erase(v);
+    };
+    usll vis;
+    dfs(dfs, 0, vis);
+    print(cnt);
 }

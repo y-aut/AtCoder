@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -314,13 +313,47 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N, M, K);
+    VPLL(XY, M);
+    repi(x, y, XY) x--, y--;
+    set<ll> s{0};
+    repi(x, y, XY) s.insert(x), s.insert(y);
+    map<ll, ll> id;
+    {
+        ll now = 0;
+        repi(i, s) id[i] = now++;
     }
+    v<pair<pll, ll>> edges;
+    {
+        ll pv = *prev(s.end());
+        repi(i, d, id) {
+            edges.eb(pll{id[pv], d}, (i + N - pv) % N);
+            pv = i;
+        }
+        repi(x, y, XY) {
+            edges.eb(pll{id[x], id[y]}, 1);
+        }
+    }
+    debug(id);
+    debug(edges);
+    ll S = s.size();
+    vvm dp(K, vm(S)), dp2(K, vm(S));
+    dp[0][id[0]] = 1;
+    dp2[0][id[0]] = 1;
+    rep(i, 1, K) {
+        rep(j, S) dp[i][j] = dp[i - 1][j];
+        repi(p, c, edges) {
+            auto [a, b] = p;
+            if (i >= c) {
+                dp[i][b] += dp2[i - c][a];
+                dp2[i][b] += dp2[i - c][a];
+            }
+        }
+    }
+    debug(dp);
+    mint ans = 1;
+    vll out_deg(S);
+    repi(x, y, XY) out_deg[id[x]]++;
+    rep(i, S) ans += dp[K - 1][i] * out_deg[i];
     print(ans);
 }

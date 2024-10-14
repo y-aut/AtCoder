@@ -314,13 +314,48 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N, M, K);
+    VLL(A, N);
+    if (N == M) {
+        vll ans(N, 0);
+        print(ans);
+        return;
+    }
+    ll rest = K - accumulate(all(A), 0LL);
+    vpll b(N);
+    rep(i, N) b[i] = pll{A[i], i};
+    sort(all(b), greater<pll>());
+    vll bf(N);
+    rep(i, N) bf[N - 1 - i] = b[i].first;
+    debug(bf);
+    vll acc(N + 1);
+    rep(i, N) acc[i + 1] = acc[i] + b[i].first;
+    vll ans(N);
+    rep(i, N) {
+        debug(i);
+        if (i >= M && b[i].first + rest < b[M - 1].first) {
+            ans[b[i].second] = -1;
+            continue;
+        }
+        ll l = -1, r = rest;
+        while (r - l >= 2) {
+            ll m = (l + r) / 2;
+            debug(m);
+            ll c = b[i].first + m + 1;
+            ll p = upper_bound(all(bf), c) - bf.begin();
+            p = N - p;
+            debug(p);
+            ll nes = 0;
+            if (p < M) {
+                nes = i < M ? acc[M + 1] - b[i].first - acc[p] : acc[M] - acc[p];
+                nes += c * p;
+                nes = c * M - nes;
+            }
+            debug(nes);
+            if (nes > rest - m) r = m;
+            else l = m;
+        }
+        ans[b[i].second] = r;
     }
     print(ans);
 }

@@ -314,13 +314,16 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
-    }
-    print(ans);
+    LL(N, M);
+    auto edges = in_wedges<false>(N, M);
+    auto biedges = edges;
+    rep(i, N) repi(j, w, edges[i]) biedges[j].eb(i, -w);
+    vll n(N, LINF);
+    auto dfs = [&](auto rc, ll v, ll val) -> void {
+        if (n[v] != LINF) return;
+        n[v] = val;
+        repi(i, w, biedges[v]) rc(rc, i, val + w);
+    };
+    rep(i, N) dfs(dfs, i, 0);
+    print(n);
 }

@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,91 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
-void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
-    }
+umh<pll, bool> mem;
+
+bool check(ll x, ll y) {
+    if (mem.count({x, y})) return mem[{x, y}];
+    cout << "? " << (x + 1) << " " << (y + 1) << endl;
+    LL(ret);
+    if (ret == -1) exit(0);
+    return mem[{x, y}] = ret;
+}
+
+void decide(vll &ans) {
+    cout << "! ";
+    repi(i, ans) i++;
     print(ans);
+    cout << flush;
+}
+
+void solve() {
+    LL(N, M, Q);
+    vvpll s;
+    rep(i, N) s.pb({pll{i, 0}});
+    while (true) {
+        vvpll ns;
+        bool ex = false;
+        for (ll i = 0; i < s.size(); i += 2) {
+            if (i == s.size() - 1) {
+                ex = true;
+                ns.pb(s[i]);
+                break;
+            }
+            if (check(s[i][0].first, s[i + 1][0].first) == 0) {
+                vpll tmp = s[i];
+                repi(j, s[i + 1]) tmp.pb(j);
+                ns.pb(tmp);
+            } else {
+                vpll tmp = s[i];
+                repi(j, c, s[i + 1]) tmp.eb(j, 1 - c);
+                ns.pb(tmp);
+            }
+        }
+        s = move(ns);
+        if (ex) break;
+    }
+
+    ll ct = -1;
+    rep(i, s.size() - 1) {
+        assert(s[i].size() == 16);
+        bool all0 = true;
+        rep(j, s[i].size()) {
+            if (s[i][j].second == 1) BREAK(all0 = false);
+        }
+        if (all0) {
+            ct = s[i][0].first;
+            break;
+        }
+    }
+
+    vll ans;
+    rep(i, s.size() - 1) {
+        assert(s[i].size() == 16);
+        ll c0 = 0, c1 = 0;
+        rep(j, s[i].size()) {
+            if (s[i][j].second == 0) c0++;
+            else c1++;
+        }
+        if (c0 >= 11) {
+            rep(j, s[i].size()) {
+                if (s[i][j].second == 1) ans.pb(s[i][j].first);
+            }
+        } else if (c1 >= 11) {
+            rep(j, s[i].size()) {
+                if (s[i][j].second == 0) ans.pb(s[i][j].first);
+            }
+        } else {
+            ll t = check(ct, s[i][0].first) == 1 ? s[i][0].second : 1 - s[i][0].second;
+            rep(j, s[i].size()) {
+                if (s[i][j].second == t) ans.pb(s[i][j].first);
+            }
+        }
+    }
+    if (ans.size() < M) {
+        ll t = check(ct, s.back()[0].first) == 1 ? s.back()[0].second : 1 - s.back()[0].second;
+        rep(j, s.back().size()) {
+            if (s.back()[j].second == t) ans.pb(s.back()[j].first);
+        }
+    }
+    decide(ans);
 }

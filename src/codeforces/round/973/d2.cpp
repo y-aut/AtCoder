@@ -1,3 +1,5 @@
+// #define USE_MODINT
+
 #pragma region "Template"
 
 #ifdef DEBUG
@@ -10,9 +12,6 @@
 #endif
 #include <bits/stdc++.h>
 using namespace std;
-#include <atcoder/all>
-#include <gmpxx.h>
-using namespace atcoder;
 
 // clang-format off
 
@@ -25,7 +24,10 @@ using namespace atcoder;
 struct Fast { Fast() { cin.tie(0); ios::sync_with_stdio(false); } } fast;
 #endif
 
-#define USE_MODINT
+#ifdef USE_MODINT
+#include <atcoder/modint>
+using namespace atcoder;
+#endif
 
 /* templates */
 #define TPL_T template <typename T>
@@ -102,7 +104,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -197,17 +198,6 @@ template <bool bidir> inline vvpll in_wedges(int N, int height, ll base = 1)
 inline void IN() {}
 template <typename First, typename... Rest> inline void IN(First &first, Rest &...rest) { cin >> first; IN(rest...); }
 
-// gmp
-using mll = mpz_class;
-using md = mpf_class;
-using vmll = v<mll>;
-using vmd = v<md>;
-#define MLL(...) VAR(mll, __VA_ARGS__)
-#define VMLL(a, b) auto a = in_vmll(b)
-inline mll in_mll() { mll x; cin >> x; return x; }
-inline vmll in_vmll(int length) { vmll res; rep(i, length) res.pb(in_mll()); return res; }
-inline mll to_mll(ll v) { return mll(to_string(v)); }
-inline md to_md(ll v) { return md(to_string(v)); }
 
 // change min/max
 template <typename T, typename S> inline bool chmin(T &a, const S &b) { return a > b && (a = b, true); }
@@ -314,13 +304,47 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(T);
+    while (T--) {
+        LL(N);
+        VLL(A, N);
+        vpll rl{{A[0], 1}};
+        vpll rlacc{{0, 0}, {A[0], 1}};
+        rep(i, 1, N) {
+            if (A[i] > rl.back().first) {
+                rl.eb(A[i], 1);
+                rlacc.pb(rlacc.back() + rl.back());
+                continue;
+            } else if (A[i] == rl.back().first) {
+                rl.back().second++;
+                rlacc.back() += {rl.back().first, 1};
+                continue;
+            }
+            ll l = 0, r = rl.back().first;
+            while (r - l >= 2) {
+                ll m = (l + r) / 2;
+                ll p = lower_bound(all(rl), pll{rl.back().first - m, 0}) - rl.begin();
+                ll sz = rlacc.back().second - rlacc[p].second;
+                ll area = rlacc.back().first - rlacc[p].first - sz * (rl.back().first - m);
+                if (A[i] + area < rl.back().first - m) l = m;
+                else r = m;
+            }
+            ll height = rl.back().first - r;
+            ll p = lower_bound(all(rl), pll{height, 0}) - rl.begin();
+            ll sz = rlacc.back().second - rlacc[p].second;
+            ll area = rlacc.back().first - rlacc[p].first - sz * height;
+            while (rl.size() > p) rl.pop_back(), rlacc.pop_back();
+            if (A[i] + area == height) {
+                rl.eb(height, sz + 1);
+                rlacc.pb(rlacc.back() + pll{rl.back().first * rl.back().second, rl.back().second});
+                continue;
+            }
+            ll sur = A[i] + area - height - 1;
+            rl.eb(height, sz - sur);
+            rlacc.pb(rlacc.back() + pll{rl.back().first * rl.back().second, rl.back().second});
+            rl.eb(height + 1, 1 + sur);
+            rlacc.pb(rlacc.back() + pll{rl.back().first * rl.back().second, rl.back().second});
+        }
+        print(rl.back().first - rl.front().first);
     }
-    print(ans);
 }

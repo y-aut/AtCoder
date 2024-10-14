@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,144 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#pragma region "prime"
+
+bool is_prime(ll n) {
+    if (n <= 1) return false;
+    if (n % 2 == 0) return n == 2;
+    for (ll i = 3; i * i <= n; i += 2) {
+        if (n % i == 0) return false;
+    }
+    return true;
+}
+
+// 素因数分解
+// a^b * c^d: [(a, b), (c, d)]
+vpll prime_factors(ll n) {
+    vpll ans;
+    for (ll i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            n /= i;
+            ll cnt = 1;
+            while (n % i == 0) {
+                n /= i;
+                cnt++;
+            }
+            ans.eb(i, cnt);
+            if (n == 1) break;
+        }
+    }
+    if (n != 1) ans.eb(n, 1);
+    return ans;
+}
+
+// [0, n] の各整数の素因数を列挙する
+vvll prime_factors_all(ll n) {
+    vvll ans(n + 1);
+    rrep(i, 2, n) {
+        if (!ans[i].empty()) continue;
+        for (ll j = i; j <= n; j += i) ans[j].pb(i);
+    }
+    return ans;
+}
+
+// [0, n] の各整数の素因数の個数を列挙する
+vll prime_factors_count_all(ll n) {
+    vll ans(n + 1);
+    rrep(i, 2, n) {
+        if (ans[i]) continue;
+        for (ll j = i; j <= n; j += i) ans[j]++;
+    }
+    return ans;
+}
+
+// [0, n] の素数を列挙する
+vll get_primes(ll n) {
+    vll ans;
+    vb cnt(n + 1);
+    rrep(i, 2, n) {
+        if (cnt[i]) continue;
+        ans.pb(i);
+        for (ll j = i; j <= n; j += i) cnt[j] = true;
+    }
+    return ans;
+}
+
+#pragma endregion "prime"
+
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N);
+    VI(P, N);
+    VI(A, N);
+    repi(i, P) i--;
+    repi(i, A) i--;
+    vpll num(N, {-1, -1});
+    vvll loops;
+    vvll loopinvs;
+    vvll aslist;
+    rep(i, N) {
+        if (num[i].first != -1) continue;
+        vpll n;
+        ll j = i;
+        ll c = 0;
+        do {
+            num[j] = {loops.size(), c};
+            n.eb(A[j], c++);
+            j = P[j];
+        } while (j != i);
+        sort(all(n));
+        vll loop;
+        vll as;
+        repi(j, k, n) loop.pb(k), as.pb(j);
+        loops.pb(loop);
+        aslist.pb(as);
+        vll loopinv(n.size());
+        rep(i, n.size()) loopinv[loop[i]] = i;
+        loopinvs.pb(loopinv);
+    }
+    vll ans(N);
+    um<ll, pll> cur;
+    umll rem;
+    rep(i, N) {
+        auto &&loop = loops[num[i].first];
+        auto &&loopinv = loopinvs[num[i].first];
+        ll n = loop.size();
+        if (rem.count(n)) {
+            ll j = (rem[n] + num[i].second) % n;
+            ans[i] = aslist[num[i].first][loopinv[j]] + 1;
+            continue;
+        }
+        auto fv = prime_factors(n);
+        umll f;
+        repi(p, c, fv) f[p] = c;
+        rep(j, n) {
+            ll m = (loop[j] + n - num[i].second) % n;
+            bool ok = true;
+            auto cpy = cur;
+            repi(p, c, f) {
+                if (!cpy.count(p)) {
+                    cpy[p] = {c, m % powll(p, c)};
+                } else if (cpy[p].first <= c) {
+                    if (m % powll(p, cpy[p].first) != cpy[p].second) {
+                        ok = false;
+                        break;
+                    } else {
+                        cpy[p] = {c, m % powll(p, c)};
+                    }
+                } else {
+                    if (m % powll(p, c) != cpy[p].second % powll(p, c)) {
+                        ok = false;
+                        break;
+                    }
+                }
+            }
+            if (ok) {
+                cur = move(cpy);
+                ans[i] = aslist[num[i].first][j] + 1;
+                rem[n] = m;
+                break;
+            }
+        }
     }
     print(ans);
 }

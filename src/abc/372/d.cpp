@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,22 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+ll op(ll a, ll b) { return max(a, b); }
+ll e() { return 0; }
+
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N);
+    VLL(H, N);
+    segtree<ll, op, e> tree(H);
+    vll ans(N + 1);
+    rep(i, N) {
+        auto f = [&](ll v) -> bool {
+            return v <= H[i];
+        };
+        ll l = tree.min_left(i, f);
+        ans[max(0LL, l - 1)]++;
+        ans[i]--;
     }
-    print(ans);
+    rep(i, N) ans[i + 1] += ans[i];
+    print(ans.begin(), ans.end() - 1);
 }

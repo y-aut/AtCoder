@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,56 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+#include "library/hitonanode/number/bare_mod_algebra.hpp"
+
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N);
+    VI(P, N);
+    VI(A, N);
+    repi(i, P) i--;
+    repi(i, A) i--;
+    vpll num(N, {-1, -1});
+    vvll loops;
+    vvll loopinvs;
+    vvll aslist;
+    rep(i, N) {
+        if (num[i].first != -1) continue;
+        vpll n;
+        ll j = i;
+        ll c = 0;
+        do {
+            num[j] = {loops.size(), c};
+            n.eb(A[j], c++);
+            j = P[j];
+        } while (j != i);
+        sort(all(n));
+        vll loop;
+        vll as;
+        repi(j, k, n) loop.pb(k), as.pb(j);
+        loops.pb(loop);
+        aslist.pb(as);
+        vll loopinv(n.size());
+        rep(i, n.size()) loopinv[loop[i]] = i;
+        loopinvs.pb(loopinv);
+    }
+    vll ans(N);
+    pair<mll, mll> cur{0, 1};
+    rep(i, N) {
+        auto &&loop = loops[num[i].first];
+        auto &&loopinv = loopinvs[num[i].first];
+        mll n = (int)loop.size();
+        if (cur.second % n == 0) {
+            ans[i] = aslist[num[i].first][loopinv[mll((to_mll(num[i].second) + cur.first) % n).get_si()]] + 1;
+            continue;
+        }
+        rep(j, loop.size()) {
+            auto tmp = crt(vmll{cur.first, ((to_mll(loop[j]) + n - to_mll(num[i].second)) % n)},
+                           vmll{cur.second, n});
+            if (tmp.second) {
+                cur = tmp;
+                ans[i] = aslist[num[i].first][j] + 1;
+            }
+        }
     }
     print(ans);
 }

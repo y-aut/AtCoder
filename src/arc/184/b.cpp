@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -313,14 +312,64 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+ll f(const vll &p) {
+    vvll dp(2, vll(1LL << p.front(), LINF));
+    vll acc(1LL << p.front(), LINF);
+    ll now = 0;
+    dp[now][0] = 0;
+    rep(i, p.size()) {
+        ll nxt = 1 - now;
+        rep(j, dp[nxt].size()) dp[nxt][j] = LINF;
+        rep(j, acc.size()) acc[j] = LINF;
+        ll fill = (1LL << p[i]) - 1;
+        ll nfill = (1LL << (i == p.size() - 1 ? 0 : p[i + 1])) - 1;
+        rep(j, p[i]) repd(k, 1LL << p[i]) {
+            if (k & 1LL << j) {
+                chmin(dp[now][k & ~(1LL << j)], dp[now][k]);
+            }
+        }
+        rep(k, 1LL << p[i]) acc[k] = dp[now][fill & ~(k | k << 1)];
+        rep(j, p[i]) rep(k, 1LL << p[i]) {
+            if (k & 1LL << j) {
+                chmin(acc[k], acc[k & ~(1LL << j)]);
+            }
+        }
+        rep(k, 1LL << p[i]) chmin(dp[nxt][k & nfill], acc[k] + popcntll(k));
+        now = nxt;
+    }
+    return dp[now][0];
+}
+
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
+    LL(N);
+    vll p;
+    map<ll, ll> top;
+    rep(i, LINF) {
+        auto f2 = 1LL << i;
+        if (f2 > N) break;
+        ll l = 0, r = 19;
+        while (r - l >= 2) {
+            ll m = (l + r) / 2;
+            if (f2 * powll(3, m) <= N) l = m;
+            else r = m;
+        }
+        p.pb(l + 1);
+        top[f2 * powll(3, l)] = i;
+    }
+    ll u = 1;
     ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    while (!p.empty()) {
+        ll cnt = f(p);
+        ll nxt = prev(top.end())->first;
+        ll nu = N / nxt;
+        ans += cnt * ((nu + 5) / 6 - (u + 4) / 6 + (nu + 1) / 6 - u / 6);
+        u = nu + 1;
+        while (!top.empty() && prev(top.end())->first * u > N) {
+            ll i = prev(top.end())->second;
+            top.erase(prev(top.end()));
+            if (--p[i] > 0) top[(1LL << i) * powll(3, p[i] - 1)] = i;
+        }
+        while (!p.empty() && p.back() == 0) p.pop_back();
     }
     print(ans);
 }

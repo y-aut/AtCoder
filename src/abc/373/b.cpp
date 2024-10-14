@@ -314,13 +314,13 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    STR(S);
+    umll ind;
+    rep(i, S.size()) ind[S[i]] = i;
+    ll ans = 0, cur = ind['A'];
+    rep(i, 'A' + 1, 'Z' + 1) {
+        ans += abs(cur - ind[i]);
+        cur = ind[i];
     }
     print(ans);
 }

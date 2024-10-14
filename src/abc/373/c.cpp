@@ -314,13 +314,8 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
-    }
-    print(ans);
+    LL(N);
+    VLL(A, N);
+    VLL(B, N);
+    print(*max_element(all(A)) + *max_element(all(B)));
 }

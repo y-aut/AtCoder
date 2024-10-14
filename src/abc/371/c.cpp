@@ -102,7 +102,6 @@ TPL_T using pqg = priority_queue<T, v<T>, greater<T>>;
 #define pb push_back
 #define eb emplace_back
 #define all(obj) (obj).begin(), (obj).end()
-#define rall(obj) (obj).rbegin(), (obj).rend()
 #define popcnt __builtin_popcount
 #define popcntll __builtin_popcountll
 
@@ -314,13 +313,35 @@ int main() {
 DEFINE_MOD(MOD2);
 
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N);
+    vvb gex(N, vb(N)), hex(N, vb(N));
+    LL(MG);
+    rep(i, MG) {
+        LL(u, v);
+        u--, v--;
+        gex[u][v] = gex[v][u] = true;
     }
+    LL(MH);
+    rep(i, MH) {
+        LL(u, v);
+        u--, v--;
+        hex[u][v] = hex[v][u] = true;
+    }
+    vvll A(N - 1);
+    rep(i, N - 1) {
+        A[i] = in_vll(N - i - 1);
+    }
+    vll ord(N);
+    rep(i, N) ord[i] = i;
+    ll ans = LINF;
+    do {
+        ll cost = 0;
+        rep(i, N) rep(j, i + 1, N) {
+            if (hex[i][j] != gex[ord[i]][ord[j]]) {
+                cost += A[i][j - i - 1];
+            }
+        }
+        chmin(ans, cost);
+    } while (next_permutation(all(ord)));
     print(ans);
 }

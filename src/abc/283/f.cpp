@@ -313,14 +313,28 @@ int main() {
 
 DEFINE_MOD(MOD2);
 
+ll op(ll a, ll b) { return min(a, b); }
+ll e() { return LINF; }
+
 void solve() {
-    LL(N, D, P);
-    VLL(F, N);
-    sort(rall(F));
-    ll ans = 0;
-    for (ll i = 0; i < N; i += D) {
-        ll sum = accumulate(F.begin() + i, F.begin() + i + min(D, N - i), 0LL);
-        ans += min(sum, P);
+    LL(N);
+    VLL(P, N);
+    repi(i, P) i--;
+    segtree<ll, op, e> fu(N), fl(N), bu(N), bl(N);
+    rep(i, N) {
+        fu.set(P[i], i + P[i]);
+        fl.set(P[i], i - P[i]);
     }
-    print(ans);
+    rep(i, N) {
+        ll ans = LINF;
+        chmin(ans, fu.prod(P[i] + 1, N) - (i + P[i]));
+        chmin(ans, fl.prod(0, P[i]) - (i - P[i]));
+        chmin(ans, bu.prod(P[i] + 1, N) - (-i + P[i]));
+        chmin(ans, bl.prod(0, P[i]) - (-i - P[i]));
+        fu.set(P[i], e());
+        fl.set(P[i], e());
+        bu.set(P[i], -i + P[i]);
+        bl.set(P[i], -i - P[i]);
+        print(ans);
+    }
 }
